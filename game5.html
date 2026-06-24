@@ -8,16 +8,15 @@
 body{
 margin:0;
 overflow:hidden;
-background:linear-gradient(#70c5ce,#cfefff);
+background:linear-gradient(#70c5ce,#dff6ff);
 font-family:Arial;
 }
 
 canvas{
 display:block;
-margin:auto;
 }
 
-/* soft start overlay */
+/* overlay */
 #overlay{
 position:absolute;
 top:50%;
@@ -43,7 +42,7 @@ cursor:pointer;
 <canvas id="c"></canvas>
 
 <div id="overlay">
-<h2 id="msg">Flappy Bird</h2>
+<h2>Flappy Bird</h2>
 <button onclick="start()">Start</button>
 </div>
 
@@ -52,20 +51,29 @@ cursor:pointer;
 const c=document.getElementById("c");
 const ctx=c.getContext("2d");
 
-c.width=400;
-c.height=600;
+/* RESPONSIVE CANVAS FIX */
+function resize(){
+c.width=window.innerWidth;
+c.height=window.innerHeight;
+}
+
+resize();
+window.addEventListener("resize",resize);
 
 /* BIRD */
 let bird={
 x:80,
-y:200,
+y:0,
 vy:0,
 size:20,
 wing:0
 };
 
+bird.y=c.height/2;
+
+/* PHYSICS */
 let gravity=0.55;
-let jump=-8.2;
+let jump=-8;
 
 /* GAME */
 let pipes=[];
@@ -78,7 +86,10 @@ let gameOver=false;
 /* CLOUDS */
 let clouds=[];
 for(let i=0;i<6;i++){
-clouds.push({x:Math.random()*400,y:Math.random()*300});
+clouds.push({
+x:Math.random()*c.width,
+y:Math.random()*c.height*0.4
+});
 }
 
 /* START */
@@ -94,16 +105,17 @@ if(!started) return;
 
 if(gameOver){
 location.reload();
-}else{
+return;
+}
+
 bird.vy=jump;
 bird.wing=1;
-}
 });
 
 /* PIPE */
 function addPipe(){
-let gap=140;
-let top=Math.random()*(c.height-gap-120)+50;
+let gap=150;
+let top=Math.random()*(c.height*0.6)+50;
 
 pipes.push({
 x:c.width,
@@ -114,14 +126,14 @@ passed:false
 });
 }
 
-/* DRAW BIRD (animated) */
+/* BIRD DRAW */
 function drawBird(){
 
 ctx.save();
 ctx.translate(bird.x+10,bird.y+10);
 
-/* tilt based on velocity */
-ctx.rotate(Math.min(Math.max(bird.vy*0.06,-0.6),0.8));
+/* tilt */
+ctx.rotate(Math.min(Math.max(bird.vy*0.05,-0.7),0.8));
 
 /* body */
 ctx.fillStyle="yellow";
@@ -129,9 +141,9 @@ ctx.fillRect(-10,-10,bird.size,bird.size);
 
 /* eye */
 ctx.fillStyle="white";
-ctx.fillRect(2,-6,5,5);
+ctx.fillRect(3,-6,5,5);
 ctx.fillStyle="black";
-ctx.fillRect(4,-4,2,2);
+ctx.fillRect(5,-4,2,2);
 
 /* beak */
 ctx.fillStyle="orange";
@@ -146,7 +158,7 @@ bird.wing=0;
 ctx.restore();
 }
 
-/* DRAW PIPE */
+/* PIPE DRAW */
 function drawPipe(p){
 
 ctx.fillStyle="#1f8f3a";
@@ -155,8 +167,8 @@ ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
 
 /* highlight */
 ctx.fillStyle="#2ecc55";
-ctx.fillRect(p.x+5,0,5,p.top);
-ctx.fillRect(p.x+5,p.top+p.gap,5,c.height);
+ctx.fillRect(p.x+6,0,6,p.top);
+ctx.fillRect(p.x+6,p.top+p.gap,6,c.height);
 
 /* caps */
 ctx.fillStyle="#16682a";
@@ -171,12 +183,12 @@ ctx.clearRect(0,0,c.width,c.height);
 
 /* clouds */
 ctx.fillStyle="rgba(255,255,255,0.7)";
-clouds.forEach(c1=>{
-c1.x-=0.4;
-if(c1.x<-50)c1.x=450;
+clouds.forEach(cl=>{
+cl.x-=0.4;
+if(cl.x<-50) cl.x=c.width+50;
 
 ctx.beginPath();
-ctx.arc(c1.x,c1.y,18,0,Math.PI*2);
+ctx.arc(cl.x,cl.y,18,0,Math.PI*2);
 ctx.fill();
 });
 
@@ -184,14 +196,14 @@ ctx.fill();
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
-/* pipes faster */
+/* pipes */
 if(frame%70===0){
 addPipe();
 }
 
 for(let i=0;i<pipes.length;i++){
 let p=pipes[i];
-p.x-=3; // FAST SPEED
+p.x-=3;
 
 drawPipe(p);
 
