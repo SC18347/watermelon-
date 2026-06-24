@@ -2,46 +2,100 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Click Game</title>
+<title>Cookie Clicker</title>
+
 <style>
 body{
 margin:0;
 font-family:Arial;
 background:#111;
 color:white;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
+text-align:center;
+padding:20px;
+}
+
+.cookie{
+width:140px;
+height:140px;
+background:#c68b4a;
+border-radius:50%;
+margin:20px auto;
+line-height:140px;
+font-size:40px;
+user-select:none;
+cursor:pointer;
+transition:0.1s;
+}
+
+.cookie:active{
+transform:scale(0.95);
 }
 
 button{
-padding:20px 40px;
-font-size:20px;
+padding:10px 15px;
+margin:8px;
 border:none;
-border-radius:12px;
+border-radius:8px;
 background:#28a745;
 color:white;
+cursor:pointer;
 }
 
-h1{margin-bottom:10px;}
+.shop{
+margin-top:20px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>Click Game</h1>
-<p>Score: <span id="score">0</span></p>
+<h1>🍪 Cookie Clicker</h1>
 
-<button onclick="add()">CLICK ME</button>
+<h2 id="score">0 Cookies</h2>
+
+<div class="cookie" onclick="clickCookie()">🍪</div>
+
+<div class="shop">
+
+<button onclick="buyCps()">Buy Auto Clicker (Cost: <span id="cost">10</span>)</button>
+
+</div>
+
+<p id="cps">0 cookies/sec</p>
 
 <script>
-let score=0;
-function add(){
-score++;
-document.getElementById("score").innerText=score;
+
+let cookies = 0;
+let cps = 0;
+let cost = 10;
+
+function update(){
+document.getElementById("score").innerText = cookies + " Cookies";
+document.getElementById("cps").innerText = cps + " cookies/sec";
+document.getElementById("cost").innerText = cost;
 }
+
+function clickCookie(){
+cookies++;
+update();
+}
+
+function buyCps(){
+if(cookies >= cost){
+cookies -= cost;
+cps += 1;
+cost = Math.floor(cost * 1.5);
+update();
+}
+}
+
+setInterval(()=>{
+cookies += cps;
+update();
+},1000);
+
+update();
+
 </script>
 
 </body>
