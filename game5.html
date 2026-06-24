@@ -9,7 +9,6 @@ body{
 margin:0;
 overflow:hidden;
 background:linear-gradient(#70c5ce,#dff6ff);
-font-family:Arial;
 }
 
 canvas{
@@ -29,41 +28,38 @@ height:100vh;
 const c=document.getElementById("c");
 const ctx=c.getContext("2d");
 
-/* RESIZE CANVAS TO SCREEN */
+/* CANVAS */
 function resize(){
 c.width=window.innerWidth;
 c.height=window.innerHeight;
-
-/* reset bird safely when resizing */
-bird.y=c.height/2;
 }
 window.addEventListener("resize",resize);
 resize();
 
-/* BIRD */
-let bird={
-x:80,
-y:0,
-vy:0,
-size:20,
-wing:0
-};
-
-bird.y=c.height/2;
-
-/* PHYSICS */
-let gravity=0.55;
-let jump=-8;
-
-/* GAME */
-let pipes=[];
-let frame=0;
-let score=0;
-let best=localStorage.getItem("flappy_best")||0;
+/* GAME STATE */
 let started=false;
 let gameOver=false;
 
-/* START */
+let score=0;
+let best=localStorage.getItem("flappy_best")||0;
+
+/* BIRD */
+let bird={
+x:80,
+y:c.height/2,
+vy:0,
+size:20
+};
+
+/* PHYSICS */
+let gravity=0.5;
+let jump=-8;
+
+/* PIPES */
+let pipes=[];
+let frame=0;
+
+/* INPUT (mobile + desktop) */
 document.addEventListener("click",()=>{
 if(!started){
 started=true;
@@ -77,15 +73,12 @@ return;
 }
 
 bird.vy=jump;
-bird.wing=1;
 });
 
-/* PIPE */
+/* PIPE CREATION */
 function addPipe(){
 let gap=150;
-
-/* FIX: always within screen */
-let top=Math.random()*(c.height-gap-100)+50;
+let top=Math.random()*(c.height-gap-120)+60;
 
 pipes.push({
 x:c.width,
@@ -111,19 +104,17 @@ ctx.fillRect(bird.x+14,bird.y+6,2,2);
 /* beak */
 ctx.fillStyle="orange";
 ctx.fillRect(bird.x+18,bird.y+8,6,4);
-
-/* wing */
-ctx.fillStyle="gold";
-ctx.fillRect(bird.x,bird.y+(bird.wing?2:6),6,4);
-
-bird.wing=0;
 }
 
-/* PIPE */
+/* DRAW PIPE */
 function drawPipe(p){
 
 ctx.fillStyle="#1f8f3a";
+
+/* top */
 ctx.fillRect(p.x,0,p.w,p.top);
+
+/* bottom */
 ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
 
 /* highlight */
@@ -141,16 +132,17 @@ ctx.clearRect(0,0,c.width,c.height);
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
-/* spawn */
-if(frame%75===0){
+/* spawn pipes */
+if(frame%85===0){
 addPipe();
 }
 
-/* pipes */
+/* update pipes */
 for(let i=0;i<pipes.length;i++){
 let p=pipes[i];
 p.x-=3;
 
+/* draw */
 drawPipe(p);
 
 /* collision */
@@ -173,7 +165,7 @@ p.passed=true;
 ctx.fillStyle="#caa472";
 ctx.fillRect(0,c.height-20,c.width,20);
 
-/* ceiling + floor FIX */
+/* bounds */
 if(bird.y<0) bird.y=0;
 if(bird.y>c.height-20) end();
 
@@ -183,7 +175,7 @@ ctx.font="18px Arial";
 ctx.fillText("Score: "+score,10,25);
 ctx.fillText("Best: "+best,10,45);
 
-/* loop */
+/* next frame */
 frame++;
 if(started && !gameOver){
 requestAnimationFrame(loop);
@@ -199,7 +191,9 @@ best=score;
 localStorage.setItem("flappy_best",best);
 }
 
-setTimeout(()=>location.reload(),500);
+setTimeout(()=>{
+location.reload();
+},500);
 }
 
 </script>
