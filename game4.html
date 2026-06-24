@@ -44,7 +44,11 @@ transition:0.1s;
 
 <body>
 
-<div id="hud">Score: 0 | Time: 1.0s</div>
+<div id="hud">
+Score: 0<br>
+High Score: 0<br>
+Time: 1.0s
+</div>
 
 <div class="grid" id="grid"></div>
 
@@ -55,16 +59,21 @@ const hud=document.getElementById("hud");
 
 let tiles=[];
 let active=-1;
+
 let score=0;
 let timeLimit=1000;
 let timer=null;
 let alive=true;
 
+/* HIGH SCORE (LOAD) */
+let highScore = localStorage.getItem("reaction_highscore");
+if(highScore === null) highScore = 0;
+highScore = Number(highScore);
+
 /* BUILD GRID */
 for(let i=0;i<9;i++){
 let t=document.createElement("div");
 t.className="tile";
-t.dataset.i=i;
 
 t.addEventListener("click",()=>hit(i));
 
@@ -72,44 +81,49 @@ tiles.push(t);
 grid.appendChild(t);
 }
 
-/* PICK RANDOM TILE */
+/* UPDATE HUD */
+function updateHUD(timeLeft=1){
+hud.innerHTML=
+`Score: ${score}<br>
+High Score: ${highScore}<br>
+Time: ${timeLeft.toFixed(2)}s`;
+}
+
+/* NEXT TILE */
 function next(){
 
 if(!alive) return;
 
-/* clear old */
+/* reset tiles */
 tiles.forEach(t=>{
 t.style.background="#222";
 t.style.opacity=0.6;
 });
 
-/* choose new */
+/* pick random */
 active=Math.floor(Math.random()*9);
-
 tiles[active].style.background=
 `hsl(${Math.random()*360},90%,60%)`;
-
 tiles[active].style.opacity=1;
 
-/* reset timer */
+/* timer */
 clearTimeout(timer);
 
 let start=Date.now();
 
-/* fail after 1 sec */
 timer=setTimeout(()=>{
 gameOver();
 },timeLimit);
 
-/* update HUD countdown feel */
+/* countdown display */
 let tick=setInterval(()=>{
 let left=(timeLimit-(Date.now()-start))/1000;
-hud.innerText=`Score: ${score} | Time: ${left.toFixed(2)}s`;
+updateHUD(left);
 
 if(left<=0 || !alive){
 clearInterval(tick);
 }
-},50);
+},30);
 }
 
 /* HIT */
@@ -119,7 +133,10 @@ if(!alive) return;
 
 if(i===active){
 score++;
-timeLimit=Math.max(350,timeLimit-10); // gets harder
+
+/* speed up */
+timeLimit=Math.max(350,timeLimit-10);
+
 next();
 }else{
 gameOver();
@@ -129,11 +146,23 @@ gameOver();
 /* GAME OVER */
 function gameOver(){
 alive=false;
+
+/* save high score */
+if(score > highScore){
+highScore = score;
+localStorage.setItem("reaction_highscore", highScore);
+}
+
+updateHUD(0);
+
+setTimeout(()=>{
 alert("Game Over! Score: "+score);
 location.reload();
+},100);
 }
 
 /* START */
+updateHUD(1);
 next();
 
 </script>
