@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flappy Bird</title>
+
+<style>
+body{
+margin:0;
+overflow:hidden;
+background:#70c5ce;
+font-family:Arial;
+}
+
+canvas{
+display:block;
+margin:auto;
+background:linear-gradient(#70c5ce,#dff6ff);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+c.width=400;
+c.height=600;
+
+/* PLAYER (bird) */
+let bird={
+x:80,
+y:200,
+vy:0,
+size:18
+};
+
+let gravity=0.42;
+let jump=-7.5;
+
+/* GAME */
+let pipes=[];
+let frame=0;
+let score=0;
+let best=localStorage.getItem("flappy_best")||0;
+let gameOver=false;
+
+/* INPUT (smooth tap) */
+document.addEventListener("click",()=>{
+if(gameOver){
+location.reload();
+return;
+}
+bird.vy=jump;
+});
+
+/* PIPE CREATION */
+function addPipe(){
+let gap=145;
+let top=Math.random()*(c.height-gap-140)+60;
+
+pipes.push({
+x:c.width,
+top:top,
+gap:gap,
+w:60
+});
+}
+
+/* DRAW BIRD (more detail) */
+function drawBird(){
+ctx.fillStyle="yellow";
+
+/* body */
+ctx.fillRect(bird.x,bird.y,bird.size,bird.size);
+
+/* eye */
+ctx.fillStyle="white";
+ctx.fillRect(bird.x+11,bird.y+4,5,5);
+
+ctx.fillStyle="black";
+ctx.fillRect(bird.x+13,bird.y+6,2,2);
+
+/* beak */
+ctx.fillStyle="orange";
+ctx.fillRect(bird.x+18,bird.y+8,6,4);
+}
+
+/* DRAW PIPE (more detail) */
+function drawPipe(p){
+
+/* main pipe */
+ctx.fillStyle="#1f8f3a";
+ctx.fillRect(p.x,0,p.w,p.top);
+ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
+
+/* pipe shading */
+ctx.fillStyle="#16682a";
+ctx.fillRect(p.x+8,0,6,p.top);
+ctx.fillRect(p.x+8,p.top+p.gap,6,c.height);
+
+/* pipe edges */
+ctx.fillStyle="#2ecc55";
+ctx.fillRect(p.x-2,p.top-10,p.w+4,10);
+ctx.fillRect(p.x-2,p.top+p.gap,p.w+4,10);
+}
+
+/* LOOP */
+function loop(){
+
+ctx.clearRect(0,0,c.width,c.height);
+
+/* physics */
+bird.vy+=gravity;
+bird.y+=bird.vy;
+
+/* pipes spawn */
+if(frame%80===0){
+addPipe();
+}
+
+/* pipes update */
+for(let i=0;i<pipes.length;i++){
+let p=pipes[i];
+p.x-=2.4;
+
+/* draw */
+drawPipe(p);
+
+/* collision */
+if(
+bird.x < p.x+p.w &&
+bird.x+bird.size > p.x &&
+(bird.y < p.top || bird.y+bird.size > p.top+p.gap)
+){
+end();
+}
+
+/* score */
+if(!p.passed && p.x+p.w < bird.x){
+score++;
+p.passed=true;
+}
+}
+
+/* bird */
+drawBird();
+
+/* ground */
+ctx.fillStyle="#caa472";
+ctx.fillRect(0,c.height-20,c.width,20);
+
+/* bounds */
+if(bird.y<0 || bird.y>c.height){
+end();
+}
+
+/* UI */
+ctx.fillStyle="white";
+ctx.font="18px Arial";
+ctx.fillText("Score: "+score,10,25);
+ctx.fillText("Best: "+best,10,45);
+
+/* next frame */
+frame++;
+if(!gameOver){
+requestAnimationFrame(loop);
+}
+}
+
+/* GAME OVER */
+function end(){
+gameOver=true;
+
+if(score>best){
+best=score;
+localStorage.setItem("flappy_best",best);
+}
+
+setTimeout(()=>{
+location.reload();
+},400);
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
