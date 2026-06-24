@@ -2,76 +2,208 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dodge Game</title>
+<title>Fast Asteroids</title>
 
 <style>
 body{
 margin:0;
 overflow:hidden;
-background:#000;
+background:radial-gradient(#000,#000,#06061a);
+font-family:Arial;
+color:white;
 }
 
 #player{
-width:40px;
-height:40px;
-background:red;
 position:absolute;
 bottom:20px;
 left:50%;
 transform:translateX(-50%);
+font-size:34px;
 }
 
-.block{
-width:30px;
-height:30px;
-background:yellow;
+.bullet{
 position:absolute;
-top:-30px;
+width:4px;
+height:18px;
+background:cyan;
+border-radius:2px;
+box-shadow:0 0 6px cyan;
+}
+
+.rock{
+position:absolute;
+text-align:center;
+filter:drop-shadow(0 0 2px #000);
+}
+
+.explosion{
+position:absolute;
+font-size:32px;
+animation:pop 0.25s ease-out forwards;
+}
+
+@keyframes pop{
+from{transform:scale(0.5);opacity:1;}
+to{transform:scale(2);opacity:0;}
 }
 </style>
 </head>
 
 <body>
 
-<div id="player"></div>
+<div id="player">🚀</div>
 
 <script>
-let player=document.getElementById("player");
-let x=window.innerWidth/2;
 
+let player=document.getElementById("player");
+let px=window.innerWidth/2;
+
+let bullets=[];
+let rocks=[];
+
+let canShoot=true;
+let score=0;
+let difficulty=1;
+
+/* movement */
 document.addEventListener("touchmove",e=>{
-x=e.touches[0].clientX;
-player.style.left=x+"px";
+px=e.touches[0].clientX;
+player.style.left=px+"px";
 });
 
-function spawn(){
-let block=document.createElement("div");
-block.className="block";
-block.style.left=Math.random()*window.innerWidth+"px";
-document.body.appendChild(block);
+document.addEventListener("keydown",e=>{
+if(e.key==="ArrowLeft") px-=30;
+if(e.key==="ArrowRight") px+=30;
+player.style.left=px+"px";
 
-let y=0;
+if(e.key===" ") shoot();
+});
 
-let fall=setInterval(()=>{
-y+=5;
-block.style.top=y+"px";
+/* shoot */
+function shoot(){
+if(!canShoot) return;
 
-let p=player.getBoundingClientRect();
-let b=block.getBoundingClientRect();
+canShoot=false;
 
-if(!(b.bottom<p.top||b.top>p.bottom||b.right<p.left||b.left>p.right)){
-alert("GAME OVER");
+let b=document.createElement("div");
+b.className="bullet";
+b.style.left=px+"px";
+b.style.bottom="60px";
+document.body.appendChild(b);
+
+bullets.push({el:b,y:60});
+
+setTimeout(()=>canShoot=true,180); // faster shooting
+}
+
+/* rocks */
+const types=[
+{emoji:"🪨", size:18},
+{emoji:"🪨", size:28},
+{emoji:"🪨", size:42},
+{emoji:"🪨", size:55}
+];
+
+function spawnRock(){
+
+let t=types[Math.floor(Math.random()*types.length)];
+
+let rock=document.createElement("div");
+rock.className="rock";
+rock.innerText=t.emoji;
+
+let x=Math.random()*window.innerWidth;
+
+let speed =
+2.5 + Math.random()*4 + difficulty*0.5; // faster base speed
+
+let drift=(Math.random()-0.5)*4;
+
+rock.style.left=x+"px";
+rock.style.top="-60px";
+rock.style.fontSize=t.size+"px";
+
+document.body.appendChild(rock);
+
+rocks.push({
+el:rock,
+x:x,
+y:-60,
+speed:speed,
+drift:drift
+});
+}
+
+/* faster spawn + ramp difficulty */
+setInterval(()=>{
+spawnRock();
+difficulty += 0.03;
+},320); // faster spawn rate
+
+/* explosion */
+function explode(x,y){
+let e=document.createElement("div");
+e.className="explosion";
+e.innerText="💥";
+e.style.left=x+"px";
+e.style.top=y+"px";
+document.body.appendChild(e);
+
+setTimeout(()=>e.remove(),250);
+}
+
+/* loop */
+function loop(){
+
+// bullets
+bullets.forEach((b,i)=>{
+b.y+=14; // faster bullets
+b.el.style.bottom=b.y+"px";
+
+if(b.y>window.innerHeight){
+b.el.remove();
+bullets.splice(i,1);
+}
+});
+
+// rocks
+rocks.forEach((r,i)=>{
+r.y+=r.speed;
+r.x+=r.drift;
+
+r.el.style.top=r.y+"px";
+r.el.style.left=r.x+"px";
+
+// collisions
+bullets.forEach((b,bi)=>{
+let br=b.el.getBoundingClientRect();
+let rr=r.el.getBoundingClientRect();
+
+if(!(br.right<rr.left||br.left>rr.right||br.bottom<rr.top||br.top>rr.bottom)){
+explode(r.x,r.y);
+
+r.el.remove();
+b.el.remove();
+
+rocks.splice(i,1);
+bullets.splice(bi,1);
+
+score++;
+}
+});
+
+// game over
+if(r.y>window.innerHeight){
+alert("Game Over! Score: "+score);
 location.reload();
 }
+});
 
-if(y>window.innerHeight){
-block.remove();
-clearInterval(fall);
-}
-},20);
+requestAnimationFrame(loop);
 }
 
-setInterval(spawn,1000);
+loop();
+
 </script>
 
 </body>
