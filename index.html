@@ -1,0 +1,263 @@
+y<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sky Cube Platformer</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:Arial;background:#87ceeb}
+#game{display:block;width:100vw;height:70vh}
+.screen{position:fixed;inset:0;background:#111;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:20}
+.hidden{display:none}
+button{padding:14px 24px;margin:8px;font-size:18px}
+#hud{position:fixed;top:10px;left:10px;color:#fff;font-weight:bold}
+#controls{height:30vh;display:none;grid-template-columns:1fr 1fr 1fr;background:#222}
+.ctrl{font-size:28px;border:1px solid #444;color:#fff;background:#333}
+</style>
+</head>
+<body>
+
+<div id="startScreen" class="screen">
+<h1>Sky Cube Platformer</h1>
+<button onclick="showLevels()">START</button>
+</div>
+
+<div id="levelScreen" class="screen hidden">
+<h2>Select Level</h2>
+<div id="levels"></div>
+</div>
+
+<div id="winScreen" class="screen hidden">
+<h1>Level Complete</h1>
+<button onclick="showLevels()">Levels</button>
+</div>
+
+<div id="hud"></div>
+<canvas id="game"></canvas>
+
+<div id="controls">
+<button class="ctrl" id="left">◀</button>
+<button class="ctrl" id="jump">▲</button>
+<button class="ctrl" id="right">▶</button>
+</div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+canvas.width=innerWidth;
+canvas.height=Math.floor(innerHeight*0.7);
+}
+resize();
+addEventListener("resize",resize);
+
+let state="menu";
+let cam=0;
+let levelIndex=0;
+
+const player={x:50,y:100,w:32,h:32,vx:0,vy:0,ground:false,rot:0};
+let particles=[];
+let keys={l:false,r:false};
+
+const levels=[];
+
+for(let n=1;n<=5;n++){
+ let plats=[{x:0,y:420,w:2600,h:80}];
+ let lava=[];
+
+ for(let i=1;i<10+n;i++){
+   plats.push({
+    x:220*i,
+    y:360-Math.sin(i*0.7)*50-(n*8),
+    w:110-(n*5),
+    h:20
+   });
+ }
+
+ for(let i=1;i<7+n;i++){
+   lava.push({x:300*i,y:500,w:120+n*20,h:80,b:Math.random()*100});
+ }
+
+ levels.push({
+  length:2600+n*500,
+  goal:2400+n*500
+ });
+}
+
+const levelButtons=document.getElementById("levels");
+for(let i=0;i<5;i++){
+ const b=document.createElement("button");
+ b.textContent="Level "+(i+1);
+ b.onclick=()=>startLevel(i);
+ levelButtons.appendChild(b);
+}
+
+function showLevels(){
+ state="menu";
+ document.getElementById("startScreen").classList.add("hidden");
+ document.getElementById("levelScreen").classList.remove("hidden");
+ document.getElementById("winScreen").classList.add("hidden");
+ document.getElementById("controls").style.display="none";
+}
+
+function startLevel(i){
+ levelIndex=i;
+ player.x=50;
+ player.y=100;
+ player.vx=0;
+ player.vy=0;
+ cam=0;
+ state="play";
+ document.getElementById("levelScreen").classList.add("hidden");
+ document.getElementById("winScreen").classList.add("hidden");
+ document.getElementById("controls").style.display="grid";
+}
+
+function touchHold(id,key){
+ const e=document.getElementById(id);
+ e.onpointerdown=()=>keys[key]=true;
+ e.onpointerup=()=>keys[key]=false;
+ e.onpointerleave=()=>keys[key]=false;
+}
+touchHold("left","l");
+touchHold("right","r");
+
+document.getElementById("jump").onpointerdown=()=>{
+ if(player.ground){
+  player.vy=-15;
+  player.ground=false;
+  player.rot+=Math.PI/2;
+ }
+};
+
+function collide(a,b){
+ return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+
+function drawSky(){
+ ctx.fillStyle="#59b9ff";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ for(let i=0;i<8;i++){
+   let x=((i*350)-(cam*0.2))%(canvas.width+400)-200;
+   let y=60+(i%3)*50;
+   ctx.fillStyle="white";
+   ctx.beginPath();
+   ctx.arc(x,y,30,0,7);
+   ctx.arc(x+30,y-10,35,0,7);
+   ctx.arc(x+60,y,30,0,7);
+   ctx.fill();
+ }
+
+ let plane=((Date.now()*0.05)% (canvas.width+300))-150;
+ ctx.fillStyle="#ddd";
+ ctx.fillRect(plane,80,70,10);
+ ctx.fillRect(plane+45,70,20,8);
+}
+
+function loop(){
+ requestAnimationFrame(loop);
+ if(state!=="play") return;
+
+ const plats=[];
+ const lava=[];
+
+ for(let i=1;i<10+levelIndex+1;i++){
+   plats.push({x:220*i,y:360-Math.sin(i*0.7)*50-((levelIndex+1)*8),w:110-((levelIndex+1)*5),h:20});
+ }
+ plats.unshift({x:0,y:420,w:4000,h:80});
+
+ for(let i=1;i<7+levelIndex+1;i++){
+   lava.push({x:300*i,y:500,w:120+(levelIndex+1)*20,h:80,b:i});
+ }
+
+ if(keys.l){player.vx=-6;}
+ else if(keys.r){player.vx=6;}
+ else player.vx*=0.8;
+
+ player.vy+=0.8;
+ player.x+=player.vx;
+ player.y+=player.vy;
+
+ player.ground=false;
+
+ for(const p of plats){
+   if(collide(player,p)&&player.vy>0){
+      player.y=p.y-player.h;
+      player.vy=0;
+      player.ground=true;
+   }
+ }
+
+ if(Math.abs(player.vx)>1 && player.ground){
+   particles.push({x:player.x+16,y:player.y+32,v:(Math.random()*2)+1,l:20});
+ }
+
+ for(const l of lava){
+   if(collide(player,l)){ startLevel(levelIndex); }
+ }
+
+ if(player.y>canvas.height+300){ startLevel(levelIndex); }
+
+ if(player.x>levels[levelIndex].goal){
+   state="win";
+   document.getElementById("winScreen").classList.remove("hidden");
+ }
+
+ cam=player.x-canvas.width*0.3;
+
+ drawSky();
+
+ ctx.save();
+ ctx.translate(-cam,0);
+
+ for(const p of plats){
+   ctx.fillStyle="#5d4037";
+   ctx.fillRect(p.x,p.y,p.w,p.h);
+   ctx.fillStyle="#4caf50";
+   ctx.fillRect(p.x,p.y,p.w,5);
+ }
+
+ for(const l of lava){
+   let g=ctx.createLinearGradient(l.x,l.y,l.x,l.y+l.h);
+   g.addColorStop(0,"#ffb300");
+   g.addColorStop(1,"#b71c1c");
+   ctx.fillStyle=g;
+   ctx.fillRect(l.x,l.y,l.w,l.h);
+
+   for(let i=0;i<6;i++){
+     ctx.beginPath();
+     ctx.arc(l.x+20+i*18,l.y+10+Math.sin(Date.now()/200+i)*8,4,0,7);
+     ctx.fillStyle="#ffd54f";
+     ctx.fill();
+   }
+ }
+
+ ctx.fillStyle="gold";
+ ctx.fillRect(levels[levelIndex].goal,250,30,120);
+
+ ctx.save();
+ ctx.translate(player.x+16,player.y+16);
+ ctx.rotate(player.rot);
+ ctx.fillStyle="white";
+ ctx.fillRect(-16,-16,32,32);
+ ctx.restore();
+
+ ctx.restore();
+
+ for(let i=particles.length-1;i>=0;i--){
+   let p=particles[i];
+   p.y+=p.v;
+   p.l--;
+   ctx.fillStyle="rgba(255,255,255,"+(p.l/20)+")";
+   ctx.fillRect(p.x-cam,p.y,3,3);
+   if(p.l<=0) particles.splice(i,1);
+ }
+
+ document.getElementById("hud").textContent="Level "+(levelIndex+1);
+}
+loop();
+</script>
+</body>
+</html>
