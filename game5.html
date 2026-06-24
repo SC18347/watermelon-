@@ -14,25 +14,8 @@ font-family:Arial;
 
 canvas{
 display:block;
-}
-
-/* overlay */
-#overlay{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-text-align:center;
-color:white;
-}
-
-button{
-padding:10px 20px;
-border:none;
-border-radius:10px;
-background:#111;
-color:white;
-cursor:pointer;
+width:100vw;
+height:100vh;
 }
 </style>
 </head>
@@ -41,38 +24,35 @@ cursor:pointer;
 
 <canvas id="c"></canvas>
 
-<div id="overlay">
-<h2>Flappy Bird</h2>
-<button onclick="start()">Start</button>
-</div>
-
 <script>
 
 const c=document.getElementById("c");
 const ctx=c.getContext("2d");
 
-/* RESPONSIVE CANVAS FIX */
-function resize(){
-c.width=window.innerWidth;
-c.height=window.innerHeight;
-}
+/* FIXED INTERNAL GAME RESOLUTION */
+let W=400;
+let H=600;
 
+function resize(){
+c.width=W;
+c.height=H;
+}
 resize();
-window.addEventListener("resize",resize);
+
+/* SCALE DRAWING TO FIT SCREEN */
+function scaleX(x){ return x; }
+function scaleY(y){ return y; }
 
 /* BIRD */
 let bird={
 x:80,
-y:0,
+y:300,
 vy:0,
 size:20,
 wing:0
 };
 
-bird.y=c.height/2;
-
-/* PHYSICS */
-let gravity=0.55;
+let gravity=0.5;
 let jump=-8;
 
 /* GAME */
@@ -83,25 +63,13 @@ let best=localStorage.getItem("flappy_best")||0;
 let started=false;
 let gameOver=false;
 
-/* CLOUDS */
-let clouds=[];
-for(let i=0;i<6;i++){
-clouds.push({
-x:Math.random()*c.width,
-y:Math.random()*c.height*0.4
-});
-}
-
-/* START */
-function start(){
-document.getElementById("overlay").style.display="none";
+/* START ON FIRST TAP */
+document.addEventListener("click",()=>{
+if(!started){
 started=true;
 loop();
+return;
 }
-
-/* INPUT */
-document.addEventListener("click",()=>{
-if(!started) return;
 
 if(gameOver){
 location.reload();
@@ -114,11 +82,11 @@ bird.wing=1;
 
 /* PIPE */
 function addPipe(){
-let gap=150;
-let top=Math.random()*(c.height*0.6)+50;
+let gap=140;
+let top=Math.random()*(H-gap-120)+60;
 
 pipes.push({
-x:c.width,
+x:W,
 top:top,
 gap:gap,
 w:60,
@@ -126,81 +94,57 @@ passed:false
 });
 }
 
-/* BIRD DRAW */
+/* DRAW BIRD */
 function drawBird(){
 
-ctx.save();
-ctx.translate(bird.x+10,bird.y+10);
-
-/* tilt */
-ctx.rotate(Math.min(Math.max(bird.vy*0.05,-0.7),0.8));
-
-/* body */
 ctx.fillStyle="yellow";
-ctx.fillRect(-10,-10,bird.size,bird.size);
+ctx.fillRect(bird.x,bird.y,bird.size,bird.size);
 
 /* eye */
 ctx.fillStyle="white";
-ctx.fillRect(3,-6,5,5);
+ctx.fillRect(bird.x+12,bird.y+4,5,5);
 ctx.fillStyle="black";
-ctx.fillRect(5,-4,2,2);
+ctx.fillRect(bird.x+14,bird.y+6,2,2);
 
 /* beak */
 ctx.fillStyle="orange";
-ctx.fillRect(10,-2,6,4);
+ctx.fillRect(bird.x+18,bird.y+8,6,4);
 
-/* wing animation */
+/* wing */
 ctx.fillStyle="gold";
-ctx.fillRect(-8, bird.wing ? 2 : 6, 6, 4);
+ctx.fillRect(bird.x,bird.y+bird.wing?2:6,6,4);
 
 bird.wing=0;
-
-ctx.restore();
 }
 
-/* PIPE DRAW */
+/* PIPE */
 function drawPipe(p){
 
 ctx.fillStyle="#1f8f3a";
 ctx.fillRect(p.x,0,p.w,p.top);
-ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
+ctx.fillRect(p.x,p.top+p.gap,p.w,H);
 
 /* highlight */
 ctx.fillStyle="#2ecc55";
 ctx.fillRect(p.x+6,0,6,p.top);
-ctx.fillRect(p.x+6,p.top+p.gap,6,c.height);
-
-/* caps */
-ctx.fillStyle="#16682a";
-ctx.fillRect(p.x-3,p.top-12,p.w+6,12);
-ctx.fillRect(p.x-3,p.top+p.gap,p.w+6,12);
+ctx.fillRect(p.x+6,p.top+p.gap,6,H);
 }
 
 /* LOOP */
 function loop(){
 
-ctx.clearRect(0,0,c.width,c.height);
-
-/* clouds */
-ctx.fillStyle="rgba(255,255,255,0.7)";
-clouds.forEach(cl=>{
-cl.x-=0.4;
-if(cl.x<-50) cl.x=c.width+50;
-
-ctx.beginPath();
-ctx.arc(cl.x,cl.y,18,0,Math.PI*2);
-ctx.fill();
-});
+ctx.clearRect(0,0,W,H);
 
 /* physics */
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
-/* pipes */
-if(frame%70===0){
+/* spawn */
+if(frame%80===0){
 addPipe();
 }
 
+/* pipes */
 for(let i=0;i<pipes.length;i++){
 let p=pipes[i];
 p.x-=3;
@@ -225,12 +169,11 @@ p.passed=true;
 
 /* ground */
 ctx.fillStyle="#caa472";
-ctx.fillRect(0,c.height-20,c.width,20);
+ctx.fillRect(0,H-20,W,20);
 
-/* bounds */
-if(bird.y<0 || bird.y>c.height){
-end();
-}
+/* bounds FIX */
+if(bird.y<0) bird.y=0;
+if(bird.y>H-20) end();
 
 /* UI */
 ctx.fillStyle="white";
@@ -238,14 +181,12 @@ ctx.font="18px Arial";
 ctx.fillText("Score: "+score,10,25);
 ctx.fillText("Best: "+best,10,45);
 
-/* next frame */
+/* loop */
 frame++;
-if(!gameOver){
 requestAnimationFrame(loop);
 }
-}
 
-/* GAME OVER */
+/* END */
 function end(){
 gameOver=true;
 
@@ -254,9 +195,7 @@ best=score;
 localStorage.setItem("flappy_best",best);
 }
 
-setTimeout(()=>{
-location.reload();
-},500);
+setTimeout(()=>location.reload(),500);
 }
 
 </script>
