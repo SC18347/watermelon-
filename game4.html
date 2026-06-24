@@ -2,40 +2,140 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maze Game</title>
+<title>Reaction Grid</title>
 
 <style>
 body{
 margin:0;
-background:#111;
-color:white;
-text-align:center;
+background:#0b0b14;
 font-family:Arial;
+color:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
 }
 
-#box{
-width:40px;
-height:40px;
-background:cyan;
-position:absolute;
-top:50px;
-left:50px;
+#hud{
+position:fixed;
+top:10px;
+left:10px;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,95px);
+grid-template-rows:repeat(3,95px);
+gap:10px;
+}
+
+.tile{
+background:#222;
+border-radius:12px;
+opacity:0.6;
+transition:0.1s;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Move the square (tap screen)</h2>
-<div id="box"></div>
+<div id="hud">Score: 0 | Time: 1.0s</div>
+
+<div class="grid" id="grid"></div>
 
 <script>
-let box=document.getElementById("box");
 
-document.addEventListener("touchstart",e=>{
-box.style.left=e.touches[0].clientX+"px";
-box.style.top=e.touches[0].clientY+"px";
+const grid=document.getElementById("grid");
+const hud=document.getElementById("hud");
+
+let tiles=[];
+let active=-1;
+let score=0;
+let timeLimit=1000;
+let timer=null;
+let alive=true;
+
+/* BUILD GRID */
+for(let i=0;i<9;i++){
+let t=document.createElement("div");
+t.className="tile";
+t.dataset.i=i;
+
+t.addEventListener("click",()=>hit(i));
+
+tiles.push(t);
+grid.appendChild(t);
+}
+
+/* PICK RANDOM TILE */
+function next(){
+
+if(!alive) return;
+
+/* clear old */
+tiles.forEach(t=>{
+t.style.background="#222";
+t.style.opacity=0.6;
 });
+
+/* choose new */
+active=Math.floor(Math.random()*9);
+
+tiles[active].style.background=
+`hsl(${Math.random()*360},90%,60%)`;
+
+tiles[active].style.opacity=1;
+
+/* reset timer */
+clearTimeout(timer);
+
+let start=Date.now();
+
+/* fail after 1 sec */
+timer=setTimeout(()=>{
+gameOver();
+},timeLimit);
+
+/* update HUD countdown feel */
+let tick=setInterval(()=>{
+let left=(timeLimit-(Date.now()-start))/1000;
+hud.innerText=`Score: ${score} | Time: ${left.toFixed(2)}s`;
+
+if(left<=0 || !alive){
+clearInterval(tick);
+}
+},50);
+}
+
+/* HIT */
+function hit(i){
+
+if(!alive) return;
+
+if(i===active){
+score++;
+timeLimit=Math.max(350,timeLimit-10); // gets harder
+next();
+}else{
+gameOver();
+}
+}
+
+/* GAME OVER */
+function gameOver(){
+alive=false;
+alert("Game Over! Score: "+score);
+location.reload();
+}
+
+/* START */
+next();
+
 </script>
 
 </body>
