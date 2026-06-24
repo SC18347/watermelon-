@@ -9,8 +9,6 @@ body{
 margin:0;
 overflow:hidden;
 background:black;
-font-family:Arial;
-color:white;
 }
 
 canvas{
@@ -24,6 +22,8 @@ left:10px;
 background:rgba(0,0,0,0.4);
 padding:10px;
 border-radius:10px;
+font-family:Arial;
+color:white;
 font-size:14px;
 }
 </style>
@@ -59,7 +59,7 @@ hard:{spawn:350,speed:3.8,max:22}
 
 document.getElementById("mode").innerText=mode;
 
-/* PLAYER */
+/* SHIP */
 let ship={
 x:canvas.width/2,
 y:canvas.height/2,
@@ -77,20 +77,26 @@ let alive=true;
 /* INPUT */
 let keys={};
 
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
+document.addEventListener("keydown",e=>{
+keys[e.key]=true;
+if(e.key===" ") shoot();
+});
 
-/* SHOOT */
+document.addEventListener("keyup",e=>{
+keys[e.key]=false;
+});
+
+/* LASER */
 function shoot(){
 bullets.push({
 x:ship.x,
 y:ship.y,
-vx:Math.cos(ship.angle)*6,
-vy:Math.sin(ship.angle)*6
+vx:Math.cos(ship.angle)*7,
+vy:Math.sin(ship.angle)*7
 });
 }
 
-/* ASTEROID SPAWN */
+/* ASTEROIDS */
 function spawn(){
 if(asteroids.length>settings.max) return;
 
@@ -99,7 +105,7 @@ x:Math.random()*canvas.width,
 y:Math.random()*canvas.height,
 vx:(Math.random()-0.5)*settings.speed,
 vy:(Math.random()-0.5)*settings.speed,
-size:40+Math.random()*30
+size:35+Math.random()*35
 });
 }
 
@@ -115,40 +121,37 @@ document.getElementById("score").innerText=score;
 
 /* LOOP */
 function loop(){
-
 if(!alive) return;
 
-/* rotation */
+/* ROTATION */
 if(keys["ArrowLeft"]) ship.angle -= 0.05;
 if(keys["ArrowRight"]) ship.angle += 0.05;
 
-/* thrust */
+/* THRUST */
 if(keys["ArrowUp"]){
 ship.vx += Math.cos(ship.angle)*0.12;
 ship.vy += Math.sin(ship.angle)*0.12;
 }
 
-/* shoot */
-if(keys[" "]){
-shoot();
-keys[" "]=false;
-}
+/* 🔥 AUTO DRIFT (IMPORTANT FIX) */
+ship.vx += (Math.random()-0.5)*0.02;
+ship.vy += (Math.random()-0.5)*0.02;
 
-/* drift movement (inertia) */
+/* MOVE SHIP */
 ship.x += ship.vx;
 ship.y += ship.vy;
 
-/* friction */
+/* FRICTION */
 ship.vx *= 0.995;
 ship.vy *= 0.995;
 
-/* wrap screen */
+/* WRAP */
 if(ship.x<0) ship.x=canvas.width;
 if(ship.x>canvas.width) ship.x=0;
 if(ship.y<0) ship.y=canvas.height;
 if(ship.y>canvas.height) ship.y=0;
 
-/* bullets */
+/* BULLETS */
 bullets.forEach((b,i)=>{
 b.x+=b.vx;
 b.y+=b.vy;
@@ -158,7 +161,7 @@ bullets.splice(i,1);
 }
 });
 
-/* asteroids */
+/* ASTEROIDS */
 asteroids.forEach((a,ai)=>{
 a.x+=a.vx;
 a.y+=a.vy;
@@ -182,7 +185,7 @@ document.getElementById("score").innerText=score;
 }
 });
 
-/* SHIP COLLISION = DEATH */
+/* ship collision */
 let dx=ship.x-a.x;
 let dy=ship.y-a.y;
 
@@ -192,11 +195,6 @@ alert("Game Over! Score: "+score);
 location.reload();
 }
 });
-
-/* ESCALATION ILLUSION */
-if(asteroids.length > 5){
-settings.speed += 0.0005; // slow global ramp
-}
 
 /* DRAW */
 ctx.clearRect(0,0,canvas.width,canvas.height);
