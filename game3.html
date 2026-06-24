@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asteroids</title>
+<title>Asteroids Classic</title>
 
 <style>
 body{
@@ -14,87 +14,25 @@ background:black;
 canvas{
 display:block;
 }
-
-/* UI */
-#ui{
-position:fixed;
-top:10px;
-left:10px;
-color:white;
-font-family:Arial;
-background:rgba(0,0,0,0.4);
-padding:10px;
-border-radius:10px;
-font-size:14px;
-}
-
-/* MOBILE BUTTONS */
-#controls{
-position:fixed;
-bottom:15px;
-width:100%;
-display:flex;
-justify-content:space-between;
-padding:0 25px;
-box-sizing:border-box;
-}
-
-.btn{
-width:70px;
-height:70px;
-border-radius:50%;
-background:rgba(255,255,255,0.08);
-border:2px solid rgba(255,255,255,0.2);
-color:white;
-display:flex;
-align-items:center;
-justify-content:center;
-user-select:none;
-font-size:14px;
-}
 </style>
 </head>
 
 <body>
 
-<canvas id="game"></canvas>
-
-<div id="ui">
-<div>Score: <span id="score">0</span></div>
-<div>Asteroids: <span id="count">0</span></div>
-<div>Mode: <span id="mode"></span></div>
-</div>
-
-<div id="controls">
-<div class="btn" id="left">⟲</div>
-<div class="btn" id="fire">FIRE</div>
-<div class="btn" id="right">⟳</div>
-</div>
+<canvas id="c"></canvas>
 
 <script>
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
 
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-
-/* MODE */
-let mode=prompt("easy / medium / hard","medium");
-if(!mode) mode="medium";
-
-let settings={
-easy:{spawn:1200,speed:1.5,max:8},
-medium:{spawn:700,speed:2.5,max:14},
-hard:{spawn:350,speed:3.8,max:22}
-}[mode];
-
-document.getElementById("mode").innerText=mode;
+c.width=innerWidth;
+c.height=innerHeight;
 
 /* SHIP */
 let ship={
-x:canvas.width/2,
-y:canvas.height/2,
+x:c.width/2,
+y:c.height/2,
 vx:0,
 vy:0,
 angle:0
@@ -102,33 +40,18 @@ angle:0
 
 /* GAME */
 let bullets=[];
-let asteroids=[];
-let score=0;
-let alive=true;
+let rocks=[];
 
 /* INPUT */
 let keys={};
 
-/* keyboard */
-document.addEventListener("keydown",e=>{
+addEventListener("keydown",e=>{
 keys[e.key]=true;
 if(e.key===" ") shoot();
 });
+addEventListener("keyup",e=>keys[e.key]=false);
 
-document.addEventListener("keyup",e=>{
-keys[e.key]=false;
-});
-
-/* MOBILE BUTTONS */
-document.getElementById("left").ontouchstart=()=>keys["ArrowLeft"]=true;
-document.getElementById("left").ontouchend=()=>keys["ArrowLeft"]=false;
-
-document.getElementById("right").ontouchstart=()=>keys["ArrowRight"]=true;
-document.getElementById("right").ontouchend=()=>keys["ArrowRight"]=false;
-
-document.getElementById("fire").ontouchstart=()=>shoot();
-
-/* LASER */
+/* SHOOT */
 function shoot(){
 bullets.push({
 x:ship.x,
@@ -139,136 +62,120 @@ vy:Math.sin(ship.angle)*7
 }
 
 /* ASTEROIDS */
-function spawn(){
-if(asteroids.length>settings.max) return;
-
-asteroids.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-vx:(Math.random()-0.5)*settings.speed,
-vy:(Math.random()-0.5)*settings.speed,
-size:30+Math.random()*40
+function spawn(size=70){
+rocks.push({
+x:Math.random()*c.width,
+y:Math.random()*c.height,
+vx:(Math.random()-0.5)*2,
+vy:(Math.random()-0.5)*2,
+size:size
 });
 }
 
-setInterval(spawn,settings.spawn);
-
-/* SCORE */
-setInterval(()=>{
-if(alive){
-score+=5;
-document.getElementById("score").innerText=score;
-}
-},1000);
+for(let i=0;i<6;i++) spawn(70);
 
 /* LOOP */
 function loop(){
-if(!alive) return;
 
-/* ROTATION */
-if(keys["ArrowLeft"]) ship.angle -= 0.05;
-if(keys["ArrowRight"]) ship.angle += 0.05;
+/* ROTATE RIGHT ONLY */
+if(keys["ArrowRight"]) ship.angle += 0.06;
 
-/* THRUST */
-if(keys["ArrowUp"]){
-ship.vx += Math.cos(ship.angle)*0.12;
-ship.vy += Math.sin(ship.angle)*0.12;
+/* 🚀 NEW: ACCELERATION (replaces left turn) */
+if(keys["ArrowLeft"]){
+ship.vx += Math.cos(ship.angle)*0.06;
+ship.vy += Math.sin(ship.angle)*0.06;
 }
 
-/* DRIFT */
-ship.vx += (Math.random()-0.5)*0.015;
-ship.vy += (Math.random()-0.5)*0.015;
+/* THRUST FORWARD (still exists via ArrowUp) */
+if(keys["ArrowUp"]){
+ship.vx += Math.cos(ship.angle)*0.1;
+ship.vy += Math.sin(ship.angle)*0.1;
+}
+
+/* FRICTION (keeps speed controlled) */
+ship.vx *= 0.99;
+ship.vy *= 0.99;
 
 /* MOVE */
 ship.x += ship.vx;
 ship.y += ship.vy;
 
-/* FRICTION */
-ship.vx *= 0.995;
-ship.vy *= 0.995;
-
 /* WRAP */
-if(ship.x<0) ship.x=canvas.width;
-if(ship.x>canvas.width) ship.x=0;
-if(ship.y<0) ship.y=canvas.height;
-if(ship.y>canvas.height) ship.y=0;
+if(ship.x<0) ship.x=c.width;
+if(ship.x>c.width) ship.x=0;
+if(ship.y<0) ship.y=c.height;
+if(ship.y>c.height) ship.y=0;
 
 /* BULLETS */
 bullets.forEach((b,i)=>{
 b.x+=b.vx;
 b.y+=b.vy;
 
-if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){
+if(b.x<0||b.x>c.width||b.y<0||b.y>c.height){
 bullets.splice(i,1);
 }
 });
 
 /* ASTEROIDS */
-asteroids.forEach((a,ai)=>{
-a.x+=a.vx;
-a.y+=a.vy;
+rocks.forEach((r,ri)=>{
+r.x+=r.vx;
+r.y+=r.vy;
 
-if(a.x<0) a.x=canvas.width;
-if(a.x>canvas.width) a.x=0;
-if(a.y<0) a.y=canvas.height;
-if(a.y>canvas.height) a.y=0;
-
-/* bullet hit */
-bullets.forEach((b,bi)=>{
-let dx=a.x-b.x;
-let dy=a.y-b.y;
-
-if(Math.sqrt(dx*dx+dy*dy)<a.size){
-bullets.splice(bi,1);
-asteroids.splice(ai,1);
-score+=10;
-document.getElementById("score").innerText=score;
-}
-});
+if(r.x<0) r.x=c.width;
+if(r.x>c.width) r.x=0;
+if(r.y<0) r.y=c.height;
+if(r.y>c.height) r.y=0;
 
 /* collision */
-let dx=ship.x-a.x;
-let dy=ship.y-a.y;
+bullets.forEach((b,bi)=>{
+let dx=r.x-b.x;
+let dy=r.y-b.y;
 
-if(Math.sqrt(dx*dx+dy*dy)<a.size){
-alive=false;
-alert("Game Over! Score: "+score);
-location.reload();
+if(Math.sqrt(dx*dx+dy*dy)<r.size){
+
+bullets.splice(bi,1);
+rocks.splice(ri,1);
+
+if(r.size>20){
+rocks.push(
+{x:r.x,y:r.y,vx:Math.random()*2,vy:Math.random()*2,size:r.size/2},
+{x:r.x,y:r.y,vx:-Math.random()*2,vy:-Math.random()*2,size:r.size/2}
+);
 }
+}
+});
 });
 
 /* DRAW */
-ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.clearRect(0,0,c.width,c.height);
 
-/* ship */
+/* SHIP */
 ctx.save();
 ctx.translate(ship.x,ship.y);
 ctx.rotate(ship.angle);
 ctx.strokeStyle="white";
 ctx.beginPath();
-ctx.moveTo(20,0);
-ctx.lineTo(-15,-10);
-ctx.lineTo(-10,0);
-ctx.lineTo(-15,10);
+ctx.moveTo(18,0);
+ctx.lineTo(-12,-10);
+ctx.lineTo(-8,0);
+ctx.lineTo(-12,10);
 ctx.closePath();
 ctx.stroke();
 ctx.restore();
 
-/* bullets */
-ctx.fillStyle="cyan";
+/* BULLETS */
+ctx.fillStyle="white";
 bullets.forEach(b=>{
-ctx.fillRect(b.x,b.y,3,3);
+ctx.fillRect(b.x,b.y,2,2);
 });
 
-/* asteroids */
+/* ASTEROIDS */
 ctx.strokeStyle="white";
-asteroids.forEach(a=>{
+rocks.forEach(r=>{
 ctx.beginPath();
-ctx.arc(a.x,a.y,a.size,0,Math.PI*2);
+ctx.arc(r.x,r.y,r.size,0,Math.PI*2);
 ctx.stroke();
 });
-
-document.getElementById("count").innerText=asteroids.length;
 
 requestAnimationFrame(loop);
 }
