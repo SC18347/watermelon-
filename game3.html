@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dodge Game</title>
+
+<style>
+body{
+margin:0;
+overflow:hidden;
+background:#000;
+}
+
+#player{
+width:40px;
+height:40px;
+background:red;
+position:absolute;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+}
+
+.block{
+width:30px;
+height:30px;
+background:yellow;
+position:absolute;
+top:-30px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="player"></div>
+
+<script>
+let player=document.getElementById("player");
+let x=window.innerWidth/2;
+
+document.addEventListener("touchmove",e=>{
+x=e.touches[0].clientX;
+player.style.left=x+"px";
+});
+
+function spawn(){
+let block=document.createElement("div");
+block.className="block";
+block.style.left=Math.random()*window.innerWidth+"px";
+document.body.appendChild(block);
+
+let y=0;
+
+let fall=setInterval(()=>{
+y+=5;
+block.style.top=y+"px";
+
+let p=player.getBoundingClientRect();
+let b=block.getBoundingClientRect();
+
+if(!(b.bottom<p.top||b.top>p.bottom||b.right<p.left||b.left>p.right)){
+alert("GAME OVER");
+location.reload();
+}
+
+if(y>window.innerHeight){
+block.remove();
+clearInterval(fall);
+}
+},20);
+}
+
+setInterval(spawn,1000);
+</script>
+
+</body>
+</html>
