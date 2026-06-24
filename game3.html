@@ -15,15 +15,41 @@ canvas{
 display:block;
 }
 
+/* UI */
 #ui{
 position:fixed;
 top:10px;
 left:10px;
+color:white;
+font-family:Arial;
 background:rgba(0,0,0,0.4);
 padding:10px;
 border-radius:10px;
-font-family:Arial;
+font-size:14px;
+}
+
+/* MOBILE BUTTONS */
+#controls{
+position:fixed;
+bottom:15px;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 25px;
+box-sizing:border-box;
+}
+
+.btn{
+width:70px;
+height:70px;
+border-radius:50%;
+background:rgba(255,255,255,0.08);
+border:2px solid rgba(255,255,255,0.2);
 color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+user-select:none;
 font-size:14px;
 }
 </style>
@@ -37,6 +63,12 @@ font-size:14px;
 <div>Score: <span id="score">0</span></div>
 <div>Asteroids: <span id="count">0</span></div>
 <div>Mode: <span id="mode"></span></div>
+</div>
+
+<div id="controls">
+<div class="btn" id="left">⟲</div>
+<div class="btn" id="fire">FIRE</div>
+<div class="btn" id="right">⟳</div>
 </div>
 
 <script>
@@ -77,6 +109,7 @@ let alive=true;
 /* INPUT */
 let keys={};
 
+/* keyboard */
 document.addEventListener("keydown",e=>{
 keys[e.key]=true;
 if(e.key===" ") shoot();
@@ -85,6 +118,15 @@ if(e.key===" ") shoot();
 document.addEventListener("keyup",e=>{
 keys[e.key]=false;
 });
+
+/* MOBILE BUTTONS */
+document.getElementById("left").ontouchstart=()=>keys["ArrowLeft"]=true;
+document.getElementById("left").ontouchend=()=>keys["ArrowLeft"]=false;
+
+document.getElementById("right").ontouchstart=()=>keys["ArrowRight"]=true;
+document.getElementById("right").ontouchend=()=>keys["ArrowRight"]=false;
+
+document.getElementById("fire").ontouchstart=()=>shoot();
 
 /* LASER */
 function shoot(){
@@ -105,7 +147,7 @@ x:Math.random()*canvas.width,
 y:Math.random()*canvas.height,
 vx:(Math.random()-0.5)*settings.speed,
 vy:(Math.random()-0.5)*settings.speed,
-size:35+Math.random()*35
+size:30+Math.random()*40
 });
 }
 
@@ -133,11 +175,11 @@ ship.vx += Math.cos(ship.angle)*0.12;
 ship.vy += Math.sin(ship.angle)*0.12;
 }
 
-/* 🔥 AUTO DRIFT (IMPORTANT FIX) */
-ship.vx += (Math.random()-0.5)*0.02;
-ship.vy += (Math.random()-0.5)*0.02;
+/* DRIFT */
+ship.vx += (Math.random()-0.5)*0.015;
+ship.vy += (Math.random()-0.5)*0.015;
 
-/* MOVE SHIP */
+/* MOVE */
 ship.x += ship.vx;
 ship.y += ship.vy;
 
@@ -166,7 +208,6 @@ asteroids.forEach((a,ai)=>{
 a.x+=a.vx;
 a.y+=a.vy;
 
-/* wrap */
 if(a.x<0) a.x=canvas.width;
 if(a.x>canvas.width) a.x=0;
 if(a.y<0) a.y=canvas.height;
@@ -185,7 +226,7 @@ document.getElementById("score").innerText=score;
 }
 });
 
-/* ship collision */
+/* collision */
 let dx=ship.x-a.x;
 let dy=ship.y-a.y;
 
