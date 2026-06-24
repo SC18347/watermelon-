@@ -15,15 +15,10 @@ padding:20px;
 }
 
 .cookie{
-width:140px;
-height:140px;
-background:#c68b4a;
-border-radius:50%;
-margin:20px auto;
-line-height:140px;
-font-size:40px;
-user-select:none;
+font-size:90px;
 cursor:pointer;
+user-select:none;
+margin:20px;
 transition:0.1s;
 }
 
@@ -31,9 +26,23 @@ transition:0.1s;
 transform:scale(0.95);
 }
 
+.shop{
+max-width:400px;
+margin:0 auto;
+text-align:left;
+}
+
+.upgrade{
+background:#222;
+padding:12px;
+border-radius:10px;
+margin:10px 0;
+}
+
 button{
-padding:10px 15px;
-margin:8px;
+width:100%;
+padding:10px;
+margin-top:6px;
 border:none;
 border-radius:8px;
 background:#28a745;
@@ -41,8 +50,8 @@ color:white;
 cursor:pointer;
 }
 
-.shop{
-margin-top:20px;
+small{
+color:#aaa;
 }
 </style>
 </head>
@@ -51,28 +60,50 @@ margin-top:20px;
 
 <h1>🍪 Cookie Clicker</h1>
 
-<h2 id="score">0 Cookies</h2>
+<h2 id="cookies">0 Cookies</h2>
 
 <div class="cookie" onclick="clickCookie()">🍪</div>
 
+<p id="cps">0 cookies/sec</p>
+
 <div class="shop">
 
-<button onclick="buyCps()">Buy Auto Clicker (Cost: <span id="cost">10</span>)</button>
-
+<div class="upgrade">
+<strong>Auto Clicker</strong><br>
+<small>+1 cookie/sec</small>
+<button onclick="buyAuto()">Buy (<span id="autoCost">15</span>)</button>
 </div>
 
-<p id="cps">0 cookies/sec</p>
+<div class="upgrade">
+<strong>Grandma</strong><br>
+<small>+5 cookies/sec</small>
+<button onclick="buyGrandma()">Buy (<span id="grandmaCost">100</span>)</button>
+</div>
+
+<div class="upgrade">
+<strong>Factory</strong><br>
+<small>+20 cookies/sec</small>
+<button onclick="buyFactory()">Buy (<span id="factoryCost">500</span>)</button>
+</div>
+
+</div>
 
 <script>
 
 let cookies = 0;
 let cps = 0;
-let cost = 10;
+
+let autoCost = 15;
+let grandmaCost = 100;
+let factoryCost = 500;
 
 function update(){
-document.getElementById("score").innerText = cookies + " Cookies";
+document.getElementById("cookies").innerText = Math.floor(cookies) + " Cookies";
 document.getElementById("cps").innerText = cps + " cookies/sec";
-document.getElementById("cost").innerText = cost;
+
+document.getElementById("autoCost").innerText = autoCost;
+document.getElementById("grandmaCost").innerText = grandmaCost;
+document.getElementById("factoryCost").innerText = factoryCost;
 }
 
 function clickCookie(){
@@ -80,11 +111,29 @@ cookies++;
 update();
 }
 
-function buyCps(){
-if(cookies >= cost){
-cookies -= cost;
+function buyAuto(){
+if(cookies >= autoCost){
+cookies -= autoCost;
 cps += 1;
-cost = Math.floor(cost * 1.5);
+autoCost = Math.floor(autoCost * 1.5);
+update();
+}
+}
+
+function buyGrandma(){
+if(cookies >= grandmaCost){
+cookies -= grandmaCost;
+cps += 5;
+grandmaCost = Math.floor(grandmaCost * 1.6);
+update();
+}
+}
+
+function buyFactory(){
+if(cookies >= factoryCost){
+cookies -= factoryCost;
+cps += 20;
+factoryCost = Math.floor(factoryCost * 1.7);
 update();
 }
 }
