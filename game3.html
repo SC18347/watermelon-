@@ -2,202 +2,234 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fast Asteroids</title>
+<title>Asteroids</title>
 
 <style>
 body{
 margin:0;
 overflow:hidden;
-background:radial-gradient(#000,#000,#06061a);
+background:black;
 font-family:Arial;
 color:white;
 }
 
-#player{
-position:absolute;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-font-size:34px;
+canvas{
+display:block;
 }
 
-.bullet{
-position:absolute;
-width:4px;
-height:18px;
-background:cyan;
-border-radius:2px;
-box-shadow:0 0 6px cyan;
-}
-
-.rock{
-position:absolute;
-text-align:center;
-filter:drop-shadow(0 0 2px #000);
-}
-
-.explosion{
-position:absolute;
-font-size:32px;
-animation:pop 0.25s ease-out forwards;
-}
-
-@keyframes pop{
-from{transform:scale(0.5);opacity:1;}
-to{transform:scale(2);opacity:0;}
+#ui{
+position:fixed;
+top:10px;
+left:10px;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:10px;
+font-size:14px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="player">🚀</div>
+<canvas id="game"></canvas>
+
+<div id="ui">
+<div>Score: <span id="score">0</span></div>
+<div>Asteroids: <span id="count">0</span></div>
+<div>Mode: <span id="mode"></span></div>
+</div>
 
 <script>
 
-let player=document.getElementById("player");
-let px=window.innerWidth/2;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+/* MODE */
+let mode=prompt("easy / medium / hard","medium");
+if(!mode) mode="medium";
+
+let settings={
+easy:{spawn:1200,speed:1.5,max:8},
+medium:{spawn:700,speed:2.5,max:14},
+hard:{spawn:350,speed:3.8,max:22}
+}[mode];
+
+document.getElementById("mode").innerText=mode;
+
+/* PLAYER */
+let ship={
+x:canvas.width/2,
+y:canvas.height/2,
+vx:0,
+vy:0,
+angle:0
+};
+
+/* GAME */
 let bullets=[];
-let rocks=[];
-
-let canShoot=true;
+let asteroids=[];
 let score=0;
-let difficulty=1;
+let alive=true;
 
-/* movement */
-document.addEventListener("touchmove",e=>{
-px=e.touches[0].clientX;
-player.style.left=px+"px";
-});
+/* INPUT */
+let keys={};
 
-document.addEventListener("keydown",e=>{
-if(e.key==="ArrowLeft") px-=30;
-if(e.key==="ArrowRight") px+=30;
-player.style.left=px+"px";
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
 
-if(e.key===" ") shoot();
-});
-
-/* shoot */
+/* SHOOT */
 function shoot(){
-if(!canShoot) return;
-
-canShoot=false;
-
-let b=document.createElement("div");
-b.className="bullet";
-b.style.left=px+"px";
-b.style.bottom="60px";
-document.body.appendChild(b);
-
-bullets.push({el:b,y:60});
-
-setTimeout(()=>canShoot=true,180); // faster shooting
-}
-
-/* rocks */
-const types=[
-{emoji:"🪨", size:18},
-{emoji:"🪨", size:28},
-{emoji:"🪨", size:42},
-{emoji:"🪨", size:55}
-];
-
-function spawnRock(){
-
-let t=types[Math.floor(Math.random()*types.length)];
-
-let rock=document.createElement("div");
-rock.className="rock";
-rock.innerText=t.emoji;
-
-let x=Math.random()*window.innerWidth;
-
-let speed =
-2.5 + Math.random()*4 + difficulty*0.5; // faster base speed
-
-let drift=(Math.random()-0.5)*4;
-
-rock.style.left=x+"px";
-rock.style.top="-60px";
-rock.style.fontSize=t.size+"px";
-
-document.body.appendChild(rock);
-
-rocks.push({
-el:rock,
-x:x,
-y:-60,
-speed:speed,
-drift:drift
+bullets.push({
+x:ship.x,
+y:ship.y,
+vx:Math.cos(ship.angle)*6,
+vy:Math.sin(ship.angle)*6
 });
 }
 
-/* faster spawn + ramp difficulty */
-setInterval(()=>{
-spawnRock();
-difficulty += 0.03;
-},320); // faster spawn rate
+/* ASTEROID SPAWN */
+function spawn(){
+if(asteroids.length>settings.max) return;
 
-/* explosion */
-function explode(x,y){
-let e=document.createElement("div");
-e.className="explosion";
-e.innerText="💥";
-e.style.left=x+"px";
-e.style.top=y+"px";
-document.body.appendChild(e);
-
-setTimeout(()=>e.remove(),250);
+asteroids.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+vx:(Math.random()-0.5)*settings.speed,
+vy:(Math.random()-0.5)*settings.speed,
+size:40+Math.random()*30
+});
 }
 
-/* loop */
+setInterval(spawn,settings.spawn);
+
+/* SCORE */
+setInterval(()=>{
+if(alive){
+score+=5;
+document.getElementById("score").innerText=score;
+}
+},1000);
+
+/* LOOP */
 function loop(){
 
-// bullets
-bullets.forEach((b,i)=>{
-b.y+=14; // faster bullets
-b.el.style.bottom=b.y+"px";
+if(!alive) return;
 
-if(b.y>window.innerHeight){
-b.el.remove();
+/* rotation */
+if(keys["ArrowLeft"]) ship.angle -= 0.05;
+if(keys["ArrowRight"]) ship.angle += 0.05;
+
+/* thrust */
+if(keys["ArrowUp"]){
+ship.vx += Math.cos(ship.angle)*0.12;
+ship.vy += Math.sin(ship.angle)*0.12;
+}
+
+/* shoot */
+if(keys[" "]){
+shoot();
+keys[" "]=false;
+}
+
+/* drift movement (inertia) */
+ship.x += ship.vx;
+ship.y += ship.vy;
+
+/* friction */
+ship.vx *= 0.995;
+ship.vy *= 0.995;
+
+/* wrap screen */
+if(ship.x<0) ship.x=canvas.width;
+if(ship.x>canvas.width) ship.x=0;
+if(ship.y<0) ship.y=canvas.height;
+if(ship.y>canvas.height) ship.y=0;
+
+/* bullets */
+bullets.forEach((b,i)=>{
+b.x+=b.vx;
+b.y+=b.vy;
+
+if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){
 bullets.splice(i,1);
 }
 });
 
-// rocks
-rocks.forEach((r,i)=>{
-r.y+=r.speed;
-r.x+=r.drift;
+/* asteroids */
+asteroids.forEach((a,ai)=>{
+a.x+=a.vx;
+a.y+=a.vy;
 
-r.el.style.top=r.y+"px";
-r.el.style.left=r.x+"px";
+/* wrap */
+if(a.x<0) a.x=canvas.width;
+if(a.x>canvas.width) a.x=0;
+if(a.y<0) a.y=canvas.height;
+if(a.y>canvas.height) a.y=0;
 
-// collisions
+/* bullet hit */
 bullets.forEach((b,bi)=>{
-let br=b.el.getBoundingClientRect();
-let rr=r.el.getBoundingClientRect();
+let dx=a.x-b.x;
+let dy=a.y-b.y;
 
-if(!(br.right<rr.left||br.left>rr.right||br.bottom<rr.top||br.top>rr.bottom)){
-explode(r.x,r.y);
-
-r.el.remove();
-b.el.remove();
-
-rocks.splice(i,1);
+if(Math.sqrt(dx*dx+dy*dy)<a.size){
 bullets.splice(bi,1);
-
-score++;
+asteroids.splice(ai,1);
+score+=10;
+document.getElementById("score").innerText=score;
 }
 });
 
-// game over
-if(r.y>window.innerHeight){
+/* SHIP COLLISION = DEATH */
+let dx=ship.x-a.x;
+let dy=ship.y-a.y;
+
+if(Math.sqrt(dx*dx+dy*dy)<a.size){
+alive=false;
 alert("Game Over! Score: "+score);
 location.reload();
 }
 });
+
+/* ESCALATION ILLUSION */
+if(asteroids.length > 5){
+settings.speed += 0.0005; // slow global ramp
+}
+
+/* DRAW */
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+/* ship */
+ctx.save();
+ctx.translate(ship.x,ship.y);
+ctx.rotate(ship.angle);
+ctx.strokeStyle="white";
+ctx.beginPath();
+ctx.moveTo(20,0);
+ctx.lineTo(-15,-10);
+ctx.lineTo(-10,0);
+ctx.lineTo(-15,10);
+ctx.closePath();
+ctx.stroke();
+ctx.restore();
+
+/* bullets */
+ctx.fillStyle="cyan";
+bullets.forEach(b=>{
+ctx.fillRect(b.x,b.y,3,3);
+});
+
+/* asteroids */
+ctx.strokeStyle="white";
+asteroids.forEach(a=>{
+ctx.beginPath();
+ctx.arc(a.x,a.y,a.size,0,Math.PI*2);
+ctx.stroke();
+});
+
+document.getElementById("count").innerText=asteroids.length;
 
 requestAnimationFrame(loop);
 }
