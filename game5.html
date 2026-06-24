@@ -8,14 +8,32 @@
 body{
 margin:0;
 overflow:hidden;
-background:#70c5ce;
+background:linear-gradient(#70c5ce,#cfefff);
 font-family:Arial;
 }
 
 canvas{
 display:block;
 margin:auto;
-background:linear-gradient(#70c5ce,#dff6ff);
+}
+
+/* soft start overlay */
+#overlay{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+color:white;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+cursor:pointer;
 }
 </style>
 </head>
@@ -23,6 +41,11 @@ background:linear-gradient(#70c5ce,#dff6ff);
 <body>
 
 <canvas id="c"></canvas>
+
+<div id="overlay">
+<h2 id="msg">Flappy Bird</h2>
+<button onclick="start()">Start</button>
+</div>
 
 <script>
 
@@ -32,82 +55,113 @@ const ctx=c.getContext("2d");
 c.width=400;
 c.height=600;
 
-/* PLAYER (bird) */
+/* BIRD */
 let bird={
 x:80,
 y:200,
 vy:0,
-size:18
+size:20,
+wing:0
 };
 
-let gravity=0.42;
-let jump=-7.5;
+let gravity=0.55;
+let jump=-8.2;
 
 /* GAME */
 let pipes=[];
 let frame=0;
 let score=0;
 let best=localStorage.getItem("flappy_best")||0;
+let started=false;
 let gameOver=false;
 
-/* INPUT (smooth tap) */
+/* CLOUDS */
+let clouds=[];
+for(let i=0;i<6;i++){
+clouds.push({x:Math.random()*400,y:Math.random()*300});
+}
+
+/* START */
+function start(){
+document.getElementById("overlay").style.display="none";
+started=true;
+loop();
+}
+
+/* INPUT */
 document.addEventListener("click",()=>{
+if(!started) return;
+
 if(gameOver){
 location.reload();
-return;
-}
+}else{
 bird.vy=jump;
+bird.wing=1;
+}
 });
 
-/* PIPE CREATION */
+/* PIPE */
 function addPipe(){
-let gap=145;
-let top=Math.random()*(c.height-gap-140)+60;
+let gap=140;
+let top=Math.random()*(c.height-gap-120)+50;
 
 pipes.push({
 x:c.width,
 top:top,
 gap:gap,
-w:60
+w:60,
+passed:false
 });
 }
 
-/* DRAW BIRD (more detail) */
+/* DRAW BIRD (animated) */
 function drawBird(){
-ctx.fillStyle="yellow";
+
+ctx.save();
+ctx.translate(bird.x+10,bird.y+10);
+
+/* tilt based on velocity */
+ctx.rotate(Math.min(Math.max(bird.vy*0.06,-0.6),0.8));
 
 /* body */
-ctx.fillRect(bird.x,bird.y,bird.size,bird.size);
+ctx.fillStyle="yellow";
+ctx.fillRect(-10,-10,bird.size,bird.size);
 
 /* eye */
 ctx.fillStyle="white";
-ctx.fillRect(bird.x+11,bird.y+4,5,5);
-
+ctx.fillRect(2,-6,5,5);
 ctx.fillStyle="black";
-ctx.fillRect(bird.x+13,bird.y+6,2,2);
+ctx.fillRect(4,-4,2,2);
 
 /* beak */
 ctx.fillStyle="orange";
-ctx.fillRect(bird.x+18,bird.y+8,6,4);
+ctx.fillRect(10,-2,6,4);
+
+/* wing animation */
+ctx.fillStyle="gold";
+ctx.fillRect(-8, bird.wing ? 2 : 6, 6, 4);
+
+bird.wing=0;
+
+ctx.restore();
 }
 
-/* DRAW PIPE (more detail) */
+/* DRAW PIPE */
 function drawPipe(p){
 
-/* main pipe */
 ctx.fillStyle="#1f8f3a";
 ctx.fillRect(p.x,0,p.w,p.top);
 ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
 
-/* pipe shading */
-ctx.fillStyle="#16682a";
-ctx.fillRect(p.x+8,0,6,p.top);
-ctx.fillRect(p.x+8,p.top+p.gap,6,c.height);
-
-/* pipe edges */
+/* highlight */
 ctx.fillStyle="#2ecc55";
-ctx.fillRect(p.x-2,p.top-10,p.w+4,10);
-ctx.fillRect(p.x-2,p.top+p.gap,p.w+4,10);
+ctx.fillRect(p.x+5,0,5,p.top);
+ctx.fillRect(p.x+5,p.top+p.gap,5,c.height);
+
+/* caps */
+ctx.fillStyle="#16682a";
+ctx.fillRect(p.x-3,p.top-12,p.w+6,12);
+ctx.fillRect(p.x-3,p.top+p.gap,p.w+6,12);
 }
 
 /* LOOP */
@@ -115,21 +169,30 @@ function loop(){
 
 ctx.clearRect(0,0,c.width,c.height);
 
+/* clouds */
+ctx.fillStyle="rgba(255,255,255,0.7)";
+clouds.forEach(c1=>{
+c1.x-=0.4;
+if(c1.x<-50)c1.x=450;
+
+ctx.beginPath();
+ctx.arc(c1.x,c1.y,18,0,Math.PI*2);
+ctx.fill();
+});
+
 /* physics */
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
-/* pipes spawn */
-if(frame%80===0){
+/* pipes faster */
+if(frame%70===0){
 addPipe();
 }
 
-/* pipes update */
 for(let i=0;i<pipes.length;i++){
 let p=pipes[i];
-p.x-=2.4;
+p.x-=3; // FAST SPEED
 
-/* draw */
 drawPipe(p);
 
 /* collision */
@@ -147,9 +210,6 @@ score++;
 p.passed=true;
 }
 }
-
-/* bird */
-drawBird();
 
 /* ground */
 ctx.fillStyle="#caa472";
@@ -184,10 +244,8 @@ localStorage.setItem("flappy_best",best);
 
 setTimeout(()=>{
 location.reload();
-},400);
+},500);
 }
-
-loop();
 
 </script>
 
