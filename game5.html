@@ -2,19 +2,40 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flappy Bird</title>
+<title>Flappy Game</title>
 
 <style>
 body{
 margin:0;
+background:#70c5ce;
 overflow:hidden;
-background:linear-gradient(#70c5ce,#cfefff);
+font-family:Arial;
 }
 
 canvas{
 display:block;
-width:100vw;
-height:100vh;
+margin:auto;
+background:#70c5ce;
+}
+
+/* TRY AGAIN BUTTON */
+#ui{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+display:none;
+}
+
+button{
+padding:12px 18px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+font-size:16px;
+cursor:pointer;
 }
 </style>
 </head>
@@ -23,135 +44,89 @@ height:100vh;
 
 <canvas id="c"></canvas>
 
+<div id="ui">
+<h2 style="color:white;">Game Over</h2>
+<button onclick="restart()">Try Again</button>
+</div>
+
 <script>
 
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
 
-/* REAL SCREEN SIZE CANVAS (IMPORTANT FIX) */
-function resize(){
-c.width=window.innerWidth;
-c.height=window.innerHeight;
-}
-window.addEventListener("resize",resize);
-resize();
+canvas.width=400;
+canvas.height=600;
 
 /* BIRD */
-let bird={
-x:0,
-y:0,
+let bird, pipes, frame, score, best, gameOver;
+
+function init(){
+bird={
+x:80,
+y:200,
 vy:0,
-size:20,
-wing:0
+size:20
 };
 
-/* FIX START POSITION (NOW ALWAYS VISIBLE) */
-function resetBird(){
-bird.x=c.width/4;
-bird.y=c.height/2;
-bird.vy=0;
+pipes=[];
+frame=0;
+score=0;
+gameOver=false;
+document.getElementById("ui").style.display="none";
 }
-resetBird();
 
-/* PHYSICS */
-let gravity=0.55;
-let jump=-8;
+init();
 
-/* GAME */
-let pipes=[];
-let frame=0;
-let score=0;
-let best=localStorage.getItem("flappy_best")||0;
-let started=false;
-let gameOver=false;
+/* DIFFICULTY */
+let gravity=0.65;
+let jump=-8.5;
 
 /* INPUT */
 document.addEventListener("click",()=>{
-if(!started){
-started=true;
-loop();
-return;
-}
-
-if(gameOver){
-location.reload();
-return;
-}
-
+if(gameOver) return;
 bird.vy=jump;
-bird.wing=1;
 });
 
 /* PIPE */
 function addPipe(){
-let gap=150;
-let top=Math.random()*(c.height-gap-120)+50;
+let gap=140;
+let top=Math.random()*(canvas.height-gap-100)+50;
 
 pipes.push({
-x:c.width,
+x:canvas.width,
 top:top,
 gap:gap,
-w:60,
+w:50,
 passed:false
 });
 }
 
-/* BIRD DRAW */
-function drawBird(){
-
-ctx.fillStyle="yellow";
-ctx.fillRect(bird.x,bird.y,bird.size,bird.size);
-
-/* eye */
-ctx.fillStyle="white";
-ctx.fillRect(bird.x+12,bird.y+4,5,5);
-ctx.fillStyle="black";
-ctx.fillRect(bird.x+14,bird.y+6,2,2);
-
-/* beak */
-ctx.fillStyle="orange";
-ctx.fillRect(bird.x+18,bird.y+8,6,4);
-
-/* wing */
-ctx.fillStyle="gold";
-ctx.fillRect(bird.x,bird.y+(bird.wing?2:6),6,4);
-
-bird.wing=0;
-}
-
-/* PIPE DRAW */
-function drawPipe(p){
-
-ctx.fillStyle="#1f8f3a";
-ctx.fillRect(p.x,0,p.w,p.top);
-ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
-
-/* highlight */
-ctx.fillStyle="#2ecc55";
-ctx.fillRect(p.x+6,0,6,p.top);
-ctx.fillRect(p.x+6,p.top+p.gap,6,c.height);
-}
-
-/* LOOP */
+/* DRAW */
 function loop(){
 
-ctx.clearRect(0,0,c.width,c.height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
 /* physics */
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
-/* spawn */
-if(frame%80===0){
+/* bird */
+ctx.fillStyle="yellow";
+ctx.fillRect(bird.x,bird.y,bird.size,bird.size);
+
+/* spawn faster */
+if(frame%60===0){
 addPipe();
 }
 
 /* pipes */
 for(let i=0;i<pipes.length;i++){
 let p=pipes[i];
-p.x-=3;
+p.x-=4;
 
-drawPipe(p);
+ctx.fillStyle="green";
+ctx.fillRect(p.x,0,p.w,p.top);
+ctx.fillRect(p.x,p.top+p.gap,p.w,canvas.height);
 
 /* collision */
 if(
@@ -171,36 +146,46 @@ p.passed=true;
 
 /* ground */
 ctx.fillStyle="#caa472";
-ctx.fillRect(0,c.height-20,c.width,20);
+ctx.fillRect(0,canvas.height-20,canvas.width,20);
 
 /* bounds */
-if(bird.y<0) bird.y=0;
-if(bird.y>c.height-20) end();
+if(bird.y>canvas.height || bird.y<0){
+end();
+}
 
 /* UI */
 ctx.fillStyle="white";
-ctx.font="18px Arial";
-ctx.fillText("Score: "+score,10,25);
-ctx.fillText("Best: "+best,10,45);
+ctx.font="20px Arial";
+ctx.fillText("Score: "+score,10,30);
 
-/* loop */
-frame++;
-if(started && !gameOver){
-requestAnimationFrame(loop);
-}
-}
-
-/* END */
-function end(){
-gameOver=true;
-
+best=localStorage.getItem("flappy_best")||0;
 if(score>best){
 best=score;
 localStorage.setItem("flappy_best",best);
 }
+ctx.fillText("Best: "+best,10,55);
 
-setTimeout(()=>location.reload(),500);
+/* loop */
+frame++;
+if(!gameOver){
+requestAnimationFrame(loop);
 }
+}
+
+/* GAME OVER */
+function end(){
+gameOver=true;
+document.getElementById("ui").style.display="block";
+}
+
+/* RESTART BUTTON */
+function restart(){
+init();
+loop();
+}
+
+/* START */
+loop();
 
 </script>
 
