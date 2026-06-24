@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Hub</title>
+
+<style>
+body{
+margin:0;
+background:black;
+color:white;
+font-family:Arial;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+button{
+width:220px;
+padding:15px;
+margin:10px;
+background:#111;
+color:white;
+border:1px solid #333;
+border-radius:10px;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1a1a1a;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Game Hub</h1>
+
+<button onclick="go('library.html')">Library</button>
+<button onclick="go('scores.html')">High Scores</button>
+<button onclick="go('arcade.html')">Arcade Mode</button>
+<button onclick="go('settings.html')">Settings</button>
+<button onclick="go('achievements.html')">Achievements</button>
+
+<script>
+function go(file){
+window.location.href=file;
+}
+</script>
+
+</body>
+</html>
