@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maze Game</title>
+
+<style>
+body{
+margin:0;
+background:#111;
+color:white;
+text-align:center;
+font-family:Arial;
+}
+
+#box{
+width:40px;
+height:40px;
+background:cyan;
+position:absolute;
+top:50px;
+left:50px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Move the square (tap screen)</h2>
+<div id="box"></div>
+
+<script>
+let box=document.getElementById("box");
+
+document.addEventListener("touchstart",e=>{
+box.style.left=e.touches[0].clientX+"px";
+box.style.top=e.touches[0].clientY+"px";
+});
+</script>
+
+</body>
+</html>
