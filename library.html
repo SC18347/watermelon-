@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Library</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:#111;
+color:white;
+padding:20px;
+}
+
+h1{
+text-align:center;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:15px 0;
+box-sizing:border-box;
+border-radius:8px;
+border:none;
+outline:none;
+}
+
+.game{
+display:block;
+padding:15px;
+background:#222;
+color:white;
+text-decoration:none;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+.game:hover{
+background:#333;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Game Library</h1>
+
+<input id="search" placeholder="Search games..." onkeyup="searchGames()">
+
+<div id="games">
+
+<a class="game" href="game1.html">
+Watermelon Game
+</a>
+
+</div>
+
+<script>
+function searchGames(){
+let input = document.getElementById("search").value.toLowerCase();
+let games = document.querySelectorAll(".game");
+
+games.forEach(game=>{
+if(game.innerText.toLowerCase().includes(input)){
+game.style.display = "block";
+}else{
+game.style.display = "none";
+}
+});
+}
+</script>
+
+</body>
+</html>
