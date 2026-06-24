@@ -29,30 +29,30 @@ height:100vh;
 const c=document.getElementById("c");
 const ctx=c.getContext("2d");
 
-/* FIXED INTERNAL GAME RESOLUTION */
-let W=400;
-let H=600;
-
+/* RESIZE CANVAS TO SCREEN */
 function resize(){
-c.width=W;
-c.height=H;
-}
-resize();
+c.width=window.innerWidth;
+c.height=window.innerHeight;
 
-/* SCALE DRAWING TO FIT SCREEN */
-function scaleX(x){ return x; }
-function scaleY(y){ return y; }
+/* reset bird safely when resizing */
+bird.y=c.height/2;
+}
+window.addEventListener("resize",resize);
+resize();
 
 /* BIRD */
 let bird={
 x:80,
-y:400,
+y:0,
 vy:0,
 size:20,
 wing:0
 };
 
-let gravity=0.5;
+bird.y=c.height/2;
+
+/* PHYSICS */
+let gravity=0.55;
 let jump=-8;
 
 /* GAME */
@@ -63,7 +63,7 @@ let best=localStorage.getItem("flappy_best")||0;
 let started=false;
 let gameOver=false;
 
-/* START ON FIRST TAP */
+/* START */
 document.addEventListener("click",()=>{
 if(!started){
 started=true;
@@ -82,11 +82,13 @@ bird.wing=1;
 
 /* PIPE */
 function addPipe(){
-let gap=140;
-let top=Math.random()*(H-gap-120)+60;
+let gap=150;
+
+/* FIX: always within screen */
+let top=Math.random()*(c.height-gap-100)+50;
 
 pipes.push({
-x:W,
+x:c.width,
 top:top,
 gap:gap,
 w:60,
@@ -112,7 +114,7 @@ ctx.fillRect(bird.x+18,bird.y+8,6,4);
 
 /* wing */
 ctx.fillStyle="gold";
-ctx.fillRect(bird.x,bird.y+bird.wing?2:6,6,4);
+ctx.fillRect(bird.x,bird.y+(bird.wing?2:6),6,4);
 
 bird.wing=0;
 }
@@ -122,25 +124,25 @@ function drawPipe(p){
 
 ctx.fillStyle="#1f8f3a";
 ctx.fillRect(p.x,0,p.w,p.top);
-ctx.fillRect(p.x,p.top+p.gap,p.w,H);
+ctx.fillRect(p.x,p.top+p.gap,p.w,c.height);
 
 /* highlight */
 ctx.fillStyle="#2ecc55";
 ctx.fillRect(p.x+6,0,6,p.top);
-ctx.fillRect(p.x+6,p.top+p.gap,6,H);
+ctx.fillRect(p.x+6,p.top+p.gap,6,c.height);
 }
 
 /* LOOP */
 function loop(){
 
-ctx.clearRect(0,0,W,H);
+ctx.clearRect(0,0,c.width,c.height);
 
 /* physics */
 bird.vy+=gravity;
 bird.y+=bird.vy;
 
 /* spawn */
-if(frame%80===0){
+if(frame%75===0){
 addPipe();
 }
 
@@ -169,11 +171,11 @@ p.passed=true;
 
 /* ground */
 ctx.fillStyle="#caa472";
-ctx.fillRect(0,H-20,W,20);
+ctx.fillRect(0,c.height-20,c.width,20);
 
-/* bounds FIX */
+/* ceiling + floor FIX */
 if(bird.y<0) bird.y=0;
-if(bird.y>H-20) end();
+if(bird.y>c.height-20) end();
 
 /* UI */
 ctx.fillStyle="white";
@@ -183,10 +185,12 @@ ctx.fillText("Best: "+best,10,45);
 
 /* loop */
 frame++;
+if(started && !gameOver){
 requestAnimationFrame(loop);
 }
+}
 
-/* END */
+/* GAME OVER */
 function end(){
 gameOver=true;
 
