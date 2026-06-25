@@ -1,188 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asteroids Classic</title>
-
-<style>
-body{
-margin:0;
-overflow:hidden;
-background:black;
-}
-
-canvas{
-display:block;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Asteroids</title>
+    <style>
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        canvas { background: #050508; border: 2px solid #333; max-width: 95vw; max-height: 80vh; aspect-ratio: 1; }
+        #ui { display: flex; justify-content: space-between; width: 90vw; max-width: 500px; font-weight: bold; margin-bottom: 5px; }
+    </style>
 </head>
-
 <body>
+    <div id="ui"><div>Score: <span id="scr">0</span></div><div>Touch Left: Turn | Right: Thrust+Fire</div></div>
+    <canvas id="g" width="500" height="500"></canvas>
 
-<canvas id="c"></canvas>
+    <script>
+        const canvas = document.getElementById("g"), ctx = canvas.getContext("2d");
+        let ship = { x: 250, y: 250, r: 15, a: 0, rot: 0, thrust: false, xv: 0, yv: 0 };
+        let roids = [], bullets = [], score = 0, lastShot = 0;
 
-<script>
+        // Input Bindings (Supports both Touch and Keyboard)
+        let keys = {};
+        window.addEventListener("keydown", e => keys[e.key] = true);
+        window.addEventListener("keyup", e => keys[e.key] = false);
 
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
+        canvas.addEventListener("touchstart", e => handleTouch(e), { passive: false });
+        canvas.addEventListener("touchmove", e => handleTouch(e), { passive: false });
+        canvas.addEventListener("touchend", () => { ship.rot = 0; ship.thrust = false; });
 
-c.width=innerWidth;
-c.height=innerHeight;
+        function handleTouch(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const t = e.touches;
+            ship.rot = 0; ship.thrust = false;
+            for(let i=0; i<t.length; i++) {
+                let tx = (t[i].clientX - rect.left) * (500 / rect.width);
+                if (tx < 250) ship.rot = tx < 125 ? -0.07 : 0.07; // Left half turns left/right
+                else { ship.thrust = true; fire(); } // Right half thrusts and fires
+            }
+        }
 
-/* SHIP */
-let ship={
-x:c.width/2,
-y:c.height/2,
-vx:0,
-vy:0,
-angle:0
-};
+        function spawnRoid(x, y, r) {
+            roids.push({ x: x ?? Math.random()*500, y: y ?? Math.random()*500, r: r ?? 40, xv: (Math.random()-0.5)*3, yv: (Math.random()-0.5)*3 });
+        }
 
-/* GAME */
-let bullets=[];
-let rocks=[];
+        function fire() {
+            if (Date.now() - lastShot < 250) return;
+            bullets.push({ x: ship.x + Math.cos(ship.a)*ship.r, y: ship.y + Math.sin(ship.a)*ship.r, xv: Math.cos(ship.a)*7, yv: Math.sin(ship.a)*7, t: 40 });
+            lastShot = Date.now();
+        }
 
-/* INPUT */
-let keys={};
+        function wrap(o) {
+            if (o.x < 0) o.x = 500; else if (o.x > 500) o.x = 0;
+            if (o.y < 0) o.y = 500; else if (o.y > 500) o.y = 0;
+        }
 
-addEventListener("keydown",e=>{
-keys[e.key]=true;
-if(e.key===" ") shoot();
-});
-addEventListener("keyup",e=>keys[e.key]=false);
+        function update() {
+            // Handle desktop keys fallback
+            if (keys["ArrowLeft"] || keys["a"]) ship.a -= 0.07;
+            if (keys["ArrowRight"] || keys["d"]) ship.a += 0.07;
+            ship.thrust = keys["ArrowUp"] || keys["w"] || ship.thrust;
+            if (keys[" "]) fire();
 
-/* SHOOT */
-function shoot(){
-bullets.push({
-x:ship.x,
-y:ship.y,
-vx:Math.cos(ship.angle)*7,
-vy:Math.sin(ship.angle)*7
-});
-}
+            ship.a += ship.rot;
+            if (ship.thrust) { ship.xv += Math.cos(ship.a)*0.15; ship.yv += Math.sin(ship.a)*0.15; }
+            ship.x += ship.xv *= 0.99; ship.y += ship.yv *= 0.99; // Apply drift friction
+            wrap(ship);
 
-/* ASTEROIDS */
-function spawn(size=70){
-rocks.push({
-x:Math.random()*c.width,
-y:Math.random()*c.height,
-vx:(Math.random()-0.5)*2,
-vy:(Math.random()-0.5)*2,
-size:size
-});
-}
+            // Move Bullets
+            bullets.forEach((b, idx) => {
+                b.x += b.xv; b.y += b.yv; wrap(b);
+                if (--b.t <= 0) bullets.splice(idx, 1);
+            });
 
-for(let i=0;i<6;i++) spawn(70);
+            // Move Asteroids
+            roids.forEach((r, ri) => {
+                r.x += r.xv; r.y += r.yv; wrap(r);
 
-/* LOOP */
-function loop(){
+                // Collision Check: Ship vs Asteroid
+                if (Math.hypot(ship.x - r.x, ship.y - r.y) < ship.r + r.r) {
+                    alert("Game Over! Score: " + score); score = 0; roids = []; init();
+                }
 
-/* ROTATE RIGHT ONLY */
-if(keys["ArrowRight"]) ship.angle += 0.06;
+                // Collision Check: Bullet vs Asteroid
+                bullets.forEach((b, bi) => {
+                    if (Math.hypot(b.x - r.x, b.y - r.y) < r.r) {
+                        bullets.splice(bi, 1);
+                        if (r.r > 15) { spawnRoid(r.x, r.y, r.r/2); spawnRoid(r.x, r.y, r.r/2); }
+                        roids.splice(ri, 1);
+                        document.getElementById("scr").textContent = score += 10;
+                    }
+                });
+            });
 
-/* 🚀 NEW: ACCELERATION (replaces left turn) */
-if(keys["ArrowLeft"]){
-ship.vx += Math.cos(ship.angle)*0.06;
-ship.vy += Math.sin(ship.angle)*0.06;
-}
+            if (roids.length === 0) for(let i=0; i<4; i++) spawnRoid();
+        }
 
-/* THRUST FORWARD (still exists via ArrowUp) */
-if(keys["ArrowUp"]){
-ship.vx += Math.cos(ship.angle)*0.1;
-ship.vy += Math.sin(ship.angle)*0.1;
-}
+        function draw() {
+            ctx.clearRect(0, 0, 500, 500);
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
 
-/* FRICTION (keeps speed controlled) */
-ship.vx *= 0.99;
-ship.vy *= 0.99;
+            // Draw Ship
+            ctx.beginPath();
+            ctx.moveTo(ship.x + Math.cos(ship.a)*ship.r, ship.y + Math.sin(ship.a)*ship.r);
+            ctx.lineTo(ship.x + Math.cos(ship.a + 2.5)*ship.r, ship.y + Math.sin(ship.a + 2.5)*ship.r);
+            ctx.lineTo(ship.x + Math.cos(ship.a - 2.5)*ship.r, ship.y + Math.sin(ship.a - 2.5)*ship.r);
+            ctx.closePath(); ctx.stroke();
 
-/* MOVE */
-ship.x += ship.vx;
-ship.y += ship.vy;
+            // Draw Bullets
+            ctx.fillStyle = "#ff4d4d";
+            bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI*2); ctx.fill(); });
 
-/* WRAP */
-if(ship.x<0) ship.x=c.width;
-if(ship.x>c.width) ship.x=0;
-if(ship.y<0) ship.y=c.height;
-if(ship.y>c.height) ship.y=0;
+            // Draw Asteroids
+            ctx.fillStyle = "#444";
+            roids.forEach(r => { ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI*2); ctx.fill(); ctx.stroke(); });
+        }
 
-/* BULLETS */
-bullets.forEach((b,i)=>{
-b.x+=b.vx;
-b.y+=b.vy;
-
-if(b.x<0||b.x>c.width||b.y<0||b.y>c.height){
-bullets.splice(i,1);
-}
-});
-
-/* ASTEROIDS */
-rocks.forEach((r,ri)=>{
-r.x+=r.vx;
-r.y+=r.vy;
-
-if(r.x<0) r.x=c.width;
-if(r.x>c.width) r.x=0;
-if(r.y<0) r.y=c.height;
-if(r.y>c.height) r.y=0;
-
-/* collision */
-bullets.forEach((b,bi)=>{
-let dx=r.x-b.x;
-let dy=r.y-b.y;
-
-if(Math.sqrt(dx*dx+dy*dy)<r.size){
-
-bullets.splice(bi,1);
-rocks.splice(ri,1);
-
-if(r.size>20){
-rocks.push(
-{x:r.x,y:r.y,vx:Math.random()*2,vy:Math.random()*2,size:r.size/2},
-{x:r.x,y:r.y,vx:-Math.random()*2,vy:-Math.random()*2,size:r.size/2}
-);
-}
-}
-});
-});
-
-/* DRAW */
-ctx.clearRect(0,0,c.width,c.height);
-
-/* SHIP */
-ctx.save();
-ctx.translate(ship.x,ship.y);
-ctx.rotate(ship.angle);
-ctx.strokeStyle="white";
-ctx.beginPath();
-ctx.moveTo(18,0);
-ctx.lineTo(-12,-10);
-ctx.lineTo(-8,0);
-ctx.lineTo(-12,10);
-ctx.closePath();
-ctx.stroke();
-ctx.restore();
-
-/* BULLETS */
-ctx.fillStyle="white";
-bullets.forEach(b=>{
-ctx.fillRect(b.x,b.y,2,2);
-});
-
-/* ASTEROIDS */
-ctx.strokeStyle="white";
-rocks.forEach(r=>{
-ctx.beginPath();
-ctx.arc(r.x,r.y,r.size,0,Math.PI*2);
-ctx.stroke();
-});
-
-requestAnimationFrame(loop);
-}
-
-loop();
-
-</script>
-
+        function init() { ship.x = 250; ship.y = 250; ship.xv = 0; ship.yv = 0; for(let i=0; i<4; i++) spawnRoid(); }
+        function loop() { update(); draw(); requestAnimationFrame(loop); }
+        
+        init(); loop();
+    </script>
 </body>
 </html>
