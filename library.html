@@ -24,6 +24,7 @@ padding:12px;
 border:none;
 border-radius:10px;
 margin:10px 0 20px;
+box-sizing:border-box;
 }
 
 .categories{
@@ -65,6 +66,7 @@ transform:scale(1.05);
 width:100%;
 height:100px;
 object-fit:cover;
+display:block;
 }
 
 .card-content{
@@ -104,8 +106,8 @@ border-radius:8px;
 
 <div class="featured">
 <h3>⭐ Featured Game</h3>
-<p>Play your main platformer now</p>
-<a class="playbtn" href="game1.html">Play Now</a>
+<p>Play Sky Cube Platformer now</p>
+<a class="playbtn" href="game6.html">Play Now</a>
 </div>
 
 <div class="categories">
@@ -149,12 +151,19 @@ border-radius:8px;
 </div>
 </a>
 
-<!-- GAME 5 ADDED -->
 <a class="card" href="game5.html">
 <img src="https://picsum.photos/300/200?5">
 <div class="card-content">
 <strong>Game 5</strong>
 <div class="small">Flappy Bird</div>
+</div>
+</a>
+
+<a class="card" href="game6.html">
+<img src="https://picsum.photos/300/200?6">
+<div class="card-content">
+<strong>Game 6</strong>
+<div class="small">Sky Cube Platformer</div>
 </div>
 </a>
 
@@ -167,7 +176,7 @@ let cards=document.querySelectorAll(".card");
 
 cards.forEach(card=>{
 let text=card.innerText.toLowerCase();
-card.style.display=text.includes(input)?"block":"none";
+card.style.display=text.includes(input) ? "block" : "none";
 });
 }
 </script>
