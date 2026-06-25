@@ -1,263 +1,235 @@
- y<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sky Cube Platformer</title>
-<style>
-html,body{margin:0;height:100%;overflow:hidden;font-family:Arial;background:#87ceeb}
-#game{display:block;width:100vw;height:70vh}
-.screen{position:fixed;inset:0;background:#111;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:20}
-.hidden{display:none}
-button{padding:14px 24px;margin:8px;font-size:18px}
-#hud{position:fixed;top:10px;left:10px;color:#fff;font-weight:bold}
-#controls{height:30vh;display:none;grid-template-columns:1fr 1fr 1fr;background:#222}
-.ctrl{font-size:28px;border:1px solid #444;color:#fff;background:#333}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Craftsman Jigsaw Builder</title>
+    <style>
+        body { margin: 0; background: #f2efeb; color: #2c2520; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #ui { display: flex; gap: 30px; align-items: center; margin-bottom: 15px; width: 90%; max-width: 800px; justify-content: space-between; }
+        h1 { margin: 0; font-size: 1.6rem; font-weight: 600; color: #4a3e3d; letter-spacing: -0.5px; }
+        canvas { background: #e6e1da; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.8); max-width: 95vw; max-height: 75vh; aspect-ratio: 4/3; border: 1px solid #d4cdc3; }
+        .btn { background: #4a3e3d; color: #fff; border: none; padding: 10px 20px; font-size: 0.95rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        .btn:hover { background: #5c4e4c; }
+        .btn:active { transform: scale(0.98); }
+    </style>
 </head>
 <body>
+    <div id="ui">
+        <h1>Wood-Block Canvas Builder</h1>
+        <button class="btn" onclick="initializeGame()">Scramble Board</button>
+    </div>
+    <canvas id="puzzleCanvas" width="800" height="600"></canvas>
 
-<div id="startScreen" class="screen">
-<h1>Sky Cube Platformer</h1>
-<button onclick="showLevels()">START</button>
-</div>
+    <script>
+        const canvas = document.getElementById("puzzleCanvas");
+        const ctx = canvas.getContext("2d");
 
-<div id="levelScreen" class="screen hidden">
-<h2>Select Level</h2>
-<div id="levels"></div>
-</div>
+        const numCols = 4;
+        const numRows = 3;
+        const pieceWidth = 110;
+        const pieceHeight = 110;
+        
+        const boardOffsetX = (canvas.width - (numCols * pieceWidth)) / 2;
+        const boardOffsetY = (canvas.height - (numRows * pieceHeight)) / 2;
 
-<div id="winScreen" class="screen hidden">
-<h1>Level Complete</h1>
-<button onclick="showLevels()">Levels</button>
-</div>
+        let pieces = [];
+        let selectedPiece = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
 
-<div id="hud"></div>
-<canvas id="game"></canvas>
+        // Warm, natural craft color palettes
+        const colorPalette = ["#b85d43", "#3f6a58", "#466375", "#dca842", "#70546d", "#8c6e51"];
+        let designGrid = [];
 
-<div id="controls">
-<button class="ctrl" id="left">◀</button>
-<button class="ctrl" id="jump">▲</button>
-<button class="ctrl" id="right">▶</button>
-</div>
+        function generateRandomDesign() {
+            designGrid = [];
+            for (let r = 0; r < numRows; r++) {
+                designGrid[r] = [];
+                for (let c = 0; c < numCols; c++) {
+                    designGrid[r][c] = {
+                        color: colorPalette[(r * numCols + c) % colorPalette.length],
+                        patternType: (r + c) % 3 // Shapes: 0=Diagonal Split, 1=Circle Accent, 2=Dual Bar
+                    };
+                }
+            }
+        }
 
-<script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+        function initializeGame() {
+            pieces = [];
+            selectedPiece = null;
+            generateRandomDesign();
 
-function resize(){
-canvas.width=innerWidth;
-canvas.height=Math.floor(innerHeight*0.7);
-}
-resize();
-addEventListener("resize",resize);
+            for (let r = 0; r < numRows; r++) {
+                for (let c = 0; c < numCols; c++) {
+                    let targetX = boardOffsetX + (c * pieceWidth);
+                    let targetY = boardOffsetY + (r * pieceHeight);
 
-let state="menu";
-let cam=0;
-let levelIndex=0;
+                    // Scatter blocks naturally on left and right side margins
+                    let onLeft = Math.random() > 0.5;
+                    let currentX = onLeft ? Math.random() * (boardOffsetX - pieceWidth - 20) + 10 : canvas.width - boardOffsetX + (Math.random() * (boardOffsetX - pieceWidth - 20)) + 10;
+                    let currentY = Math.random() * (canvas.height - pieceHeight - 40) + 20;
 
-const player={x:50,y:100,w:32,h:32,vx:0,vy:0,ground:false,rot:0};
-let particles=[];
-let keys={l:false,r:false};
+                    pieces.push({
+                        row: r, col: c,
+                        targetX: targetX, targetY: targetY,
+                        x: currentX, y: currentY,
+                        isSnapped: false
+                    });
+                }
+            }
+            draw();
+        }
 
-const levels=[];
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-for(let n=1;n<=5;n++){
- let plats=[{x:0,y:420,w:2600,h:80}];
- let lava=[];
+            // 1. Draw Inset Mounting Tray Base Plate
+            ctx.fillStyle = "#ded9d0";
+            ctx.fillRect(boardOffsetX, boardOffsetY, numCols * pieceWidth, numRows * pieceHeight);
+            
+            // Soft inner grid guide lines
+            ctx.strokeStyle = "#cfc8be";
+            ctx.lineWidth = 1;
+            for (let r = 0; r <= numRows; r++) {
+                ctx.beginPath(); ctx.moveTo(boardOffsetX, boardOffsetY + r * pieceHeight); ctx.lineTo(boardOffsetX + numCols * pieceWidth, boardOffsetY + r * pieceHeight); ctx.stroke();
+            }
+            for (let c = 0; c <= numCols; c++) {
+                ctx.beginPath(); ctx.moveTo(boardOffsetX + c * pieceWidth, boardOffsetY); ctx.lineTo(boardOffsetX + c * pieceWidth, boardOffsetY + numRows * pieceHeight); ctx.stroke();
+            }
 
- for(let i=1;i<10+n;i++){
-   plats.push({
-    x:220*i,
-    y:360-Math.sin(i*0.7)*50-(n*8),
-    w:110-(n*5),
-    h:20
-   });
- }
+            // 2. Render Static Snapped Pieces
+            pieces.forEach(p => { if (p.isSnapped) drawPiece(p); });
 
- for(let i=1;i<7+n;i++){
-   lava.push({x:300*i,y:500,w:120+n*20,h:80,b:Math.random()*100});
- }
+            // 3. Render Loose Loose Pieces with standard canvas shadows
+            pieces.forEach(p => {
+                if (!p.isSnapped && p !== selectedPiece) {
+                    ctx.save();
+                    ctx.shadowColor = "rgba(40, 30, 25, 0.12)";
+                    ctx.shadowBlur = 6;
+                    ctx.shadowOffsetY = 4;
+                    drawPiece(p);
+                    ctx.restore();
+                }
+            });
 
- levels.push({
-  length:2600+n*500,
-  goal:2400+n*500
- });
-}
+            // 4. Render Active Dragging Item with High-Elevation Drop Shadow
+            if (selectedPiece) {
+                ctx.save();
+                ctx.shadowColor = "rgba(40, 30, 25, 0.22)";
+                ctx.shadowBlur = 14;
+                ctx.shadowOffsetY = 10;
+                drawPiece(selectedPiece);
+                ctx.restore();
+            }
+        }
 
-const levelButtons=document.getElementById("levels");
-for(let i=0;i<5;i++){
- const b=document.createElement("button");
- b.textContent="Level "+(i+1);
- b.onclick=()=>startLevel(i);
- levelButtons.appendChild(b);
-}
+        function drawPiece(p) {
+            ctx.save();
+            
+            // Matte structural wood-tile surface look
+            ctx.fillStyle = "#fcfaf7";
+            ctx.fillRect(p.x, p.y, pieceWidth, pieceHeight);
 
-function showLevels(){
- state="menu";
- document.getElementById("startScreen").classList.add("hidden");
- document.getElementById("levelScreen").classList.remove("hidden");
- document.getElementById("winScreen").classList.add("hidden");
- document.getElementById("controls").style.display="none";
-}
+            // Render Art Graphic Layer
+            let art = designGrid[p.row][p.col];
+            ctx.fillStyle = art.color;
+            
+            let padding = 12;
+            let innerW = pieceWidth - (padding * 2);
+            let innerH = pieceHeight - (padding * 2);
+            let ix = p.x + padding;
+            let iy = p.y + padding;
 
-function startLevel(i){
- levelIndex=i;
- player.x=50;
- player.y=100;
- player.vx=0;
- player.vy=0;
- cam=0;
- state="play";
- document.getElementById("levelScreen").classList.add("hidden");
- document.getElementById("winScreen").classList.add("hidden");
- document.getElementById("controls").style.display="grid";
-}
+            ctx.save();
+            // Clip design art neatly inside the block padding parameters
+            ctx.beginPath();
+            ctx.rect(ix, iy, innerW, innerH);
+            ctx.clip();
 
-function touchHold(id,key){
- const e=document.getElementById(id);
- e.onpointerdown=()=>keys[key]=true;
- e.onpointerup=()=>keys[key]=false;
- e.onpointerleave=()=>keys[key]=false;
-}
-touchHold("left","l");
-touchHold("right","r");
+            if (art.patternType === 0) {
+                ctx.beginPath();
+                ctx.moveTo(ix, iy);
+                ctx.lineTo(ix + innerW, iy + innerH);
+                ctx.lineTo(ix, iy + innerH);
+                ctx.closePath(); ctx.fill();
+            } else if (art.patternType === 1) {
+                ctx.beginPath();
+                ctx.arc(ix + innerW/2, iy + innerH/2, innerW/2.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(ix, iy + innerH/3, innerW, innerH/3);
+            }
+            ctx.restore();
 
-document.getElementById("jump").onpointerdown=()=>{
- if(player.ground){
-  player.vy=-15;
-  player.ground=false;
-  player.rot+=Math.PI/2;
- }
-};
+            // Crisp wood tile borders
+            ctx.strokeStyle = p.isSnapped ? "#b0a89e" : "#8a7e75";
+            ctx.lineWidth = p.isSnapped ? 1 : 1.5;
+            ctx.strokeRect(p.x, p.y, pieceWidth, pieceHeight);
 
-function collide(a,b){
- return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
-}
+            ctx.restore();
+        }
 
-function drawSky(){
- ctx.fillStyle="#59b9ff";
- ctx.fillRect(0,0,canvas.width,canvas.height);
+        function getCanvasCoords(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
 
- for(let i=0;i<8;i++){
-   let x=((i*350)-(cam*0.2))%(canvas.width+400)-200;
-   let y=60+(i%3)*50;
-   ctx.fillStyle="white";
-   ctx.beginPath();
-   ctx.arc(x,y,30,0,7);
-   ctx.arc(x+30,y-10,35,0,7);
-   ctx.arc(x+60,y,30,0,7);
-   ctx.fill();
- }
+        function handleStart(clientX, clientY) {
+            const coords = getCanvasCoords(clientX, clientY);
+            for (let i = pieces.length - 1; i >= 0; i--) {
+                let p = pieces[i];
+                if (!p.isSnapped && coords.x >= p.x && coords.x <= p.x + pieceWidth && coords.y >= p.y && coords.y <= p.y + pieceHeight) {
+                    selectedPiece = p;
+                    dragOffsetX = coords.x - p.x;
+                    dragOffsetY = coords.y - p.y;
+                    pieces.splice(i, 1);
+                    pieces.push(selectedPiece); // Dynamic top sorting element adjustment
+                    break;
+                }
+            }
+        }
 
- let plane=((Date.now()*0.05)% (canvas.width+300))-150;
- ctx.fillStyle="#ddd";
- ctx.fillRect(plane,80,70,10);
- ctx.fillRect(plane+45,70,20,8);
-}
+        function handleMove(clientX, clientY) {
+            if (!selectedPiece) return;
+            const coords = getCanvasCoords(clientX, clientY);
+            selectedPiece.x = coords.x - dragOffsetX;
+            selectedPiece.y = coords.y - dragOffsetY;
+            draw();
+        }
 
-function loop(){
- requestAnimationFrame(loop);
- if(state!=="play") return;
+        function handleEnd() {
+            if (!selectedPiece) return;
+            let distance = Math.hypot(selectedPiece.x - selectedPiece.targetX, selectedPiece.y - selectedPiece.targetY);
+            
+            if (distance < 20) { // Snapping lock padding margin check
+                selectedPiece.x = selectedPiece.targetX;
+                selectedPiece.y = selectedPiece.targetY;
+                selectedPiece.isSnapped = true;
+                selectedPiece = null;
+                draw();
+                checkVictory();
+            } else {
+                selectedPiece = null;
+                draw();
+            }
+        }
 
- const plats=[];
- const lava=[];
+        function checkVictory() {
+            if (pieces.every(p => p.isSnapped)) {
+                setTimeout(() => { alert("Artboard fully assembled!"); }, 150);
+            }
+        }
 
- for(let i=1;i<10+levelIndex+1;i++){
-   plats.push({x:220*i,y:360-Math.sin(i*0.7)*50-((levelIndex+1)*8),w:110-((levelIndex+1)*5),h:20});
- }
- plats.unshift({x:0,y:420,w:4000,h:80});
+        // Multitouch Parsing Hardware Interfaces
+        canvas.addEventListener("mousedown", e => handleStart(e.clientX, e.clientY));
+        window.addEventListener("mousemove", e => handleMove(e.clientX, e.clientY));
+        window.addEventListener("mouseup", () => handleEnd());
 
- for(let i=1;i<7+levelIndex+1;i++){
-   lava.push({x:300*i,y:500,w:120+(levelIndex+1)*20,h:80,b:i});
- }
-
- if(keys.l){player.vx=-6;}
- else if(keys.r){player.vx=6;}
- else player.vx*=0.8;
-
- player.vy+=0.8;
- player.x+=player.vx;
- player.y+=player.vy;
-
- player.ground=false;
-
- for(const p of plats){
-   if(collide(player,p)&&player.vy>0){
-      player.y=p.y-player.h;
-      player.vy=0;
-      player.ground=true;
-   }
- }
-
- if(Math.abs(player.vx)>1 && player.ground){
-   particles.push({x:player.x+16,y:player.y+32,v:(Math.random()*2)+1,l:20});
- }
-
- for(const l of lava){
-   if(collide(player,l)){ startLevel(levelIndex); }
- }
-
- if(player.y>canvas.height+300){ startLevel(levelIndex); }
-
- if(player.x>levels[levelIndex].goal){
-   state="win";
-   document.getElementById("winScreen").classList.remove("hidden");
- }
-
- cam=player.x-canvas.width*0.3;
-
- drawSky();
-
- ctx.save();
- ctx.translate(-cam,0);
-
- for(const p of plats){
-   ctx.fillStyle="#5d4037";
-   ctx.fillRect(p.x,p.y,p.w,p.h);
-   ctx.fillStyle="#4caf50";
-   ctx.fillRect(p.x,p.y,p.w,5);
- }
-
- for(const l of lava){
-   let g=ctx.createLinearGradient(l.x,l.y,l.x,l.y+l.h);
-   g.addColorStop(0,"#ffb300");
-   g.addColorStop(1,"#b71c1c");
-   ctx.fillStyle=g;
-   ctx.fillRect(l.x,l.y,l.w,l.h);
-
-   for(let i=0;i<6;i++){
-     ctx.beginPath();
-     ctx.arc(l.x+20+i*18,l.y+10+Math.sin(Date.now()/200+i)*8,4,0,7);
-     ctx.fillStyle="#ffd54f";
-     ctx.fill();
-   }
- }
-
- ctx.fillStyle="gold";
- ctx.fillRect(levels[levelIndex].goal,250,30,120);
-
- ctx.save();
- ctx.translate(player.x+16,player.y+16);
- ctx.rotate(player.rot);
- ctx.fillStyle="white";
- ctx.fillRect(-16,-16,32,32);
- ctx.restore();
-
- ctx.restore();
-
- for(let i=particles.length-1;i>=0;i--){
-   let p=particles[i];
-   p.y+=p.v;
-   p.l--;
-   ctx.fillStyle="rgba(255,255,255,"+(p.l/20)+")";
-   ctx.fillRect(p.x-cam,p.y,3,3);
-   if(p.l<=0) particles.splice(i,1);
- }
-
- document.getElementById("hud").textContent="Level "+(levelIndex+1);
-}
-loop();
-</script>
-</body>
-</html> 
+        canvas.addEventListener("touchstart", e => {
+            if (e.touches.length === 1) handleStart(e.touches.clientX, e.touches.clientY);
+        }, { passive: true });
+        window.addEventListener("touchmove", e => {
