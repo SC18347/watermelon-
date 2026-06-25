@@ -3,225 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Contrast Puzzle Builder</title>
+    <title>Art Board Builder</title>
     <style>
-        body { margin: 0; background: #1a1a24; color: #ffffff; font-family: sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #ui { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; width: 90%; max-width: 800px; justify-content: space-between; }
-        h1 { margin: 0; font-size: 1.4rem; font-weight: bold; color: #ffffff; }
-        canvas { background: #111116; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); max-width: 95vw; max-height: 75vh; aspect-ratio: 4/3; border: 2px solid #3a3a4a; }
-        .btn { background: #3b82f6; color: #fff; border: none; padding: 10px 22px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .btn:hover { background: #2563eb; }
+        body { margin: 0; background: #111116; color: #fff; font-family: sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #ui { display: flex; gap: 20px; align-items: center; margin-bottom: 12px; width: 95%; max-width: 960px; justify-content: space-between; }
+        h1 { margin: 0; font-size: 1.3rem; }
+        #inst { margin: 0; font-size: 0.9rem; color: #a1a1aa; }
+        canvas { background: #09090d; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-width: 98vw; max-height: 75vh; aspect-ratio: 4/3; border: 2px solid #27272a; cursor: pointer; }
+        button { background: #2563eb; color: #fff; border: none; padding: 10px 20px; font-weight: 600; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <h1>Contrast Puzzle Builder</h1>
-        <button class="btn" onclick="initializeGame()">Scramble</button>
+        <div><h1>Gallery Art Board</h1><p id="inst">Click a side piece, then click an empty grid box</p></div>
+        <button onclick="init()">Scramble Art</button>
     </div>
-    <canvas id="puzzleCanvas" width="800" height="600"></canvas>
+    <canvas id="cv" width="960" height="720"></canvas>
 
     <script>
-        const canvas = document.getElementById("puzzleCanvas");
-        const ctx = canvas.getContext("2d");
+        const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+        const cols = 4, rows = 3, w = 140, h = 140, bx = (960 - cols*w)/2, by = (720 - rows*h)/2;
+        let pieces = [], selected = null, layers = [];
+        const pals = [["#ef4444", "#3b82f6", "#f59e0b", "#10b981", "#8b5cf6"], ["#1e293b", "#f8fafc", "#e2e8f0", "#475569", "#0f172a"], ["#ff7b00", "#ffb703", "#023047", "#219ebc", "#8ecae6"]];
 
-        const numCols = 4;
-        const numRows = 3;
-        const pieceWidth = 110;
-        const pieceHeight = 110;
-        
-        const boardOffsetX = (canvas.width - (numCols * pieceWidth)) / 2;
-        const boardOffsetY = (canvas.height - (numRows * pieceHeight)) / 2;
-
-        let pieces = [];
-        let selectedPiece = null;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
-        // Solid, high-visibility solid color blocks
-        const blockColors = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6"];
-        let designGrid = [];
-
-        function generateRandomDesign() {
-            designGrid = [];
-            for (let r = 0; r < numRows; r++) {
-                designGrid[r] = [];
-                for (let c = 0; c < numCols; c++) {
-                    designGrid[r][c] = {
-                        color: blockColors[(r * numCols + c) % blockColors.length],
-                        symbol: (r + c) % 3 
-                    };
-                }
-            }
+        function makeArt() {
+            layers = []; const p = pals[Math.floor(Math.random() * pals.length)];
+            layers.push({t:'bg', c:p[0]});
+            for(let i=0; i<4; i++) layers.push({t:'f', x:bx+Math.random()*cols*w, y:by+Math.random()*rows*h, r:120+Math.random()*150, c:p[1+(i%4)]});
+            for(let i=0; i<6; i++) layers.push({t:'l', x1:bx+Math.random()*cols*w, y1:by+Math.random()*rows*h, x2:bx+Math.random()*cols*w, y2:by+Math.random()*rows*h, w:2+Math.random()*8, c:p[Math.floor(Math.random()*p.length)]});
+            for(let i=0; i<4; i++) layers.push({t:'r', x:bx+Math.random()*cols*w, y:by+Math.random()*rows*h, r:30+Math.random()*60, w:3+Math.random()*6, c:p[Math.floor(Math.random()*p.length)]});
         }
 
-        function initializeGame() {
-            pieces = [];
-            selectedPiece = null;
-            generateRandomDesign();
+        function drawArt(c, ox=0, oy=0) {
+            layers.forEach(l => {
+                c.fillStyle = l.c; c.strokeStyle = l.c; c.lineWidth = l.w;
+                if(l.t=='bg') c.fillRect(ox, oy, cols*w, rows*h);
+                else if(l.t=='f') { c.beginPath(); c.arc(l.x-bx+ox, l.y-by+oy, l.r, 0, Math.PI*2); c.fill(); }
+                else if(l.t=='l') { c.beginPath(); c.moveTo(l.x1-bx+ox, l.y1-by+oy); c.lineTo(l.x2-bx+ox, l.y2-by+oy); c.stroke(); }
+                else if(l.t=='r') { c.beginPath(); c.arc(l.x-bx+ox, l.y-by+oy, l.r, 0, Math.PI*2); c.stroke(); }
+            });
+        }
 
-            for (let r = 0; r < numRows; r++) {
-                for (let c = 0; c < numCols; c++) {
-                    let targetX = boardOffsetX + (c * pieceWidth);
-                    let targetY = boardOffsetY + (r * pieceHeight);
-
-                    // Force spawn blocks entirely inside visible black side margins
-                    let onLeft = Math.random() > 0.5;
-                    let currentX = onLeft ? Math.random() * (boardOffsetX - pieceWidth - 30) + 15 : canvas.width - boardOffsetX + (Math.random() * (boardOffsetX - pieceWidth - 30)) + 15;
-                    let currentY = Math.random() * (canvas.height - pieceHeight - 40) + 20;
-
-                    pieces.push({
-                        row: r, col: c,
-                        targetX: targetX, targetY: targetY,
-                        x: currentX, y: currentY,
-                        isSnapped: false
-                    });
+        function init() {
+            pieces = []; selected = null; updateUI("Click a side piece, then click an empty grid box", "#a1a1aa"); makeArt();
+            let spawns = [];
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    let sx = Math.random()>0.5 ? 15+Math.random()*(bx-w-30) : 960-bx+15+Math.random()*(bx-w-30);
+                    spawns.push({x: sx, y: 30+Math.random()*(720-h-60)});
+                }
+            }
+            spawns.sort(() => Math.random() - 0.5);
+            let idx = 0;
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    let pos = spawns[idx++];
+                    pieces.push({id: r*cols+c, r, c, tx: bx+c*w, ty: by+r*h, x: pos.x, y: pos.y, gr: -1, gc: -1, s: false});
                 }
             }
             draw();
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 1. Draw Visible Sidebar Holding Trays (Highlights where blocks spawn)
-            ctx.fillStyle = "#161622";
-            ctx.fillRect(0, 0, boardOffsetX - 10, canvas.height);
-            ctx.fillRect(canvas.width - boardOffsetX + 10, 0, boardOffsetX - 10, canvas.height);
-
-            // 2. Draw Center Target Grid Frame
-            ctx.fillStyle = "#09090d";
-            ctx.fillRect(boardOffsetX, boardOffsetY, numCols * pieceWidth, numRows * pieceHeight);
+            ctx.clearRect(0, 0, 960, 720);
+            ctx.fillStyle = "#18181c"; ctx.fillRect(0, 0, bx-10, 720); ctx.fillRect(960-bx+10, 0, bx-10, 720);
+            ctx.fillStyle = "#0d0d11"; ctx.fillRect(bx, by, cols*w, rows*h);
+            ctx.strokeStyle = "#3f3f46"; ctx.lineWidth = 1.5;
+            for(let r=0; r<=rows; r++) { ctx.beginPath(); ctx.moveTo(bx, by+r*h); ctx.lineTo(bx+cols*w, by+r*h); ctx.stroke(); }
+            for(let c=0; c<=cols; c++) { ctx.beginPath(); ctx.moveTo(bx+c*w, by); ctx.lineTo(bx+c*w, by+rows*h); ctx.stroke(); }
             
-            // Bright white target outline slots
-            ctx.strokeStyle = "#4b5563";
-            ctx.lineWidth = 2;
-            for (let r = 0; r <= numRows; r++) {
-                ctx.beginPath(); ctx.moveTo(boardOffsetX, boardOffsetY + r * pieceHeight); ctx.lineTo(boardOffsetX + numCols * pieceWidth, boardOffsetY + r * pieceHeight); ctx.stroke();
-            }
-            for (let c = 0; c <= numCols; c++) {
-                ctx.beginPath(); ctx.moveTo(boardOffsetX + c * pieceWidth, boardOffsetY); ctx.lineTo(boardOffsetX + c * pieceWidth, boardOffsetY + numRows * pieceHeight); ctx.stroke();
-            }
-
-            // 3. Render Pieces
-            pieces.forEach(p => { if (p.isSnapped) drawPiece(p); });
-            pieces.forEach(p => { if (!p.isSnapped && p !== selectedPiece) drawPiece(p); });
-
-            // 4. Render Active Drag Item with High Visibility Stroke
-            if (selectedPiece) {
-                ctx.save();
-                ctx.shadowColor = "#000000";
-                ctx.shadowBlur = 15;
-                drawPiece(selectedPiece, true);
-                ctx.restore();
-            }
+            pieces.forEach(p => {
+                ctx.save(); ctx.beginPath(); ctx.rect(p.x, p.y, w, h); ctx.clip();
+                drawArt(ctx, p.x - bx - p.c*w, p.y - by - p.r*h); ctx.restore();
+                ctx.strokeStyle = p === selected ? "#3b82f6" : (p.s ? "rgba(16,185,129,0.4)" : "#000");
+                ctx.lineWidth = p === selected ? 4 : 2; ctx.strokeRect(p.x, p.y, w, h);
+            });
         }
 
-        function drawPiece(p, isDragging = false) {
-            ctx.save();
-            
-            // Piece base backing block
-            ctx.fillStyle = "#2e2e3e"; 
-            ctx.fillRect(p.x, p.y, pieceWidth, pieceHeight);
-
-            // Graphic Artwork Core Layer
-            let art = designGrid[p.row][p.col];
-            let pad = 10;
-            ctx.fillStyle = art.color;
-            ctx.fillRect(p.x + pad, p.y + pad, pieceWidth - (pad * 2), pieceHeight - (pad * 2));
-
-            // Interior High Contrast Geometric Markings
-            ctx.fillStyle = "#ffffff";
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            let cx = p.x + (pieceWidth / 2);
-            let cy = p.y + (pieceHeight / 2);
-
-            if (art.symbol === 0) {
-                ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.fill();
-            } else if (art.symbol === 1) {
-                ctx.fillRect(cx - 15, cy - 15, 30, 30);
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(cx - 15, cy - 15); ctx.lineTo(cx + 15, cy + 15);
-                ctx.moveTo(cx + 15, cy - 15); ctx.lineTo(cx - 15, cy + 15);
-                ctx.stroke();
-            }
-
-            // Heavy Piece Edge Outline (Thick borders so they are highly visible)
-            ctx.strokeStyle = p.isSnapped ? "#10b981" : (isDragging ? "#ffffff" : "#000000");
-            ctx.lineWidth = isDragging ? 4 : 3;
-            ctx.strokeRect(p.x, p.y, pieceWidth, pieceHeight);
-
-            ctx.restore();
-        }
-
-        function getCanvasCoords(clientX, clientY) {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
-            };
-        }
-
-        function handleStart(clientX, clientY) {
-            const coords = getCanvasCoords(clientX, clientY);
-            for (let i = pieces.length - 1; i >= 0; i--) {
-                let p = pieces[i];
-                if (!p.isSnapped && coords.x >= p.x && coords.x <= p.x + pieceWidth && coords.y >= p.y && coords.y <= p.y + pieceHeight) {
-                    selectedPiece = p;
-                    dragOffsetX = coords.x - p.x;
-                    dragOffsetY = coords.y - p.y;
-                    pieces.splice(i, 1);
-                    pieces.push(selectedPiece);
-                    break;
+        function click(cx, cy) {
+            const r = cv.getBoundingClientRect(), mx = (cx - r.left) * (960 / r.width), my = (cy - r.top) * (720 / r.height);
+            let hit = pieces.find(p => mx >= p.x && mx <= p.x+w && my >= p.y && my <= p.y+h);
+            if (hit && !hit.s) { selected = hit; updateUI("Piece Selected! Click its target grid box", "#3b82f6"); draw(); return; }
+            if (selected && mx >= bx && mx <= bx+cols*w && my >= by && my <= by+rows*h) {
+                let cc = Math.floor((mx - bx) / w), cr = Math.floor((my - by) / h);
+                if (!pieces.some(p => p.gr === cr && p.gc === cc)) {
+                    selected.x = bx+cc*w; selected.y = by+cr*h; selected.gr = cr; selected.gc = cc;
+                    if (selected.r === cr && selected.c === cc) selected.s = true;
+                    selected = null; updateUI("Piece positioned! Select another piece", "#10b981"); draw();
+                    if (pieces.every(p => p.s)) { updateUI("Masterpiece Assembled!", "#10b981"); alert("Assembled!"); }
                 }
             }
         }
 
-        function handleMove(clientX, clientY) {
-            if (!selectedPiece) return;
-            const coords = getCanvasCoords(clientX, clientY);
-            selectedPiece.x = coords.x - dragOffsetX;
-            selectedPiece.y = coords.y - dragOffsetY;
-            draw();
-        }
-
-        function handleEnd() {
-            if (!selectedPiece) return;
-            let distance = Math.hypot(selectedPiece.x - selectedPiece.targetX, selectedPiece.y - selectedPiece.targetY);
-            
-            if (distance < 25) { 
-                selectedPiece.x = selectedPiece.targetX;
-                selectedPiece.y = selectedPiece.targetY;
-                selectedPiece.isSnapped = true;
-                selectedPiece = null;
-                draw();
-                checkVictory();
-            } else {
-                selectedPiece = null;
-                draw();
-            }
-        }
-
-        function checkVictory() {
-            if (pieces.every(p => p.isSnapped)) {
-                setTimeout(() => { alert("Puzzle Constructed Successfully!"); }, 100);
-            }
-        }
-
-        canvas.addEventListener("mousedown", e => handleStart(e.clientX, e.clientY));
-        window.addEventListener("mousemove", e => handleMove(e.clientX, e.clientY));
-        window.addEventListener("mouseup", () => handleEnd());
-
-        canvas.addEventListener("touchstart", e => {
-            if (e.touches.length === 1) handleStart(e.touches.clientX, e.touches.clientY);
-        }, { passive: true });
-        window.addEventListener("touchmove", e => {
-            if (e.touches.length === 1) handleMove(e.touches.clientX, e.touches.clientY);
-        }, { passive: true });
-        window.addEventListener("touchend", () => handleEnd());
-
-        initializeGame();
+        function updateUI(t, c) { const i = document.getElementById("inst"); i.textContent = t; i.style.color = c; }
+        cv.addEventListener("click", e => click(e.clientX, e.clientY));
+        cv.addEventListener("touchstart", e => { if(e.touches.length==1) click(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+        init();
     </script>
 </body>
 </html>
