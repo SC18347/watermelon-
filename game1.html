@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Craftsman Jigsaw Builder</title>
+    <title>Contrast Puzzle Builder</title>
     <style>
-        body { margin: 0; background: #f2efeb; color: #2c2520; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #ui { display: flex; gap: 30px; align-items: center; margin-bottom: 15px; width: 90%; max-width: 800px; justify-content: space-between; }
-        h1 { margin: 0; font-size: 1.6rem; font-weight: 600; color: #4a3e3d; letter-spacing: -0.5px; }
-        canvas { background: #e6e1da; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.8); max-width: 95vw; max-height: 75vh; aspect-ratio: 4/3; border: 1px solid #d4cdc3; }
-        .btn { background: #4a3e3d; color: #fff; border: none; padding: 10px 20px; font-size: 0.95rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background 0.2s, transform 0.1s; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
-        .btn:hover { background: #5c4e4c; }
-        .btn:active { transform: scale(0.98); }
+        body { margin: 0; background: #1a1a24; color: #ffffff; font-family: sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #ui { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; width: 90%; max-width: 800px; justify-content: space-between; }
+        h1 { margin: 0; font-size: 1.4rem; font-weight: bold; color: #ffffff; }
+        canvas { background: #111116; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); max-width: 95vw; max-height: 75vh; aspect-ratio: 4/3; border: 2px solid #3a3a4a; }
+        .btn { background: #3b82f6; color: #fff; border: none; padding: 10px 22px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .btn:hover { background: #2563eb; }
     </style>
 </head>
 <body>
     <div id="ui">
-        <h1>Wood-Block Canvas Builder</h1>
-        <button class="btn" onclick="initializeGame()">Scramble Board</button>
+        <h1>Contrast Puzzle Builder</h1>
+        <button class="btn" onclick="initializeGame()">Scramble</button>
     </div>
     <canvas id="puzzleCanvas" width="800" height="600"></canvas>
 
@@ -38,8 +37,8 @@
         let dragOffsetX = 0;
         let dragOffsetY = 0;
 
-        // Warm, natural craft color palettes
-        const colorPalette = ["#b85d43", "#3f6a58", "#466375", "#dca842", "#70546d", "#8c6e51"];
+        // Solid, high-visibility solid color blocks
+        const blockColors = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6"];
         let designGrid = [];
 
         function generateRandomDesign() {
@@ -48,8 +47,8 @@
                 designGrid[r] = [];
                 for (let c = 0; c < numCols; c++) {
                     designGrid[r][c] = {
-                        color: colorPalette[(r * numCols + c) % colorPalette.length],
-                        patternType: (r + c) % 3 // Shapes: 0=Diagonal Split, 1=Circle Accent, 2=Dual Bar
+                        color: blockColors[(r * numCols + c) % blockColors.length],
+                        symbol: (r + c) % 3 
                     };
                 }
             }
@@ -65,9 +64,9 @@
                     let targetX = boardOffsetX + (c * pieceWidth);
                     let targetY = boardOffsetY + (r * pieceHeight);
 
-                    // Scatter blocks naturally on left and right side margins
+                    // Force spawn blocks entirely inside visible black side margins
                     let onLeft = Math.random() > 0.5;
-                    let currentX = onLeft ? Math.random() * (boardOffsetX - pieceWidth - 20) + 10 : canvas.width - boardOffsetX + (Math.random() * (boardOffsetX - pieceWidth - 20)) + 10;
+                    let currentX = onLeft ? Math.random() * (boardOffsetX - pieceWidth - 30) + 15 : canvas.width - boardOffsetX + (Math.random() * (boardOffsetX - pieceWidth - 30)) + 15;
                     let currentY = Math.random() * (canvas.height - pieceHeight - 40) + 20;
 
                     pieces.push({
@@ -84,13 +83,18 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Draw Inset Mounting Tray Base Plate
-            ctx.fillStyle = "#ded9d0";
+            // 1. Draw Visible Sidebar Holding Trays (Highlights where blocks spawn)
+            ctx.fillStyle = "#161622";
+            ctx.fillRect(0, 0, boardOffsetX - 10, canvas.height);
+            ctx.fillRect(canvas.width - boardOffsetX + 10, 0, boardOffsetX - 10, canvas.height);
+
+            // 2. Draw Center Target Grid Frame
+            ctx.fillStyle = "#09090d";
             ctx.fillRect(boardOffsetX, boardOffsetY, numCols * pieceWidth, numRows * pieceHeight);
             
-            // Soft inner grid guide lines
-            ctx.strokeStyle = "#cfc8be";
-            ctx.lineWidth = 1;
+            // Bright white target outline slots
+            ctx.strokeStyle = "#4b5563";
+            ctx.lineWidth = 2;
             for (let r = 0; r <= numRows; r++) {
                 ctx.beginPath(); ctx.moveTo(boardOffsetX, boardOffsetY + r * pieceHeight); ctx.lineTo(boardOffsetX + numCols * pieceWidth, boardOffsetY + r * pieceHeight); ctx.stroke();
             }
@@ -98,73 +102,54 @@
                 ctx.beginPath(); ctx.moveTo(boardOffsetX + c * pieceWidth, boardOffsetY); ctx.lineTo(boardOffsetX + c * pieceWidth, boardOffsetY + numRows * pieceHeight); ctx.stroke();
             }
 
-            // 2. Render Static Snapped Pieces
+            // 3. Render Pieces
             pieces.forEach(p => { if (p.isSnapped) drawPiece(p); });
+            pieces.forEach(p => { if (!p.isSnapped && p !== selectedPiece) drawPiece(p); });
 
-            // 3. Render Loose Loose Pieces with standard canvas shadows
-            pieces.forEach(p => {
-                if (!p.isSnapped && p !== selectedPiece) {
-                    ctx.save();
-                    ctx.shadowColor = "rgba(40, 30, 25, 0.12)";
-                    ctx.shadowBlur = 6;
-                    ctx.shadowOffsetY = 4;
-                    drawPiece(p);
-                    ctx.restore();
-                }
-            });
-
-            // 4. Render Active Dragging Item with High-Elevation Drop Shadow
+            // 4. Render Active Drag Item with High Visibility Stroke
             if (selectedPiece) {
                 ctx.save();
-                ctx.shadowColor = "rgba(40, 30, 25, 0.22)";
-                ctx.shadowBlur = 14;
-                ctx.shadowOffsetY = 10;
-                drawPiece(selectedPiece);
+                ctx.shadowColor = "#000000";
+                ctx.shadowBlur = 15;
+                drawPiece(selectedPiece, true);
                 ctx.restore();
             }
         }
 
-        function drawPiece(p) {
+        function drawPiece(p, isDragging = false) {
             ctx.save();
             
-            // Matte structural wood-tile surface look
-            ctx.fillStyle = "#fcfaf7";
+            // Piece base backing block
+            ctx.fillStyle = "#2e2e3e"; 
             ctx.fillRect(p.x, p.y, pieceWidth, pieceHeight);
 
-            // Render Art Graphic Layer
+            // Graphic Artwork Core Layer
             let art = designGrid[p.row][p.col];
+            let pad = 10;
             ctx.fillStyle = art.color;
-            
-            let padding = 12;
-            let innerW = pieceWidth - (padding * 2);
-            let innerH = pieceHeight - (padding * 2);
-            let ix = p.x + padding;
-            let iy = p.y + padding;
+            ctx.fillRect(p.x + pad, p.y + pad, pieceWidth - (pad * 2), pieceHeight - (pad * 2));
 
-            ctx.save();
-            // Clip design art neatly inside the block padding parameters
-            ctx.beginPath();
-            ctx.rect(ix, iy, innerW, innerH);
-            ctx.clip();
+            // Interior High Contrast Geometric Markings
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            let cx = p.x + (pieceWidth / 2);
+            let cy = p.y + (pieceHeight / 2);
 
-            if (art.patternType === 0) {
-                ctx.beginPath();
-                ctx.moveTo(ix, iy);
-                ctx.lineTo(ix + innerW, iy + innerH);
-                ctx.lineTo(ix, iy + innerH);
-                ctx.closePath(); ctx.fill();
-            } else if (art.patternType === 1) {
-                ctx.beginPath();
-                ctx.arc(ix + innerW/2, iy + innerH/2, innerW/2.5, 0, Math.PI * 2);
-                ctx.fill();
+            if (art.symbol === 0) {
+                ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2); ctx.fill();
+            } else if (art.symbol === 1) {
+                ctx.fillRect(cx - 15, cy - 15, 30, 30);
             } else {
-                ctx.fillRect(ix, iy + innerH/3, innerW, innerH/3);
+                ctx.beginPath();
+                ctx.moveTo(cx - 15, cy - 15); ctx.lineTo(cx + 15, cy + 15);
+                ctx.moveTo(cx + 15, cy - 15); ctx.lineTo(cx - 15, cy + 15);
+                ctx.stroke();
             }
-            ctx.restore();
 
-            // Crisp wood tile borders
-            ctx.strokeStyle = p.isSnapped ? "#b0a89e" : "#8a7e75";
-            ctx.lineWidth = p.isSnapped ? 1 : 1.5;
+            // Heavy Piece Edge Outline (Thick borders so they are highly visible)
+            ctx.strokeStyle = p.isSnapped ? "#10b981" : (isDragging ? "#ffffff" : "#000000");
+            ctx.lineWidth = isDragging ? 4 : 3;
             ctx.strokeRect(p.x, p.y, pieceWidth, pieceHeight);
 
             ctx.restore();
@@ -187,7 +172,7 @@
                     dragOffsetX = coords.x - p.x;
                     dragOffsetY = coords.y - p.y;
                     pieces.splice(i, 1);
-                    pieces.push(selectedPiece); // Dynamic top sorting element adjustment
+                    pieces.push(selectedPiece);
                     break;
                 }
             }
@@ -205,7 +190,7 @@
             if (!selectedPiece) return;
             let distance = Math.hypot(selectedPiece.x - selectedPiece.targetX, selectedPiece.y - selectedPiece.targetY);
             
-            if (distance < 20) { // Snapping lock padding margin check
+            if (distance < 25) { 
                 selectedPiece.x = selectedPiece.targetX;
                 selectedPiece.y = selectedPiece.targetY;
                 selectedPiece.isSnapped = true;
@@ -220,11 +205,10 @@
 
         function checkVictory() {
             if (pieces.every(p => p.isSnapped)) {
-                setTimeout(() => { alert("Artboard fully assembled!"); }, 150);
+                setTimeout(() => { alert("Puzzle Constructed Successfully!"); }, 100);
             }
         }
 
-        // Multitouch Parsing Hardware Interfaces
         canvas.addEventListener("mousedown", e => handleStart(e.clientX, e.clientY));
         window.addEventListener("mousemove", e => handleMove(e.clientX, e.clientY));
         window.addEventListener("mouseup", () => handleEnd());
@@ -233,3 +217,11 @@
             if (e.touches.length === 1) handleStart(e.touches.clientX, e.touches.clientY);
         }, { passive: true });
         window.addEventListener("touchmove", e => {
+            if (e.touches.length === 1) handleMove(e.touches.clientX, e.touches.clientY);
+        }, { passive: true });
+        window.addEventListener("touchend", () => handleEnd());
+
+        initializeGame();
+    </script>
+</body>
+</html>
