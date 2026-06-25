@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Balloon Pop Clicker</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #74b9ff, #a29bfe);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        #ui {
+            padding: 10px;
+            font-size: 22px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-around;
+        }
+        .balloon {
+            position: absolute;
+            width: 50px;
+            height: 65px;
+            background-color: #ff7675;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+        }
+        #startBtn {
+            padding: 15px 30px;
+            font-size: 24px;
+            margin-top: 40vh;
+            cursor: pointer;
+            border: none;
+            border-radius: 25px;
+            background-color: #2ecc71;
+            color: white;
+            box-shadow: 0 5px #27ae60;
+        }
+        #startBtn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time Left: <span id="timer">15</span>s</div>
+    </div>
+
+    <button id="startBtn" onclick="startGame()">Start Game</button>
+
+    <script>
+        let score = 0;
+        let timeLeft = 15;
+        let gameActive = false;
+        let spawnInterval;
+        let timerInterval;
+
+        const scoreDisplay = document.getElementById("score");
+        const timerDisplay = document.getElementById("timer");
+        const startBtn = document.getElementById("startBtn");
+
+        function startGame() {
+            score = 0;
+            timeLeft = 15;
+            gameActive = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            startBtn.style.display = "none";
+
+            spawnInterval = setInterval(createBalloon, 600);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function createBalloon() {
+            if (!gameActive) return;
+
+            const balloon = document.createElement("div");
+            balloon.classList.add("balloon");
+            
+            // Random horizontal placement
+            const xPos = Math.random() * (window.innerWidth - 60);
+            balloon.style.left = xPos + "px";
+            balloon.style.top = "-70px";
+
+            // Random coloring
+            const colors = ['#ff7675', '#fdcb6e', '#00cec9', '#e84393'];
+            balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            document.body.appendChild(balloon);
+
+            // Animate moving downwards
+            let yPos = -70;
+            const speed = 3 + Math.random() * 4;
+
+            const fallAnimation = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(fallAnimation);
+                    balloon.remove();
+                    return;
+                }
+
+                yPos += speed;
+                balloon.style.top = yPos + "px";
+
+                // Remove if it goes past the bottom boundary
+                if (yPos > window.innerHeight) {
+                    clearInterval(fallAnimation);
+                    balloon.remove();
+                }
+            }, 20);
+
+            // Pop interaction
+            balloon.addEventListener("mousedown", () => {
+                score++;
+                scoreDisplay.textContent = score;
+                clearInterval(fallAnimation);
+                balloon.remove();
+            });
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+            alert("Time's up! You popped " + score + " balloons!");
+            startBtn.style.display = "inline-block";
+            startBtn.textContent = "Play Again";
+        }
+    </script>
+</body>
+</html>
