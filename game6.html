@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Dash</title>
+    <title>Neon Dash: Endless Chaos</title>
     <style>
-        body { margin: 0; background: #0a0a14; color: #fff; font-family: sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        body { margin: 0; background: #05050a; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; position: fixed; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        canvas { background: #101026; border: 3px solid #00ff66; max-width: 95vw; max-height: 70vh; aspect-ratio: 16/9; box-shadow: 0 0 20px rgba(0, 255, 102, 0.2); }
-        h1 { margin: 5px; text-shadow: 0 0 10px #00ff66; font-size: 1.8rem; }
+        canvas { background: #0a0a14; border: 3px solid #00ff66; max-width: 95vw; max-height: 70vh; aspect-ratio: 16/9; box-shadow: 0 0 30px rgba(0, 255, 102, 0.3); }
+        h1 { margin: 5px; text-shadow: 0 0 10px #00ff66; font-size: 2rem; letter-spacing: 2px; }
+        .speed-indicator { color: #ff0055; font-weight: bold; font-size: 1rem; text-shadow: 0 0 5px #ff0055; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div id="container">
-        <h1>Score: <span id="score">0</span></h1>
-        <canvas id="dashCanvas" width="640" height="360"></canvas>
+        <h1>SCORE: <span id="score">0</span></h1>
+        <div class="speed-indicator">VELOCITY: <span id="speed">1.0x</span></div>
+        <canvas id="dashCanvas" width="800" height="450"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById("dashCanvas");
         const ctx = canvas.getContext("2d");
 
-        let player = { x: 80, y: 260, size: 30, vy: 0, gravity: 1.2, jumpForce: -16, isGrounded: true };
-        let obstacles = [], score = 0, gameActive = true, obstacleTimer = 0;
+        // Fast pacing physics configuration
+        const FLOOR_Y = 350;
+        let baseSpeed = 8.5; 
+        let speedMultiplier = 1;
+        
+        let player = { x: 120, y: 300, size: 40, vy: 0, gravity: 1.6, jumpForce: -21, isGrounded: true, rotation: 0 };
+        let obstacles = [], score = 0, gameActive = true, spawnCooldown = 0;
 
-        // Unified Trigger Input
         function triggerJump() {
             if (player.isGrounded && gameActive) {
                 player.vy = player.jumpForce;
@@ -32,43 +38,80 @@
             }
         }
 
-        // Event Listeners
+        // Action input tracking
         document.addEventListener("keydown", e => { if (e.key === "ArrowUp" || e.key === " " || e.key === "w") triggerJump(); });
         window.addEventListener("touchstart", e => { e.preventDefault(); triggerJump(); }, { passive: false });
 
         function update() {
             if (!gameActive) return;
 
-            // Physics
+            // Progressive speed ramping
+            speedMultiplier = 1 + (score * 0.04);
+            let currentSpeed = baseSpeed * speedMultiplier;
+            document.getElementById("speed").textContent = speedMultiplier.toFixed(1) + "x";
+
+            // Heavy gravity player loop
             player.vy += player.gravity;
             player.y += player.vy;
 
-            // Floor Collision
-            if (player.y >= 260) {
-                player.y = 260;
+            if (player.y >= FLOOR_Y - player.size) {
+                player.y = FLOOR_Y - player.size;
                 player.vy = 0;
                 player.isGrounded = true;
             }
 
-            // Spawn Spikes
-            obstacleTimer++;
-            if (obstacleTimer > Math.max(50, 100 - score * 2)) {
-                obstacles.push({ x: canvas.width, y: 260, width: 25, height: 30, speed: 5 + score * 0.2 });
-                obstacleTimer = 0;
+            // Continuous cube visual spin logic
+            if (!player.isGrounded) {
+                player.rotation += 0.09 * speedMultiplier;
+            } else {
+                player.rotation = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
             }
 
-            // Move & Check Obstacles
-            obstacles.forEach((obs, index) => {
-                obs.x -= obs.speed;
+            // Procedural obstacle generation generator
+            spawnCooldown--;
+            if (spawnCooldown <= 0) {
+                let randomType = Math.floor(Math.random() * 3);
+                
+                if (randomType === 0) {
+                    // Type 0: Standard Single Spike
+                    obstacles.push({ type: 'spike', x: canvas.width, y: FLOOR_Y, width: 35, height: 45 });
+                } else if (randomType === 1) {
+                    // Type 1: High-Speed Double Spike
+                    obstacles.push({ type: 'double-spike', x: canvas.width, y: FLOOR_Y, width: 70, height: 45 });
+                } else {
+                    // Type 2: Wall Block (Forces tight jumps)
+                    obstacles.push({ type: 'block', x: canvas.width, y: FLOOR_Y - 50, width: 45, height: 50 });
+                }
+                
+                // Keep spawning rhythmically dynamic based on current speed
+                spawnCooldown = Math.max(35, Math.floor((Math.random() * 50 + 45) / speedMultiplier));
+            }
 
-                // Hitbox Collision Detection
-                if (player.x < obs.x + obs.width && player.x + player.size > obs.x && player.y < obs.y + obs.height && player.y + player.size > obs.y) {
+            // Collision system mapping loops
+            obstacles.forEach((obs, index) => {
+                obs.x -= currentSpeed;
+
+                let isColliding = false;
+
+                if (obs.type === 'spike') {
+                    isColliding = checkSpikeCollision(player, obs.x, obs.y, obs.width, obs.height);
+                } else if (obs.type === 'double-spike') {
+                    isColliding = checkSpikeCollision(player, obs.x, obs.y, obs.width, obs.height) || 
+                                  checkSpikeCollision(player, obs.x + 35, obs.y, 35, obs.height);
+                } else if (obs.type === 'block') {
+                    isColliding = (player.x < obs.x + obs.width && 
+                                   player.x + player.size > obs.x && 
+                                   player.y < obs.y + obs.height && 
+                                   player.y + player.size > obs.y);
+                }
+
+                if (isColliding) {
                     gameActive = false;
-                    alert(`Crash! Final Score: ${score}`);
+                    alert(`Boom! Total Score: ${score}`);
                     location.reload();
                 }
 
-                // Score Point
+                // Despawn cleared obstacles
                 if (obs.x + obs.width < 0) {
                     obstacles.splice(index, 1);
                     score++;
@@ -77,32 +120,78 @@
             });
         }
 
+        // Custom triangular collision vector check
+        function checkSpikeCollision(p, sx, sy, sw, sh) {
+            let pLeft = p.x, pRight = p.x + p.size, pTop = p.y, pBottom = p.y + p.size;
+            if (pRight < sx || pLeft > sx + sw || pBottom < sy - sh || pTop > sy) return false;
+            
+            let centerX = sx + sw / 2;
+            if (pBottom >= sy - sh) {
+                if (pRight >= sx && pLeft <= sx + sw) return true;
+            }
+            return false;
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Ground line
-            ctx.strokeStyle = "#333355";
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.moveTo(0, 290); ctx.lineTo(canvas.width, 290); ctx.stroke();
+            // Draw Parallax Ground Bed
+            ctx.strokeStyle = "#00ff66";
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(0, FLOOR_Y); ctx.lineTo(canvas.width, FLOOR_Y); ctx.stroke();
 
-            // Setup Neon Glow
-            ctx.shadowBlur = 12;
+            // Set Glow Environment
+            ctx.shadowBlur = 15;
 
-            // Player (Glow Green Block)
+            // Render Player with Rotation Axis Transforms
+            ctx.save();
             ctx.fillStyle = "#00ff66";
             ctx.shadowColor = "#00ff66";
-            ctx.fillRect(player.x, player.y, player.size, player.size);
+            ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+            ctx.rotate(player.rotation);
+            ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+            
+            // Neon eyes inside the cube to see movement orientation
+            ctx.fillStyle = "#000";
+            ctx.shadowBlur = 0;
+            ctx.fillRect(10, -12, 6, 6);
+            ctx.fillRect(22, -12, 6, 6);
+            ctx.restore();
 
-            // Obstacles (Glow Pink Spikes)
-            ctx.fillStyle = "#ff0055";
-            ctx.shadowColor = "#ff0055";
+            // Render Obstacles array
+            ctx.shadowBlur = 15;
             obstacles.forEach(obs => {
-                ctx.beginPath();
-                ctx.moveTo(obs.x, obs.y + obs.height);
-                ctx.lineTo(obs.x + obs.width / 2, obs.y);
-                ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
-                ctx.closePath();
-                ctx.fill();
+                if (obs.type === 'spike') {
+                    ctx.fillStyle = "#ff0055";
+                    ctx.shadowColor = "#ff0055";
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x, obs.y);
+                    ctx.lineTo(obs.x + obs.width / 2, obs.y - obs.height);
+                    ctx.lineTo(obs.x + obs.width, obs.y);
+                    ctx.closePath(); ctx.fill();
+                } else if (obs.type === 'double-spike') {
+                    ctx.fillStyle = "#ff0055";
+                    ctx.shadowColor = "#ff0055";
+                    // Draw spike 1
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x, obs.y);
+                    ctx.lineTo(obs.x + 17, obs.y - obs.height);
+                    ctx.lineTo(obs.x + 35, obs.y);
+                    ctx.closePath(); ctx.fill();
+                    // Draw spike 2
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + 35, obs.y);
+                    ctx.lineTo(obs.x + 52, obs.y - obs.height);
+                    ctx.lineTo(obs.x + 70, obs.y);
+                    ctx.closePath(); ctx.fill();
+                } else if (obs.type === 'block') {
+                    ctx.fillStyle = "#ffaa00";
+                    ctx.shadowColor = "#ffaa00";
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(obs.x + 4, obs.y + 4, obs.width - 8, obs.height - 8);
+                }
             });
 
             ctx.shadowBlur = 0;
