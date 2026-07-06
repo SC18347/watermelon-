@@ -1,0 +1,103 @@
+("""<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Jarvis</title>
+
+<style>
+
+body{margin:0;background:#0f172a;color:#fff;font:16px Arial}
+
+header{padding:18px 24px;border-bottom:1px solid #334155;font-size:28px;font-weight:700}
+
+#chat{height:70vh;overflow:auto;padding:20px}
+
+.msg{margin:10px 0;padding:12px 16px;border-radius:14px;max-width:80%}
+
+.user{background:#2563eb;margin-left:auto}
+
+.ai{background:#1e293b}
+
+footer{display:flex;gap:10px;padding:16px;border-top:1px solid #334155}
+
+input{flex:1;padding:14px;border-radius:12px;border:none}
+
+button{padding:14px 22px;border:none;border-radius:12px;background:#2563eb;color:#fff}
+
+</style>
+
+</head>
+
+<body>
+
+<header>Jarvis</header>
+
+<div id="chat"><div class="msg ai">Hello. I'm Jarvis. In this demo I can remember information only while this page stays open.</div></div>
+
+<footer>
+
+<input id="input" placeholder="Message Jarvis...">
+
+<button onclick="send()">Send</button>
+
+</footer>
+
+<script>
+
+const chat=document.getElementById("chat");
+
+const memory=[];
+
+function add(text,cls){
+
+ const d=document.createElement("div");
+
+ d.className="msg "+cls;
+
+ d.textContent=text;
+
+ chat.appendChild(d);
+
+ chat.scrollTop=chat.scrollHeight;
+
+}
+
+function send(){
+
+ const i=document.getElementById("input");
+
+ const t=i.value.trim(); if(!t)return;
+
+ add(t,"user");
+
+ memory.push(t);
+
+ let r="I learned that: "+t;
+
+ if(/what do you remember/i.test(t)) r="I remember: "+memory.join(" | ");
+
+ add(r,"ai");
+
+ i.value="";
+
+}
+
+document.getElementById("input").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+
+</script>
+
+</body></html>""")
+
+path="/mnt/data/Jarvis.html"
+
+with open(path,"w",encoding="utf-8") as f:
+
+    f.write(html)
+
+print(path
