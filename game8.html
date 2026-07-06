@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -21,8 +20,7 @@ h1{
     margin:15px 0 5px;
 }
 
-#toolbarTop,
-#toolbarBottom{
+#toolbarTop{
     display:flex;
     flex-wrap:wrap;
     justify-content:center;
@@ -31,9 +29,9 @@ h1{
 }
 
 button{
-    padding:10px 16px;
+    padding:10px 14px;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     cursor:pointer;
     font-weight:bold;
 }
@@ -43,13 +41,13 @@ button{
 }
 
 .selected{
-    outline:4px solid white;
+    outline:3px solid white;
 }
 
 #grid{
     display:grid;
-    grid-template-columns:repeat(8,45px);
-    grid-template-rows:repeat(12,45px);
+    grid-template-columns:repeat(8,34px);
+    grid-template-rows:repeat(12,34px);
     gap:2px;
     background:white;
     padding:8px;
@@ -58,130 +56,124 @@ button{
 }
 
 .cell{
-    width:45px;
-    height:45px;
+    width:34px;
+    height:34px;
     background:white;
     border:1px solid #999;
     cursor:pointer;
 }
 </style>
 </head>
+
 <body>
 
 <h1>Color Mixing Sandbox</h1>
 
 <div id="toolbarTop">
-    <button id="reset">Reset Canvas</button>
+    <button id="reset">Reset</button>
+    <button id="eraser">Eraser</button>
 
     <button class="color selected" style="background:red;" data-color="red">Red</button>
     <button class="color" style="background:blue;" data-color="blue">Blue</button>
     <button class="color" style="background:yellow;color:black;" data-color="yellow">Yellow</button>
+    <button class="color" style="background:black;" data-color="black">Black</button>
+    <button class="color" style="background:white;color:black;border:1px solid #333;" data-color="white">White</button>
 </div>
 
 <div id="grid"></div>
 
-<div id="toolbarBottom">
-    <button class="color" style="background:black;" data-color="black">Black</button>
-    <button class="color" style="background:gray;" data-color="gray">Gray</button>
-    <button class="color" style="background:white;color:black;border:1px solid #000;" data-color="white">White</button>
-</div>
-
 <script>
 const grid = document.getElementById("grid");
 const buttons = document.querySelectorAll("[data-color]");
+const eraserBtn = document.getElementById("eraser");
 let selected = "red";
 
-// Create 8×12 grid (96 cells)
+/* Base RGB values */
+const COLORS = {
+    red: [255,0,0],
+    blue: [0,0,255],
+    yellow: [255,255,0],
+    black: [0,0,0],
+    white: [255,255,255]
+};
+
+/* Create 12x8 grid (96 cells) */
 for(let i = 0; i < 96; i++){
     const cell = document.createElement("div");
     cell.className = "cell";
-    cell.dataset.color = "white";
+    cell.dataset.r = 255;
+    cell.dataset.g = 255;
+    cell.dataset.b = 255;
 
     cell.onclick = () => {
-        let current = cell.dataset.color;
-        let result = mix(current, selected);
+        const current = [
+            parseInt(cell.dataset.r),
+            parseInt(cell.dataset.g),
+            parseInt(cell.dataset.b)
+        ];
 
-        cell.dataset.color = result;
-        cell.style.background = result;
+        const added = COLORS[selected];
+
+        const mixed = mixRGB(current, added);
+
+        cell.dataset.r = mixed[0];
+        cell.dataset.g = mixed[1];
+        cell.dataset.b = mixed[2];
+
+        cell.style.background = `rgb(${mixed[0]},${mixed[1]},${mixed[2]})`;
     };
 
     grid.appendChild(cell);
 }
 
-// Select color
+/* Color selection */
 buttons.forEach(btn=>{
-    btn.onclick=()=>{
+    btn.onclick = () => {
         buttons.forEach(b=>b.classList.remove("selected"));
         btn.classList.add("selected");
         selected = btn.dataset.color;
     };
 });
 
-// Reset canvas
-document.getElementById("reset").onclick = ()=>{
+/* Eraser */
+eraserBtn.onclick = () => {
+    selected = "white";
+    buttons.forEach(b=>b.classList.remove("selected"));
+};
+
+/* Reset */
+document.getElementById("reset").onclick = () => {
     document.querySelectorAll(".cell").forEach(cell=>{
-        cell.dataset.color = "white";
+        cell.dataset.r = 255;
+        cell.dataset.g = 255;
+        cell.dataset.b = 255;
         cell.style.background = "white";
     });
 };
 
-// Mixing rules
-function mix(a,b){
+/* Realistic paint mixing */
+function mixRGB(a,b){
+    let r = Math.round((a[0] + b[0]) / 2);
+    let g = Math.round((a[1] + b[1]) / 2);
+    let bl = Math.round((a[2] + b[2]) / 2);
 
-    if(a==="white") return b;
-    if(b==="white") return a;
-
-    if(a===b) return a;
-
-    let pair=[a,b].sort().join("-");
-
-    switch(pair){
-
-        // Primary colors
-        case "blue-red":
-            return "purple";
-
-        case "red-yellow":
-            return "orange";
-
-        case "blue-yellow":
-            return "green";
-
-        // Black, Gray, White
-        case "black-white":
-            return "gray";
-
-        case "black-gray":
-            return "black";
-
-        case "gray-white":
-            return "gray";
-
-        // Simple dark versions
-        case "black-red":
-            return "maroon";
-
-        case "black-blue":
-            return "navy";
-
-        case "black-yellow":
-            return "olive";
-
-        case "blue-gray":
-            return "steelblue";
-
-        case "gray-red":
-            return "indianred";
-
-        case "gray-yellow":
-            return "khaki";
-
-        default:
-            return "brown";
+    /* white lightens */
+    if(b[0]===255 && b[1]===255 && b[2]===255){
+        r = Math.min(255, r + 40);
+        g = Math.min(255, g + 40);
+        bl = Math.min(255, bl + 40);
     }
+
+    /* black darkens */
+    if(b[0]===0 && b[1]===0 && b[2]===0){
+        r = Math.floor(r * 0.6);
+        g = Math.floor(g * 0.6);
+        bl = Math.floor(bl * 0.6);
+    }
+
+    return [r,g,bl];
 }
 </script>
 
 </body>
-
 </html>
