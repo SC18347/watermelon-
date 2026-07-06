@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -83,8 +83,8 @@ const colorButtons = document.querySelectorAll(".color");
 
 let selected = "red";
 
-/* 12x8 grid */
-for(let i=0;i<96;i++){
+/* 8 columns × 12 rows = 96 cells */
+for(let i = 0; i < 96; i++){
     const cell = document.createElement("div");
     cell.className = "cell";
 
@@ -92,14 +92,14 @@ for(let i=0;i<96;i++){
     cell.dataset.g = 255;
     cell.dataset.b = 255;
 
-    cell.addEventListener("click", ()=>{
-        applyPaint(cell, selected);
+    cell.addEventListener("click", () => {
+        paint(cell, selected);
     });
 
     grid.appendChild(cell);
 }
 
-/* color selection */
+/* select color */
 colorButtons.forEach(btn=>{
     btn.addEventListener("click", ()=>{
         colorButtons.forEach(b=>b.classList.remove("selected"));
@@ -117,44 +117,49 @@ document.getElementById("eraser").addEventListener("click", ()=>{
 /* reset */
 document.getElementById("reset").addEventListener("click", ()=>{
     document.querySelectorAll(".cell").forEach(c=>{
-        c.style.background = "#fff";
         c.dataset.r = 255;
         c.dataset.g = 255;
         c.dataset.b = 255;
+        c.style.background = "#fff";
     });
 });
 
-/* paint logic with mixing */
-function applyPaint(cell, colorName){
-
-    const base = {
-        red:[255,0,0],
-        blue:[0,0,255],
-        yellow:[255,255,0],
-        black:[0,0,0],
-        white:[255,255,255]
-    }[colorName];
+/* paint logic */
+function paint(cell, color){
 
     let r = parseInt(cell.dataset.r);
     let g = parseInt(cell.dataset.g);
     let b = parseInt(cell.dataset.b);
 
-    r = Math.round((r + base[0]) / 2);
-    g = Math.round((g + base[1]) / 2);
-    b = Math.round((b + base[2]) / 2);
+    const colors = {
+        red:[255,0,0],
+        blue:[0,0,255],
+        yellow:[255,255,0],
+        black:[0,0,0],
+        white:[255,255,255]
+    };
 
-    /* white lightens */
-    if(colorName === "white"){
-        r = Math.min(255, r + 50);
-        g = Math.min(255, g + 50);
-        b = Math.min(255, b + 50);
+    const c = colors[color];
+
+    /* WHITE = brighten only */
+    if(color === "white"){
+        r = Math.min(255, r + 60);
+        g = Math.min(255, g + 60);
+        b = Math.min(255, b + 60);
     }
 
-    /* black darkens */
-    if(colorName === "black"){
-        r = Math.floor(r * 0.6);
-        g = Math.floor(g * 0.6);
-        b = Math.floor(b * 0.6);
+    /* BLACK = darken only */
+    else if(color === "black"){
+        r = Math.floor(r * 0.55);
+        g = Math.floor(g * 0.55);
+        b = Math.floor(b * 0.55);
+    }
+
+    /* NORMAL COLORS = true mixing */
+    else{
+        r = Math.round((r + c[0]) / 2);
+        g = Math.round((g + c[1]) / 2);
+        b = Math.round((b + c[2]) / 2);
     }
 
     cell.dataset.r = r;
