@@ -20,7 +20,8 @@ h1{
     margin:15px 0 5px;
 }
 
-#toolbar{
+#toolbarTop,
+#toolbarBottom{
     display:flex;
     flex-wrap:wrap;
     justify-content:center;
@@ -46,13 +47,13 @@ button{
 
 #grid{
     display:grid;
-    grid-template-columns:repeat(10,45px);
-    grid-template-rows:repeat(10,45px);
+    grid-template-columns:repeat(8,45px);
+    grid-template-rows:repeat(12,45px);
     gap:2px;
     background:white;
     padding:8px;
     border-radius:10px;
-    margin-bottom:20px;
+    margin:10px 0;
 }
 
 .cell{
@@ -68,7 +69,7 @@ button{
 
 <h1>Color Mixing Sandbox</h1>
 
-<div id="toolbar">
+<div id="toolbarTop">
     <button id="reset">Reset Canvas</button>
 
     <button class="color selected" style="background:red;" data-color="red">Red</button>
@@ -78,23 +79,29 @@ button{
 
 <div id="grid"></div>
 
+<div id="toolbarBottom">
+    <button class="color" style="background:black;" data-color="black">Black</button>
+    <button class="color" style="background:gray;" data-color="gray">Gray</button>
+    <button class="color" style="background:white;color:black;border:1px solid #000;" data-color="white">White</button>
+</div>
+
 <script>
-const grid=document.getElementById("grid");
-const buttons=document.querySelectorAll("[data-color]");
-let selected="red";
+const grid = document.getElementById("grid");
+const buttons = document.querySelectorAll("[data-color]");
+let selected = "red";
 
-// Create 10x10 grid
-for(let i=0;i<100;i++){
-    const cell=document.createElement("div");
-    cell.className="cell";
-    cell.dataset.color="white";
+// Create 8×12 grid (96 cells)
+for(let i = 0; i < 96; i++){
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.color = "white";
 
-    cell.onclick=()=>{
-        let current=cell.dataset.color;
-        let result=mix(current,selected);
+    cell.onclick = () => {
+        let current = cell.dataset.color;
+        let result = mix(current, selected);
 
-        cell.dataset.color=result;
-        cell.style.background=result;
+        cell.dataset.color = result;
+        cell.style.background = result;
     };
 
     grid.appendChild(cell);
@@ -105,15 +112,15 @@ buttons.forEach(btn=>{
     btn.onclick=()=>{
         buttons.forEach(b=>b.classList.remove("selected"));
         btn.classList.add("selected");
-        selected=btn.dataset.color;
+        selected = btn.dataset.color;
     };
 });
 
-// Reset button
-document.getElementById("reset").onclick=()=>{
+// Reset canvas
+document.getElementById("reset").onclick = ()=>{
     document.querySelectorAll(".cell").forEach(cell=>{
-        cell.dataset.color="white";
-        cell.style.background="white";
+        cell.dataset.color = "white";
+        cell.style.background = "white";
     });
 };
 
@@ -121,12 +128,15 @@ document.getElementById("reset").onclick=()=>{
 function mix(a,b){
 
     if(a==="white") return b;
+    if(b==="white") return a;
+
     if(a===b) return a;
 
     let pair=[a,b].sort().join("-");
 
     switch(pair){
 
+        // Primary colors
         case "blue-red":
             return "purple";
 
@@ -135,6 +145,35 @@ function mix(a,b){
 
         case "blue-yellow":
             return "green";
+
+        // Black, Gray, White
+        case "black-white":
+            return "gray";
+
+        case "black-gray":
+            return "black";
+
+        case "gray-white":
+            return "gray";
+
+        // Simple dark versions
+        case "black-red":
+            return "maroon";
+
+        case "black-blue":
+            return "navy";
+
+        case "black-yellow":
+            return "olive";
+
+        case "blue-gray":
+            return "steelblue";
+
+        case "gray-red":
+            return "indianred";
+
+        case "gray-yellow":
+            return "khaki";
 
         default:
             return "brown";
