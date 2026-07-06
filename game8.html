@@ -1,27 +1,27 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Color Mixing Sandbox</title>
 
 <style>
 body{
     margin:0;
-    font-family:Arial,sans-serif;
+    font-family:Arial, sans-serif;
     background:#000;
-    color:white;
+    color:#fff;
     display:flex;
     flex-direction:column;
     align-items:center;
 }
 
 h1{
-    margin:15px 0 5px;
+    margin:14px 0 6px;
+    font-size:20px;
 }
 
-#toolbarTop{
+#toolbar{
     display:flex;
     flex-wrap:wrap;
     justify-content:center;
@@ -32,36 +32,30 @@ h1{
 button{
     padding:10px 14px;
     border:none;
-    border-radius:10px;
+    border-radius:12px;
     cursor:pointer;
     font-weight:bold;
 }
 
-.color{
-    color:white;
-}
-
 .selected{
-    outline:3px solid white;
+    outline:3px solid #fff;
 }
 
 #grid{
     display:grid;
-    grid-template-columns:repeat(8,34px);
-    grid-template-rows:repeat(12,34px);
+    grid-template-columns:repeat(8, 34px);
+    grid-template-rows:repeat(12, 34px);
     gap:2px;
-    background:white;
     padding:8px;
-    border-radius:10px;
-    margin:10px 0;
+    background:#fff;
+    border-radius:12px;
 }
 
 .cell{
     width:34px;
     height:34px;
-    background:white;
-    border:1px solid #999;
-    cursor:pointer;
+    background:#fff;
+    border:1px solid #aaa;
 }
 </style>
 </head>
@@ -70,110 +64,106 @@ button{
 
 <h1>Color Mixing Sandbox</h1>
 
-<div id="toolbarTop">
+<div id="toolbar">
     <button id="reset">Reset</button>
     <button id="eraser">Eraser</button>
 
-    <button class="color selected" style="background:red;" data-color="red">Red</button>
-    <button class="color" style="background:blue;" data-color="blue">Blue</button>
-    <button class="color" style="background:yellow;color:black;" data-color="yellow">Yellow</button>
-    <button class="color" style="background:black;" data-color="black">Black</button>
-    <button class="color" style="background:white;color:black;border:1px solid #333;" data-color="white">White</button>
+    <button class="color selected" data-color="red" style="background:red;">Red</button>
+    <button class="color" data-color="blue" style="background:blue;">Blue</button>
+    <button class="color" data-color="yellow" style="background:yellow;color:#000;">Yellow</button>
+    <button class="color" data-color="black" style="background:black;">Black</button>
+    <button class="color" data-color="white" style="background:white;color:#000;">White</button>
 </div>
 
 <div id="grid"></div>
 
 <script>
 const grid = document.getElementById("grid");
-const buttons = document.querySelectorAll("[data-color]");
-const eraserBtn = document.getElementById("eraser");
+const colorButtons = document.querySelectorAll(".color");
+
 let selected = "red";
 
-/* Base RGB values */
-const COLORS = {
-    red: [255,0,0],
-    blue: [0,0,255],
-    yellow: [255,255,0],
-    black: [0,0,0],
-    white: [255,255,255]
-};
-
-/* Create 12x8 grid (96 cells) */
-for(let i = 0; i < 96; i++){
+/* 12x8 grid */
+for(let i=0;i<96;i++){
     const cell = document.createElement("div");
     cell.className = "cell";
+
     cell.dataset.r = 255;
     cell.dataset.g = 255;
     cell.dataset.b = 255;
 
-    cell.onclick = () => {
-        const current = [
-            parseInt(cell.dataset.r),
-            parseInt(cell.dataset.g),
-            parseInt(cell.dataset.b)
-        ];
-
-        const added = COLORS[selected];
-
-        const mixed = mixRGB(current, added);
-
-        cell.dataset.r = mixed[0];
-        cell.dataset.g = mixed[1];
-        cell.dataset.b = mixed[2];
-
-        cell.style.background = `rgb(${mixed[0]},${mixed[1]},${mixed[2]})`;
-    };
+    cell.addEventListener("click", ()=>{
+        applyPaint(cell, selected);
+    });
 
     grid.appendChild(cell);
 }
 
-/* Color selection */
-buttons.forEach(btn=>{
-    btn.onclick = () => {
-        buttons.forEach(b=>b.classList.remove("selected"));
+/* color selection */
+colorButtons.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+        colorButtons.forEach(b=>b.classList.remove("selected"));
         btn.classList.add("selected");
         selected = btn.dataset.color;
-    };
+    });
 });
 
-/* Eraser */
-eraserBtn.onclick = () => {
+/* eraser */
+document.getElementById("eraser").addEventListener("click", ()=>{
     selected = "white";
-    buttons.forEach(b=>b.classList.remove("selected"));
-};
+    colorButtons.forEach(b=>b.classList.remove("selected"));
+});
 
-/* Reset */
-document.getElementById("reset").onclick = () => {
-    document.querySelectorAll(".cell").forEach(cell=>{
-        cell.dataset.r = 255;
-        cell.dataset.g = 255;
-        cell.dataset.b = 255;
-        cell.style.background = "white";
+/* reset */
+document.getElementById("reset").addEventListener("click", ()=>{
+    document.querySelectorAll(".cell").forEach(c=>{
+        c.style.background = "#fff";
+        c.dataset.r = 255;
+        c.dataset.g = 255;
+        c.dataset.b = 255;
     });
-};
+});
 
-/* Realistic paint mixing */
-function mixRGB(a,b){
-    let r = Math.round((a[0] + b[0]) / 2);
-    let g = Math.round((a[1] + b[1]) / 2);
-    let bl = Math.round((a[2] + b[2]) / 2);
+/* paint logic with mixing */
+function applyPaint(cell, colorName){
+
+    const base = {
+        red:[255,0,0],
+        blue:[0,0,255],
+        yellow:[255,255,0],
+        black:[0,0,0],
+        white:[255,255,255]
+    }[colorName];
+
+    let r = parseInt(cell.dataset.r);
+    let g = parseInt(cell.dataset.g);
+    let b = parseInt(cell.dataset.b);
+
+    r = Math.round((r + base[0]) / 2);
+    g = Math.round((g + base[1]) / 2);
+    b = Math.round((b + base[2]) / 2);
 
     /* white lightens */
-    if(b[0]===255 && b[1]===255 && b[2]===255){
-        r = Math.min(255, r + 40);
-        g = Math.min(255, g + 40);
-        bl = Math.min(255, bl + 40);
+    if(colorName === "white"){
+        r = Math.min(255, r + 50);
+        g = Math.min(255, g + 50);
+        b = Math.min(255, b + 50);
     }
 
     /* black darkens */
-    if(b[0]===0 && b[1]===0 && b[2]===0){
+    if(colorName === "black"){
         r = Math.floor(r * 0.6);
         g = Math.floor(g * 0.6);
-        bl = Math.floor(bl * 0.6);
+        b = Math.floor(b * 0.6);
     }
 
-    return [r,g,bl];
+    cell.dataset.r = r;
+    cell.dataset.g = g;
+    cell.dataset.b = b;
+
+    cell.style.background = `rgb(${r},${g},${b})`;
 }
 </script>
+
 </body>
 </html>
