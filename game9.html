@@ -1557,6 +1557,113 @@ module:module
 
 
 
+// =====================================
+// JARVIS SYSTEM UPDATE DIAGNOSTIC
+// =====================================
+
+function systemUpdate(){
+
+let report = `
+
+JARVIS SYSTEM UPDATE
+
+
+CORE STATUS:
+`;
+
+
+// Core check
+if(typeof jarvisReply === "function"){
+    report += "✓ Intelligence Core: ONLINE\n";
+}else{
+    report += "✗ Intelligence Core: ERROR\n";
+}
+
+
+
+// Memory check
+report += "\nMEMORY SYSTEM:\n";
+
+if(typeof memory !== "undefined"){
+    report += "✓ Memory Storage: ONLINE\n";
+}else{
+    report += "✗ Memory Storage: ERROR\n";
+}
+
+
+
+// Math check
+report += "\nAPPLICATIONS:\n";
+
+if(typeof mathEngine === "function"){
+    report += "✓ Math Application: ONLINE\n";
+}else{
+    report += "✗ Math Application: ERROR\n";
+}
+
+
+
+// Writing check
+if(typeof processWriting === "function"){
+    report += "✓ Writing Application: ONLINE\n";
+}else{
+    report += "✗ Writing Application: ERROR\n";
+}
+
+
+
+// Calendar check
+if(typeof calendarSystem === "function"){
+    report += "✓ Calendar Application: ONLINE\n";
+}else{
+    report += "✗ Calendar Application: ERROR\n";
+}
+
+
+
+// Interface checks
+report += "\nINTERFACE:\n";
+
+
+if(document.getElementById("chat")){
+    report += "✓ Chat Window: ONLINE\n";
+}else{
+    report += "✗ Chat Window: ERROR\n";
+}
+
+
+
+if(document.getElementById("input")){
+    report += "✓ Input System: ONLINE\n";
+}else{
+    report += "✗ Input System: ERROR\n";
+}
+
+
+
+if(document.querySelectorAll(".tool").length > 0){
+    report += "✓ Tool Buttons: DETECTED\n";
+}else{
+    report += "✗ Tool Buttons: ERROR\n";
+}
+
+
+
+// Final message
+
+report += `
+
+OVERALL STATUS:
+
+JARVIS V4 CORE IS RUNNING.
+
+Diagnostic complete.
+
+`;
+
+return report;
+
+}
 
 function getSystemStatus(){
 
