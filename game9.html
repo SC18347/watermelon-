@@ -1071,7 +1071,13 @@ result,
 // =========================
 
 
-function jarvisReply(message){
+function jarvisReply(message){let personality = personalityCheck(message);
+
+if(personality){
+
+return personality;
+
+}
 
 
 let text=message.toLowerCase();
@@ -1336,7 +1342,157 @@ sendMessage();
 });
 
 
+// =========================
+// JARVIS PERSONALITY SYSTEM
+// =========================
 
+
+const personalityResponses = {
+
+greetingMorning:[
+"Good morning. JARVIS systems are online. How may I assist you today?",
+"Good morning. I hope your day is starting well. What can I help you with?",
+"Good morning. All systems are operational."
+],
+
+
+greetingAfternoon:[
+"Good afternoon. JARVIS is ready to assist.",
+"Good afternoon. How may I help you?",
+"Systems are online. Ready when you are."
+],
+
+
+greetingEvening:[
+"Good evening. JARVIS is online and ready.",
+"Good evening. How can I assist you?",
+"I am ready to help with anything you need."
+],
+
+
+thanks:[
+"You're welcome. I am always ready to assist.",
+"Of course. Happy to help.",
+"Anytime. Let me know if you need anything else."
+],
+
+
+unknown:[
+"I can help with that. Let me analyze the information.",
+"Certainly. I will do my best to assist.",
+"Let me look into that for you."
+]
+
+};
+
+
+
+
+
+function getTimeGreeting(){
+
+let hour = new Date().getHours();
+
+
+if(hour < 12){
+
+return randomResponse(
+personalityResponses.greetingMorning
+);
+
+}
+
+
+if(hour < 18){
+
+return randomResponse(
+personalityResponses.greetingAfternoon
+);
+
+}
+
+
+return randomResponse(
+personalityResponses.greetingEvening
+);
+
+}
+
+
+
+
+
+function randomResponse(array){
+
+return array[
+Math.floor(Math.random()*array.length)
+];
+
+}
+
+
+
+
+
+function personalityCheck(message){
+
+let text = message.toLowerCase();
+
+
+
+if(
+text.includes("good morning") ||
+text.includes("morning")
+){
+
+return getTimeGreeting();
+
+}
+
+
+
+if(
+text.includes("good afternoon") ||
+text.includes("afternoon")
+){
+
+return randomResponse(
+personalityResponses.greetingAfternoon
+);
+
+}
+
+
+
+if(
+text.includes("good evening") ||
+text.includes("evening")
+){
+
+return randomResponse(
+personalityResponses.greetingEvening
+);
+
+}
+
+
+
+if(
+text.includes("thank") ||
+text.includes("thanks")
+){
+
+return randomResponse(
+personalityResponses.thanks
+);
+
+}
+
+
+
+return null;
+
+}
 
 
 // =========================
