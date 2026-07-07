@@ -264,16 +264,26 @@ let currentMode="chat";
 
 let memory=JSON.parse(
  
- let memory={};
+let memory={
+ notes:[]
+};
 
 try{
 
-memory=JSON.parse(
- localStorage.getItem("jarvisMemory") ?? "{}"
-);
+let saved=localStorage.getItem("jarvisMemory");
+
+if(saved){
+ memory=JSON.parse(saved);
+}
+
+if(!memory.notes){
+ memory.notes=[];
+}
 
 }
 catch(error){
+
+console.log("Memory reset:",error);
 
 memory={
  notes:[]
@@ -285,6 +295,7 @@ JSON.stringify(memory)
 );
 
 }
+
 /* =========================
    JARVIS v1.2 CONVERSATION MEMORY
 ========================= */
@@ -374,7 +385,8 @@ function setMode(mode){
  document.querySelectorAll(".tool")
  .forEach(btn=>btn.classList.remove("active"));
 
- event.target.classList.add("active");
+ document.querySelector(`[onclick="setMode('${mode}')"]`)
+?.classList.add("active");
 
 
  if(mode==="writing"){
