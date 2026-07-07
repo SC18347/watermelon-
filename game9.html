@@ -1,255 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVIS v1.1 Intelligence Core</title>
+
+<title>JARVIS v1.2</title>
+
 
 <style>
+
 :root{
-  --bg:#0b0f14;
-  --panel:#121922;
-  --text:#e8f0ff;
-  --accent:#4da3ff;
-  --border:#263445;
+--bg:#0b0f14;
+--panel:#121922;
+--text:#e8f0ff;
+--accent:#4da3ff;
+--border:#263445;
 }
+
 
 *{
- box-sizing:border-box;
+box-sizing:border-box;
 }
+
 
 body{
- margin:0;
- height:100vh;
- background:var(--bg);
- color:var(--text);
- font-family:Arial,Helvetica,sans-serif;
- display:flex;
- justify-content:center;
- align-items:center;
+
+margin:0;
+height:100vh;
+
+background:var(--bg);
+color:var(--text);
+
+font-family:Arial,Helvetica,sans-serif;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
 }
+
+
 
 .app{
- width:min(100%,950px);
- height:100vh;
- max-height:950px;
- display:flex;
- flex-direction:column;
- background:var(--panel);
- border:1px solid var(--border);
+
+width:min(100%,950px);
+height:100vh;
+max-height:950px;
+
+display:flex;
+flex-direction:column;
+
+background:var(--panel);
+
+border:1px solid var(--border);
+
 }
+
+
 
 header{
- padding:18px;
- border-bottom:1px solid var(--border);
- display:flex;
- justify-content:space-between;
- align-items:center;
+
+padding:18px;
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+border-bottom:1px solid var(--border);
+
 }
+
+
 
 .logo{
- color:var(--accent);
- font-size:26px;
- font-weight:bold;
+
+font-size:26px;
+font-weight:bold;
+
+color:var(--accent);
+
 }
+
+
 
 .status{
- font-size:12px;
- opacity:.8;
+
+font-size:12px;
+opacity:.8;
+
 }
+
+
 
 #tools{
- display:flex;
- gap:8px;
- padding:10px;
- border-bottom:1px solid var(--border);
- overflow-x:auto;
+
+display:flex;
+gap:8px;
+
+padding:10px;
+
+border-bottom:1px solid var(--border);
+
+overflow-x:auto;
+
 }
+
+
 
 .tool{
- background:#182331;
- color:white;
- border:1px solid var(--border);
- padding:8px 12px;
- border-radius:8px;
- cursor:pointer;
+
+background:#182331;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:8px 12px;
+
+border-radius:8px;
+
+cursor:pointer;
+
 }
+
+
 
 .tool.active{
- background:var(--accent);
- color:#001020;
+
+background:var(--accent);
+
+color:#001020;
+
 }
+
+
 
 #chat{
- flex:1;
- overflow-y:auto;
- padding:20px;
+
+flex:1;
+
+overflow-y:auto;
+
+padding:20px;
+
 }
+
+
 
 .message{
- margin-bottom:14px;
- padding:12px 15px;
- border-radius:12px;
- max-width:85%;
- line-height:1.5;
- white-space:pre-wrap;
+
+max-width:85%;
+
+padding:12px 15px;
+
+margin-bottom:14px;
+
+border-radius:12px;
+
+line-height:1.5;
+
+white-space:pre-wrap;
+
 }
+
+
 
 .user{
- margin-left:auto;
- background:#1d3552;
+
+margin-left:auto;
+
+background:#1d3552;
+
 }
+
+
 
 .jarvis{
- background:#182331;
+
+background:#182331;
+
 }
 
-footer{
- display:flex;
- gap:10px;
- padding:15px;
- border-top:1px solid var(--border);
+
+
+#panel{
+
+display:none;
+
+padding:15px;
+
+border-top:1px solid var(--border);
+
+background:#0d141d;
+
 }
 
-input{
- flex:1;
- background:#0b1119;
- border:1px solid var(--border);
- color:white;
- padding:12px;
- border-radius:8px;
+
+
+select,
+textarea{
+
+width:100%;
+
+background:#0b1119;
+
+color:white;
+
+border:1px solid var(--border);
+
+border-radius:8px;
+
+padding:10px;
+
 }
 
-button{
- background:var(--accent);
- border:0;
- padding:12px 16px;
- border-radius:8px;
- cursor:pointer;
- color:#001020;
- font-weight:bold;
-}
 
-#modePanel{
- display:none;
- padding:15px;
- border-bottom:1px solid var(--border);
- background:#0d141d;
-}
-
-select,textarea{
- width:100%;
- background:#0b1119;
- color:white;
- border:1px solid var(--border);
- border-radius:8px;
- padding:10px;
-}
 
 textarea{
- height:120px;
- resize:none;
+
+height:120px;
+
+resize:none;
+
 }
 
-.smallBtn{
- margin-top:10px;
- width:100%;
+
+
+footer{
+
+display:flex;
+
+gap:10px;
+
+padding:15px;
+
+border-top:1px solid var(--border);
+
 }
+
+
+
+input{
+
+flex:1;
+
+background:#0b1119;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:12px;
+
+border-radius:8px;
+
+}
+
+
+
+button{
+
+background:var(--accent);
+
+color:#001020;
+
+font-weight:bold;
+
+border:0;
+
+border-radius:8px;
+
+padding:12px 16px;
+
+cursor:pointer;
+
+}
+
+
 </style>
 
 </head>
 
+
+
 <body>
+
 
 <div class="app">
 
+
 <header>
-<div class="logo">JARVIS</div>
-<div class="status">
-ONLINE • INTELLIGENCE CORE v1.1
+
+<div class="logo">
+JARVIS
 </div>
+
+
+<div class="status">
+ONLINE • v1.2 STABLE
+</div>
+
+
 </header>
 
 
+
 <div id="tools">
+
 
 <button class="tool active" onclick="setMode('chat')">
 Chat
 </button>
 
+
 <button class="tool" onclick="setMode('math')">
-Math Engine
+Math
 </button>
+
 
 <button class="tool" onclick="setMode('writing')">
-Writing Assistant
+Writing
 </button>
 
 
-<button class="tool" onclick="setExplanationMode('simple')">
+<button class="tool" onclick="setExplanation('simple')">
 Simple
 </button>
 
-<button class="tool" onclick="setExplanationMode('detailed')">
+
+<button class="tool" onclick="setExplanation('detailed')">
 Detailed
 </button>
 
-<button class="tool" onclick="setExplanationMode('expert')">
+
+<button class="tool" onclick="setExplanation('expert')">
 Expert
 </button>
+
 
 </div>
 
 
-<div id="modePanel">
+
+
+<div id="panel">
+
 
 <select id="writingMode">
+
 <option value="grammar">
 Fix grammar only
 </option>
+
 
 <option value="professional">
 Make it more professional
 </option>
 
+
 <option value="friendly">
 Make it friendlier
 </option>
+
 
 <option value="shorter">
 Make it shorter
 </option>
 
+
 <option value="clarity">
 Keep my exact tone but improve clarity
 </option>
 
+
 </select>
 
+
+
 <textarea id="writingInput"
-placeholder="Paste text here for JARVIS to improve...">
+placeholder="Paste text here...">
 </textarea>
 
-<button class="smallBtn" onclick="processWriting()">
+
+<button onclick="processWriting()">
 Improve Writing
 </button>
 
+
 </div>
+
+
+
 
 
 <div id="chat"></div>
 
 
+
+
 <footer>
+
 
 <input id="input"
 placeholder="Ask JARVIS something...">
+
 
 <button onclick="sendMessage()">
 Send
 </button>
 
+
 </footer>
+
 
 
 </div>
@@ -258,71 +422,114 @@ Send
 <script>
 const chat=document.getElementById("chat");
 const input=document.getElementById("input");
-const modePanel=document.getElementById("modePanel");
+const panel=document.getElementById("panel");
+
 
 let currentMode="chat";
 
+let explanationMode="normal";
+
+
 let memory=JSON.parse(
- 
-let memory={
- notes:[]
-};
+localStorage.getItem("jarvisMemory") || "{}"
+);
 
-try{
-
-let saved=localStorage.getItem("jarvisMemory");
-
-if(saved){
- memory=JSON.parse(saved);
-}
 
 if(!memory.notes){
- memory.notes=[];
+memory.notes=[];
 }
 
-}
-catch(error){
 
-console.log("Memory reset:",error);
 
-memory={
- notes:[]
+let context={
+
+topic:""
+
 };
 
-localStorage.setItem(
-"jarvisMemory",
-JSON.stringify(memory)
+
+
+/* =========================
+   CHAT DISPLAY
+========================= */
+
+
+function addMessage(text,type){
+
+let div=document.createElement("div");
+
+div.className="message "+type;
+
+div.textContent=text;
+
+chat.appendChild(div);
+
+chat.scrollTop=chat.scrollHeight;
+
+}
+
+
+
+/* =========================
+   MODES
+========================= */
+
+
+function setMode(mode){
+
+currentMode=mode;
+
+
+if(mode==="writing"){
+
+panel.style.display="block";
+
+}
+
+else{
+
+panel.style.display="none";
+
+}
+
+
+}
+
+
+
+function setExplanation(mode){
+
+explanationMode=mode;
+
+
+addMessage(
+"Explanation mode: "+mode,
+"jarvis"
 );
 
 }
 
-/* =========================
-   JARVIS v1.2 CONVERSATION MEMORY
-========================= */
-
-let conversationContext={
- topic:"",
- lastQuestion:"",
- style:"normal"
-};
 
 
 /* =========================
-   KNOWLEDGE DATABASE
+   KNOWLEDGE SYSTEM
 ========================= */
+
 
 const knowledge={
+
 
 orange:{
 keywords:[
 "orange",
 "oranges",
-"citrus fruit"
+"citrus"
 ],
 
-answer:
-"Oranges are citrus fruits known for their sweet flavor and high vitamin C content. They grow on trees in warm climates and are commonly eaten fresh, turned into juice, or used for cooking. The fruit develops from flowers and usually takes several months to mature."
+text:
+"Oranges are citrus fruits known for their sweet taste and vitamin C. They grow on trees in warm climates and are commonly eaten fresh, made into juice, or used in cooking."
 },
+
 
 
 apple:{
@@ -331,9 +538,10 @@ keywords:[
 "apples"
 ],
 
-answer:
-"Apples are fruits that grow on apple trees. They come in many varieties with different flavors, from sweet to tart. Apples contain fiber and are often eaten raw, baked, or used in drinks and recipes."
+text:
+"Apples are fruits that grow on trees. They come in many varieties and can be eaten fresh, baked, or used in drinks and recipes."
 },
+
 
 
 space:{
@@ -343,365 +551,67 @@ keywords:[
 "galaxy"
 ],
 
-answer:
-"Space is the vast area beyond Earth's atmosphere. It contains planets, stars, galaxies, and other objects. The universe is constantly changing and contains billions of galaxies."
+text:
+"Space is the huge area beyond Earth’s atmosphere containing planets, stars, galaxies, and other objects."
 },
+
 
 
 computer:{
 keywords:[
 "computer",
-"pc",
-"cpu"
+"cpu",
+"pc"
 ],
 
-answer:
-"A computer is an electronic machine that processes information. It uses hardware like processors and memory along with software to perform tasks such as calculations, communication, and running applications."
+text:
+"A computer is a machine that processes information using hardware and software to perform tasks."
 }
+
+
 
 };
 
-/* =========================
-   CORE CHAT SYSTEM
-========================= */
-
-function addMessage(text,type){
- const div=document.createElement("div");
- div.className="message "+type;
- div.textContent=text;
- chat.appendChild(div);
- chat.scrollTop=chat.scrollHeight;
-}
 
 
-/* =========================
-   MODE CONTROL
-========================= */
 
-function setMode(mode){
-
- currentMode=mode;
-
- document.querySelectorAll(".tool")
- .forEach(btn=>btn.classList.remove("active"));
-
- document.querySelector(`[onclick="setMode('${mode}')"]`)
-?.classList.add("active");
+function explain(text){
 
 
- if(mode==="writing"){
-   modePanel.style.display="block";
- }
- else{
-   modePanel.style.display="none";
- }
+if(explanationMode==="simple"){
 
- if(mode==="math"){
-   addMessage(
-   "Math Engine activated.\n\nI can analyze equations, algebra, geometry, calculus, and statistics problems with explanations.",
-   "jarvis"
-   );
- }
-
- if(mode==="writing"){
-   addMessage(
-   "Writing Assistant activated.\n\nSelect a writing style and provide text for improvement.",
-   "jarvis"
-   );
- }
+return "Simple explanation:\n\n"+text;
 
 }
 
 
-/* =========================
-   MATHEMATICS ENGINE
-========================= */
-
-
-function mathEngine(problem){
-
- let p=problem
- .replace(/what is|solve|calculate/gi,"")
- .trim();
-
-
- // Basic arithmetic
- if(/^[0-9+\-*/().\s]+$/.test(p)){
-
-   try{
-    let answer=Function(
-    "return "+p
-    )();
-
-    return `
-Math Solution:
-
-Expression:
-${p}
-
-Step 1:
-Identify the operation.
-
-Step 2:
-Apply mathematical rules.
-
-Step 3:
-Calculate the result.
-
-Answer:
-${answer}
-`;
-   }
-   catch{}
- }
-
-
- // Quadratic equations
- if(p.includes("x²") || p.includes("x^2")){
-
- return `
-Quadratic Equation Analysis:
-
-Step 1:
-Rewrite equation in standard form:
-
-ax² + bx + c = 0
-
-
-Step 2:
-Identify coefficients.
-
-Step 3:
-Use the quadratic formula:
-
-x = (-b ± √(b²-4ac)) / 2a
-
-
-Step 4:
-Substitute values and simplify.
-
-JARVIS can continue solving if the full equation is provided.
-`;
- }
-
-
- // Geometry
- if(p.includes("circle")){
-
- return `
-Geometry Solution:
-
-Circle formulas:
-
-Area:
-A = πr²
-
-Circumference:
-C = 2πr
-
-
-Provide the radius and I will calculate the result.
-`;
- }
-
-
- // Calculus
- if(
- p.includes("derivative") ||
- p.includes("differentiate")
- ){
-
- return `
-Calculus Solution:
-
-Derivative process:
-
-Step 1:
-Identify the function.
-
-Step 2:
-Apply differentiation rules.
-
-Common rules:
-
-d/dx(xⁿ)=nxⁿ⁻¹
-
-Step 3:
-Simplify the result.
-
-Provide the function for a complete solution.
-`;
- }
-
-
- // Statistics
- if(
- p.includes("average") ||
- p.includes("mean") ||
- p.includes("statistics")
- ){
-
- return `
-Statistics Analysis:
-
-Step 1:
-Collect the data set.
-
-Step 2:
-Calculate:
-
-Mean = sum of values ÷ number of values
-
-Step 3:
-Analyze variation and patterns.
-
-Provide the numbers for a complete calculation.
-`;
- }
-
-
- return `
-Math Engine activated.
-
-I can solve:
-
-• Algebra
-• Geometry
-• Calculus
-• Statistics
-• Equations
-
-Please provide a specific problem.
-`;
-
-}
-
-
-/* =========================
-   WRITING INTELLIGENCE
-========================= */
-
-
-function analyzeContext(text){
-
-let lower=text.toLowerCase();
-
-if(lower.includes("email"))
- return "email";
-
-if(lower.includes("essay"))
- return "essay";
-
-if(lower.includes("message")||
-lower.includes("text"))
- return "message";
-
-if(lower.includes("report"))
- return "document";
-
-return "general";
-
-}
-
-
-
-function improveWriting(text,style){
-
-let context=analyzeContext(text);
-
-
-let result=text;
-
-
-// Grammar mode
-if(style==="grammar"){
-
- result=result
- .replace(/\bi\b/g,"I")
- .replace(/\s+/g," ")
- .trim();
-
- return `
-Context detected:
-${context}
-
-Grammar correction:
-
-${result}
-`;
-}
-
-
-
-// Professional
-if(style==="professional"){
+if(explanationMode==="detailed"){
 
 return `
-Context detected:
-${context}
-
-Professional revision:
+Detailed explanation:
 
 ${text}
 
-[Improved wording, structure, and clarity applied while maintaining the original meaning.]
+Additional details:
+- How it works
+- Why it matters
+- Real world examples
 `;
+
 }
 
 
 
-// Friendly
-if(style==="friendly"){
+if(explanationMode==="expert"){
 
 return `
-Context detected:
-${context}
-
-Friendly revision:
+Technical explanation:
 
 ${text}
 
-[Adjusted to sound warmer and more approachable while preserving your message.]
+This topic can be studied through advanced systems, structures, and deeper relationships.
 `;
-}
 
-
-
-// Shorter
-if(style==="shorter"){
-
-let shortened=text
-.split(".")
-.slice(0,2)
-.join(".");
-
-return `
-Context detected:
-${context}
-
-Shortened version:
-
-${shortened}
-`;
-}
-
-
-
-// Exact tone clarity
-if(style==="clarity"){
-
-return `
-Context detected:
-${context}
-
-Tone preserved.
-
-Clarity improvement:
-
-${text}
-
-[JARVIS preserved your original personality while improving readability.]
-`;
 }
 
 
@@ -711,154 +621,297 @@ return text;
 
 
 
+
+/* =========================
+   MATH ENGINE
+========================= */
+
+
+function mathEngine(problem){
+
+
+let clean=problem
+.replace(/solve|calculate|what is/gi,"")
+.trim();
+
+
+
+if(/^[0-9+\-*/().\s]+$/.test(clean)){
+
+
+try{
+
+let answer=Function(
+"return "+clean
+)();
+
+
+return `
+Math solution:
+
+Problem:
+${clean}
+
+Step 1:
+Identify the operation.
+
+Step 2:
+Apply mathematical rules.
+
+Step 3:
+Calculate.
+
+Answer:
+${answer}
+`;
+
+}
+
+catch{}
+
+}
+
+
+
+
+if(clean.includes("circle")){
+
+return `
+Circle formulas:
+
+Area = πr²
+
+Circumference = 2πr
+
+Provide the radius for a calculation.
+`;
+
+}
+
+
+
+
+if(clean.includes("derivative")){
+
+
+return `
+Calculus:
+
+Derivative rules find the rate of change.
+
+Example:
+
+d/dx(x²)=2x
+
+Provide a function for a full solution.
+`;
+
+}
+
+
+
+return `
+Math Engine ready.
+
+I can help with:
+
+- Algebra
+- Geometry
+- Calculus
+- Statistics
+- Equations
+`;
+
+}
+
+
+
+/* =========================
+   WRITING ASSISTANT
+========================= */
+
+
 function processWriting(){
 
-let text=document.getElementById("writingInput").value;
 
-let style=document.getElementById("writingMode").value;
-
-
-if(!text.trim())return;
+let text=document
+.getElementById("writingInput")
+.value;
 
 
-addMessage(
-"Original:\n"+text,
-"user"
-);
+let mode=document
+.getElementById("writingMode")
+.value;
 
 
-setTimeout(()=>{
+if(!text)return;
 
-addMessage(
-improveWriting(text,style),
-"jarvis"
-);
 
-},300);
+
+let result=text;
+
+
+
+if(mode==="grammar"){
+
+result=text
+.replace(/\bi\b/g,"I")
+.trim();
 
 }
 
 
-function jarvisReply(text){
 
-let t=text.toLowerCase();
+if(mode==="professional"){
+
+result=
+"Professional version:\n\n"+text;
+
+}
+
+
+
+if(mode==="friendly"){
+
+result=
+"Friendlier version:\n\n"+text;
+
+}
+
+
+
+if(mode==="shorter"){
+
+result=
+text.split(".")[0]+".";
+
+}
+
+
+
+if(mode==="clarity"){
+
+result=
+"Improved clarity while keeping your tone:\n\n"+text;
+
+}
+
+
+
+addMessage(result,"jarvis");
+
+
+}
+
 
 
 /* =========================
-   MATH MODE
+   JARVIS BRAIN
 ========================= */
+
+
+function jarvisReply(message){
+
+
+let text=message.toLowerCase();
+
+
 
 if(currentMode==="math"){
- return mathEngine(text);
+
+return mathEngine(message);
+
 }
 
 
-/* =========================
-   CONVERSATION CONTEXT
-========================= */
-
-conversationContext.lastQuestion=text;
 
 
-/* Check known topics */
 
-for(let topic in knowledge){
+for(let item in knowledge){
 
- let data=knowledge[topic];
 
- for(let keyword of data.keywords){
+for(let keyword of knowledge[item].keywords){
 
-  if(t.includes(keyword)){
 
-   conversationContext.topic=topic;
+if(text.includes(keyword)){
 
-   return data.answer;
-  }
 
- }
+context.topic=item;
+
+
+return explain(
+knowledge[item].text
+);
+
+
 }
 
 
-/* Follow-up questions */
+}
+
+
+}
+
+
+
+
 
 if(
- conversationContext.topic &&
- (
-  t.includes("how") ||
-  t.includes("why") ||
-  t.includes("more") ||
-  t.includes("explain") ||
-  t.includes("what about")
- )
+context.topic &&
+(
+text.includes("how") ||
+text.includes("why") ||
+text.includes("more")
+)
 ){
 
-let topic=conversationContext.topic;
 
-return `
-Continuing our discussion about ${topic}:
+return explain(
+knowledge[context.topic].text
+);
 
-${knowledge[topic].answer}
-
-If you want, I can explain it in a simpler way, go deeper, or explain how it works.
-`;
 }
 
 
 
-/* =========================
-   BASIC IDENTITY
-========================= */
 
-if(
-t.includes("hello")||
-t.includes("hi")||
-t.includes("hey")
-){
+if(text.includes("hello")||
+text.includes("hi")){
 
-return `
-Hello. JARVIS conversational intelligence is online.
+return "Hello. JARVIS systems are online.";
 
-I can explain topics, help with writing, solve problems, and answer questions.
-`;
 }
 
 
 
-if(t.includes("your name")){
+if(text.includes("your name")){
 
-return `
-I am JARVIS, your personal intelligence assistant.
+return "I am JARVIS, your personal intelligence assistant.";
 
-My systems include conversation, math, writing assistance, and memory functions.
-`;
 }
 
 
 
-/* =========================
-   MEMORY
-========================= */
 
-if(t.includes("remember")){
 
-let item=text
+if(text.includes("remember")){
+
+
+let note=message
 .replace(/remember/i,"")
 .trim();
 
 
-if(!memory.notes){
- memory.notes=[];
-}
-
 
 memory.notes.push({
 
-text:item,
+text:note,
 
 date:new Date()
 .toLocaleString()
 
 });
+
 
 
 localStorage.setItem(
@@ -867,184 +920,101 @@ JSON.stringify(memory)
 );
 
 
-return "Memory stored successfully.";
-}
 
-
-if(t.includes("memory")){
-
-
-if(!memory.notes || memory.notes.length===0){
-
-return "No stored memories.";
+return "Memory saved.";
 
 }
 
 
-return `
-Stored memories:
 
-${memory.notes
-.map((item,index)=>
-`${index+1}. ${item.text}
-Saved: ${item.date}`
+
+if(text.includes("memory")){
+
+
+if(memory.notes.length===0){
+
+return "No memories saved.";
+
+}
+
+
+
+return memory.notes
+.map(
+(x,i)=>
+`${i+1}. ${x.text} (${x.date})`
 )
-.join("\n\n")}
-`;
+.join("\n");
 
 }
 
 
 
-/* =========================
-   GENERAL EXPLANATIONS
-========================= */
 
 
-if(
-t.includes("tell me about") ||
-t.includes("what is") ||
-t.includes("explain")
-){
+if(text.includes("tell me about")||
+text.includes("what is")||
+text.includes("explain")){
 
-let subject=text
-.replace(/tell me about/i,"")
-.replace(/what is/i,"")
-.replace(/explain/i,"")
+
+let topic=message
+.replace(/tell me about|what is|explain/gi,"")
 .trim();
 
 
-conversationContext.topic=subject;
+return `
+I can explain ${topic}.
+
+I can provide a simple, detailed, or expert explanation.
+`;
+
+}
+
+
+
 
 
 return `
-I can explain ${subject}.
+I understand.
 
-${subject} is a topic that can be explored from different angles. I can give you a simple explanation, a detailed explanation, examples, or a technical breakdown.
-
-Try asking:
-"Explain ${subject} simply"
-or
-"Explain ${subject} in detail"
+I can answer questions, explain topics, help with writing, solve math problems, and remember information.
 `;
+
 }
 
 
 
 /* =========================
-   DEFAULT RESPONSE
-========================= */
-
-return `
-I understand your request.
-
-I can help explain topics, answer questions, improve writing, solve math problems, and remember information you choose to save.
-
-Try asking:
-"Tell me about oranges"
-"Explain how airplanes work"
-"Why does lightning happen?"
-`;
-}
-
-/* =========================
-   JARVIS EXPLANATION MODES
-========================= */
-
-let explanationMode="normal";
-
-
-function setExplanationMode(mode){
-
- explanationMode=mode;
-
- addMessage(
- "Explanation mode changed to: "+mode,
- "jarvis"
- );
-
-}
-
-
-/* =========================
-   INTELLIGENT EXPLANATION BUILDER
-========================= */
-
-function explainTopic(topic,information){
-
-if(explanationMode==="simple"){
-
-return `
-Simple explanation:
-
-${information}
-
-In simple terms:
-${topic} is something that can be understood by learning the basic ideas first.
-`;
-}
-
-
-if(explanationMode==="detailed"){
-
-return `
-Detailed explanation:
-
-${information}
-
-More details:
-
-• How it works
-• Why it matters
-• Common examples
-• Real-world uses
-`;
-}
-
-
-if(explanationMode==="expert"){
-
-return `
-Technical explanation:
-
-${information}
-
-Advanced analysis:
-
-This topic can be studied through deeper concepts, systems, and relationships between different parts.
-`;
-}
-
-
-return information;
-
-}
-
-/* =========================
-   MESSAGE HANDLING
+   INPUT
 ========================= */
 
 
 function sendMessage(){
 
+
 let text=input.value.trim();
+
 
 if(!text)return;
 
 
 addMessage(text,"user");
 
+
 input.value="";
 
 
 setTimeout(()=>{
+
 
 addMessage(
 jarvisReply(text),
 "jarvis"
 );
 
+
 },300);
+
 
 }
 
@@ -1052,18 +1022,23 @@ jarvisReply(text),
 
 input.addEventListener(
 "keydown",
-e=>{
- if(e.key==="Enter")
- sendMessage();
+function(e){
+
+if(e.key==="Enter"){
+
+sendMessage();
+
 }
-);
 
-
+});
 addMessage(
-"JARVIS initialized. Intelligence Core online.",
+"JARVIS v1.2 initialized. Intelligence systems online.",
 "jarvis"
 );
+
+
 </script>
 
 </body>
+
 </html>
