@@ -6,37 +6,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>JARVIS v1.2</title>
+<title>JARVIS v1.3</title>
 
 
 <style>
 
 :root{
+
 --bg:#0b0f14;
 --panel:#121922;
 --text:#e8f0ff;
 --accent:#4da3ff;
 --border:#263445;
+
 }
 
 
 *{
+
 box-sizing:border-box;
+
 }
+
 
 
 body{
 
 margin:0;
+
 height:100vh;
 
 background:var(--bg);
+
 color:var(--text);
 
 font-family:Arial,Helvetica,sans-serif;
 
 display:flex;
+
 justify-content:center;
+
 align-items:center;
 
 }
@@ -45,11 +54,14 @@ align-items:center;
 
 .app{
 
-width:min(100%,950px);
+width:min(100%,1000px);
+
 height:100vh;
+
 max-height:950px;
 
 display:flex;
+
 flex-direction:column;
 
 background:var(--panel);
@@ -65,7 +77,9 @@ header{
 padding:18px;
 
 display:flex;
+
 justify-content:space-between;
+
 align-items:center;
 
 border-bottom:1px solid var(--border);
@@ -76,7 +90,8 @@ border-bottom:1px solid var(--border);
 
 .logo{
 
-font-size:26px;
+font-size:28px;
+
 font-weight:bold;
 
 color:var(--accent);
@@ -88,6 +103,7 @@ color:var(--accent);
 .status{
 
 font-size:12px;
+
 opacity:.8;
 
 }
@@ -97,6 +113,7 @@ opacity:.8;
 #tools{
 
 display:flex;
+
 gap:8px;
 
 padding:10px;
@@ -117,7 +134,7 @@ color:white;
 
 border:1px solid var(--border);
 
-padding:8px 12px;
+padding:8px 14px;
 
 border-radius:8px;
 
@@ -155,9 +172,9 @@ max-width:85%;
 
 padding:12px 15px;
 
-margin-bottom:14px;
-
 border-radius:12px;
+
+margin-bottom:14px;
 
 line-height:1.5;
 
@@ -193,8 +210,6 @@ padding:15px;
 
 border-top:1px solid var(--border);
 
-background:#0d141d;
-
 }
 
 
@@ -210,9 +225,9 @@ color:white;
 
 border:1px solid var(--border);
 
-border-radius:8px;
-
 padding:10px;
+
+border-radius:8px;
 
 }
 
@@ -222,7 +237,25 @@ textarea{
 
 height:120px;
 
-resize:none;
+}
+
+
+
+button{
+
+background:var(--accent);
+
+color:#001020;
+
+border:0;
+
+padding:12px 16px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+font-weight:bold;
 
 }
 
@@ -259,26 +292,6 @@ border-radius:8px;
 }
 
 
-
-button{
-
-background:var(--accent);
-
-color:#001020;
-
-font-weight:bold;
-
-border:0;
-
-border-radius:8px;
-
-padding:12px 16px;
-
-cursor:pointer;
-
-}
-
-
 </style>
 
 </head>
@@ -299,9 +312,8 @@ JARVIS
 
 
 <div class="status">
-ONLINE • v1.2 STABLE
+ONLINE • v1.3 ORGANIZED CORE
 </div>
-
 
 </header>
 
@@ -325,23 +337,7 @@ Writing
 </button>
 
 
-<button class="tool" onclick="setExplanation('simple')">
-Simple
-</button>
-
-
-<button class="tool" onclick="setExplanation('detailed')">
-Detailed
-</button>
-
-
-<button class="tool" onclick="setExplanation('expert')">
-Expert
-</button>
-
-
 </div>
-
 
 
 
@@ -356,7 +352,7 @@ Fix grammar only
 
 
 <option value="professional">
-Make it more professional
+Make it professional
 </option>
 
 
@@ -371,7 +367,7 @@ Make it shorter
 
 
 <option value="clarity">
-Keep my exact tone but improve clarity
+Keep my tone, improve clarity
 </option>
 
 
@@ -380,8 +376,7 @@ Keep my exact tone but improve clarity
 
 
 <textarea id="writingInput"
-placeholder="Paste text here...">
-</textarea>
+placeholder="Paste writing here..."></textarea>
 
 
 <button onclick="processWriting()">
@@ -393,15 +388,11 @@ Improve Writing
 
 
 
-
-
 <div id="chat"></div>
 
 
 
-
 <footer>
-
 
 <input id="input"
 placeholder="Ask JARVIS something...">
@@ -411,15 +402,17 @@ placeholder="Ask JARVIS something...">
 Send
 </button>
 
-
 </footer>
-
 
 
 </div>
 
 
 <script>
+// =========================
+// CORE VARIABLES
+// =========================
+
 const chat=document.getElementById("chat");
 const input=document.getElementById("input");
 const panel=document.getElementById("panel");
@@ -449,14 +442,14 @@ topic:""
 
 
 
-/* =========================
-   CHAT DISPLAY
-========================= */
+// =========================
+// MESSAGE SYSTEM
+// =========================
 
 
 function addMessage(text,type){
 
-let div=document.createElement("div");
+const div=document.createElement("div");
 
 div.className="message "+type;
 
@@ -470,14 +463,24 @@ chat.scrollTop=chat.scrollHeight;
 
 
 
-/* =========================
-   MODES
-========================= */
+
+// =========================
+// MODE SYSTEM
+// =========================
 
 
 function setMode(mode){
 
 currentMode=mode;
+
+
+document.querySelectorAll(".tool")
+.forEach(button=>{
+button.classList.remove("active");
+});
+
+
+event.target.classList.add("active");
 
 
 if(mode==="writing"){
@@ -498,6 +501,7 @@ panel.style.display="none";
 }
 
 
+
 if(mode==="math"){
 
 addMessage(
@@ -506,6 +510,7 @@ addMessage(
 );
 
 }
+
 
 
 if(mode==="chat"){
@@ -517,137 +522,27 @@ addMessage(
 
 }
 
-}
-
-
-
-function setExplanation(mode){
-
-explanationMode=mode;
-
-
-addMessage(
-"Explanation mode: "+mode,
-"jarvis"
-);
 
 }
 
 
 
-/* =========================
-   KNOWLEDGE SYSTEM
-========================= */
 
-/* =========================
-   JARVIS KNOWLEDGE CATEGORIES
-========================= */
-
-const categories={
-
-math:{
-name:"Mathematics",
-topics:[
-"arithmetic",
-"algebra",
-"geometry",
-"calculus",
-"statistics",
-"probability"
-]
-},
+// =========================
+// KNOWLEDGE DATABASE
+// ORGANIZED BY CATEGORY
+// =========================
 
 
-engineering:{
-name:"Engineering",
-topics:[
-"mechanical engineering",
-"electrical engineering",
-"civil engineering",
-"aerospace engineering",
-"robotics"
-]
-},
+
+// ===== EVERYDAY KNOWLEDGE =====
 
 
-finance:{
-name:"Finance",
-topics:[
-"money",
-"investing",
-"banking",
-"stocks",
-"interest",
-"economics"
-]
-},
-
-
-accounting:{
-name:"Accounting & Business",
-topics:[
-"assets",
-"liabilities",
-"revenue",
-"expenses",
-"profit",
-"balance sheet"
-]
-},
-
-
-medical:{
-name:"Medical & Biology",
-topics:[
-"human body",
-"anatomy",
-"cells",
-"nutrition",
-"biology"
-]
-},
-
-
-science:{
-name:"Science",
-topics:[
-"physics",
-"chemistry",
-"astronomy",
-"earth science"
-]
-},
-
-
-technology:{
-name:"Technology",
-topics:[
-"computers",
-"programming",
-"artificial intelligence",
-"internet",
-"electronics"
-]
-},
-
-
-everyday:{
-name:"Everyday Knowledge",
-topics:[
-"food",
-"animals",
-"weather",
-"vehicles",
-"history",
-"geography"
-],
-
-};
-
-const knowledge={
+const everydayKnowledge={
 
 
 orange:{
+
 keywords:[
 "orange",
 "oranges",
@@ -655,24 +550,119 @@ keywords:[
 ],
 
 text:
-"Oranges are citrus fruits known for their sweet taste and vitamin C. They grow on trees in warm climates and are commonly eaten fresh, made into juice, or used in cooking."
+"Oranges are citrus fruits that grow on trees in warm climates. They are known for their sweet flavor and vitamin C. They are commonly eaten fresh or made into juice."
+
 },
 
 
+cars:{
 
-apple:{
 keywords:[
-"apple",
-"apples"
+"car",
+"cars",
+"vehicle",
+"vehicles"
 ],
 
 text:
-"Apples are fruits that grow on trees. They come in many varieties and can be eaten fresh, baked, or used in drinks and recipes."
+"Cars are machines designed for transportation. They use systems such as engines, transmissions, brakes, suspension, and electronics to move safely and efficiently."
+
 },
 
 
+food:{
+
+keywords:[
+"food",
+"meal",
+"cooking"
+],
+
+text:
+"Food provides the energy and nutrients living things need. Different foods contain different amounts of proteins, carbohydrates, fats, vitamins, and minerals."
+
+}
+
+
+};
+
+
+
+
+// ===== ENGINEERING KNOWLEDGE =====
+
+
+const engineeringKnowledge={
+
+
+engine:{
+
+keywords:[
+"engine",
+"motor",
+"combustion engine"
+],
+
+text:
+"An engine converts energy into mechanical motion. Combustion engines burn fuel to create expanding gases that move pistons and produce power."
+
+},
+
+
+radiator:{
+
+keywords:[
+"radiator",
+"cooling system",
+"overheating"
+],
+
+text:
+"A radiator helps control engine temperature by removing heat from coolant. Air flowing through radiator fins transfers heat away from the engine."
+
+},
+
+
+jetEngine:{
+
+keywords:[
+"jet engine",
+"jet engines",
+"aircraft engine"
+],
+
+text:
+"A jet engine creates thrust by compressing air, mixing it with fuel, burning the mixture, and pushing exhaust gases backward to move an aircraft forward."
+
+},
+
+
+mechanicalEngineering:{
+
+keywords:[
+"mechanical engineering",
+"mechanical engineer"
+],
+
+text:
+"Mechanical engineering focuses on designing and building machines using principles of forces, motion, energy, and materials."
+
+}
+
+
+};
+
+
+
+
+// ===== SCIENCE KNOWLEDGE =====
+
+
+const scienceKnowledge={
+
 
 space:{
+
 keywords:[
 "space",
 "universe",
@@ -680,98 +670,52 @@ keywords:[
 ],
 
 text:
-"Space is the huge area beyond Earth’s atmosphere containing planets, stars, galaxies, and other objects."
+"Space is the vast area beyond Earth's atmosphere containing planets, stars, galaxies, and other objects."
+
 },
 
+
+physics:{
+
+keywords:[
+"physics",
+"force",
+"energy"
+],
+
+text:
+"Physics studies matter, energy, forces, and how objects interact with each other."
+
+}
+
+
+};
+
+
+
+
+// ===== TECHNOLOGY KNOWLEDGE =====
+
+
+const technologyKnowledge={
 
 
 computer:{
+
 keywords:[
 "computer",
-"cpu",
-"pc"
+"pc",
+"cpu"
 ],
 
 text:
-"A computer is a machine that processes information using hardware and software to perform tasks."
+"Computers process information using hardware and software. They use processors, memory, storage, and programs to complete tasks."
+
 },
 
 
+ai:{
 
-airplane:{
-keywords:[
-"airplane",
-"plane",
-"aircraft",
-"flight"
-],
-
-text:
-"Airplanes are vehicles designed to travel through the air. They use wings to create lift and engines to provide thrust. Airplanes are used for transportation, shipping, research, and many other purposes."
-},
-
-
-earth:{
-keywords:[
-"earth",
-"planet earth",
-"world"
-],
-
-text:
-"Earth is the planet humans live on. It has oceans, continents, an atmosphere, and a wide variety of life. Earth orbits the Sun and is the only known planet with life."
-},
-
-
-humanbody:{
-keywords:[
-"human body",
-"body",
-"anatomy"
-],
-
-text:
-"The human body is a complex system made of organs, tissues, bones, muscles, and cells that work together to keep a person alive and functioning."
-},
-
-
-electricity:{
-keywords:[
-"electricity",
-"electric",
-"power"
-],
-
-text:
-"Electricity is the movement of electrical charges. It powers devices, machines, homes, and technology by allowing energy to be transferred and used."
-},
-
-
-internet:{
-keywords:[
-"internet",
-"online",
-"web"
-],
-
-text:
-"The internet is a worldwide network that connects computers and devices. It allows people to communicate, share information, access services, and use online applications."
-},
-
-
-robots:{
-keywords:[
-"robot",
-"robots",
-"robotics"
-],
-
-text:
-"Robots are machines designed to perform tasks automatically or with human control. They are used in manufacturing, exploration, medicine, research, and many other fields."
-},
-
-
-artificialintelligence:{
 keywords:[
 "ai",
 "artificial intelligence",
@@ -779,124 +723,82 @@ keywords:[
 ],
 
 text:
-"Artificial intelligence is technology that allows computers to perform tasks that normally require human intelligence, such as recognizing patterns, understanding language, and solving problems."
-},
+"Artificial intelligence allows computers to perform tasks that normally require human intelligence, such as recognizing patterns and understanding language."
 
-cars:{
-keywords:[
-"car",
-"cars",
-"automobile",
-"vehicle",
-"vehicles"
-],
+}
 
-text:
-"Cars are machines designed to transport people and goods. They use systems including an engine or electric motor, transmission, suspension, brakes, steering, and computer systems. Modern vehicles combine mechanical engineering, electronics, and software to operate safely and efficiently."
-},
-
-
-engine:{
-keywords:[
-"engine",
-"car engine",
-"combustion engine",
-"motor"
-],
-
-text:
-"An engine converts energy into motion. In gasoline engines, fuel is mixed with air and ignited to create expanding gases that push pistons. Those pistons turn a crankshaft, which produces mechanical power used to move the vehicle."
-},
-
-
-transmission:{
-keywords:[
-"transmission",
-"gearbox",
-"gears"
-],
-
-text:
-"A transmission controls how engine power is delivered to the wheels. It changes gear ratios to provide more power when accelerating and better efficiency when cruising."
-},
-
-
-radiator:{
-keywords:[
-"radiator",
-"cooling system",
-"overheating",
-"coolant"
-],
-
-text:
-"A radiator is part of an engine cooling system. It removes heat from coolant that has absorbed heat from the engine. Air flowing through the radiator fins helps transfer heat away and keeps the engine operating safely."
-},
-
-
-brakes:{
-keywords:[
-"brakes",
-"braking system",
-"brake"
-],
-
-text:
-"Vehicle brakes slow or stop motion by creating friction or using electronic systems. Most modern cars use brake pads, rotors, calipers, and hydraulic pressure to safely reduce speed."
-},
-
-
-jetengine:{
-keywords:[
-"jet engine",
-"jet engines",
-"turbofan",
-"aircraft engine"
-],
-
-text:
-"A jet engine creates thrust by pulling in air, compressing it, mixing it with fuel, and burning the mixture. The expanding gases leave the engine at high speed, producing the force that pushes the aircraft forward."
-},
-
-
-rocket:{
-keywords:[
-"rocket",
-"rockets",
-"rocket engine"
-],
-
-text:
-"Rocket engines create thrust by rapidly pushing exhaust gases in the opposite direction of travel. Unlike jet engines, rockets carry their own oxidizer, allowing them to operate in space where there is no breathable air."
-},
-
-
-electricvehicle:{
-keywords:[
-"electric car",
-"electric vehicle",
-"ev"
-],
-
-text:
-"Electric vehicles use electric motors powered by batteries instead of traditional combustion engines. They convert stored electrical energy into motion and use electronic systems to manage performance and efficiency."
-},
-
-
-mechanicalengineering:{
-keywords:[
-"mechanical engineering",
-"mechanical engineer"
-],
-
-text:
-"Mechanical engineering focuses on designing, analyzing, and building machines and systems that involve motion, forces, energy, and materials. It is used in vehicles, engines, robots, manufacturing, and many other technologies."
-}￼ 
 
 };
 
-function explain(text){
 
+
+
+// ===== FINANCE KNOWLEDGE =====
+
+
+const financeKnowledge={
+
+
+money:{
+
+keywords:[
+"money",
+"finance",
+"financial"
+],
+
+text:
+"Finance is the management of money, including saving, investing, borrowing, and planning expenses."
+
+},
+
+
+accounting:{
+
+keywords:[
+"accounting",
+"balance sheet",
+"profit"
+],
+
+text:
+"Accounting records and organizes financial information. Businesses use accounting to track income, expenses, assets, and liabilities."
+
+}
+
+
+};
+
+
+
+
+// COMBINE KNOWLEDGE
+
+
+const knowledge={
+
+...everydayKnowledge,
+
+...engineeringKnowledge,
+
+...scienceKnowledge,
+
+...technologyKnowledge,
+
+...financeKnowledge
+
+};
+
+
+
+
+
+// =========================
+// EXPLANATION SYSTEM
+// =========================
+
+
+function explain(text){
 
 if(explanationMode==="simple"){
 
@@ -912,14 +814,10 @@ Detailed explanation:
 
 ${text}
 
-Additional details:
-- How it works
-- Why it matters
-- Real world examples
+More details can be provided if needed.
 `;
 
 }
-
 
 
 if(explanationMode==="expert"){
@@ -929,7 +827,7 @@ Technical explanation:
 
 ${text}
 
-This topic can be studied through advanced systems, structures, and deeper relationships.
+This topic can be explored through advanced principles and deeper analysis.
 `;
 
 }
@@ -938,17 +836,12 @@ This topic can be studied through advanced systems, structures, and deeper relat
 return text;
 
 }
-
-
-
-
-/* =========================
-   MATH ENGINE
-========================= */
+// =========================
+// MATH ENGINE
+// =========================
 
 
 function mathEngine(problem){
-
 
 let clean=problem
 .replace(/solve|calculate|what is/gi,"")
@@ -967,63 +860,62 @@ let answer=Function(
 
 
 return `
-Math solution:
+Math Solution:
 
 Problem:
 ${clean}
 
 Step 1:
-Identify the operation.
+Identify the operations.
 
 Step 2:
 Apply mathematical rules.
 
 Step 3:
-Calculate.
+Calculate the answer.
 
-Answer:
+Result:
 ${answer}
 `;
 
 }
 
-catch{}
+catch(error){}
 
 }
-
 
 
 
 if(clean.includes("circle")){
 
 return `
+Geometry:
+
 Circle formulas:
 
-Area = πr²
+Area = π × radius²
 
-Circumference = 2πr
+Circumference = 2π × radius
 
-Provide the radius for a calculation.
+Provide the radius and I can calculate it.
 `;
 
 }
-
 
 
 
 if(clean.includes("derivative")){
 
-
 return `
 Calculus:
 
-Derivative rules find the rate of change.
+Derivatives measure change.
 
 Example:
 
 d/dx(x²)=2x
 
-Provide a function for a full solution.
+Provide the function for a complete solution.
 `;
 
 }
@@ -1031,28 +923,28 @@ Provide a function for a full solution.
 
 
 return `
-Math Engine ready.
+Math mode active.
 
 I can help with:
 
-- Algebra
-- Geometry
-- Calculus
-- Statistics
-- Equations
+• Arithmetic
+• Algebra
+• Geometry
+• Calculus
+• Statistics
 `;
 
 }
 
 
 
-/* =========================
-   WRITING ASSISTANT
-========================= */
+
+// =========================
+// WRITING ASSISTANT
+// =========================
 
 
 function processWriting(){
-
 
 let text=document
 .getElementById("writingInput")
@@ -1064,7 +956,7 @@ let mode=document
 .value;
 
 
-if(!text)return;
+if(!text.trim())return;
 
 
 
@@ -1072,68 +964,83 @@ let result=text;
 
 
 
-if(mode==="grammar"){
+switch(mode){
+
+
+case "grammar":
 
 result=text
 .replace(/\bi\b/g,"I")
 .trim();
 
-}
+break;
 
 
 
-if(mode==="professional"){
+case "professional":
 
 result=
 "Professional version:\n\n"+text;
 
-}
+break;
 
 
 
-if(mode==="friendly"){
+case "friendly":
 
 result=
 "Friendlier version:\n\n"+text;
 
-}
+break;
 
 
 
-if(mode==="shorter"){
+case "shorter":
 
 result=
-text.split(".")[0]+".";
+text
+.split(".")
+.slice(0,2)
+.join(".")+".";
 
-}
+break;
 
 
 
-if(mode==="clarity"){
+case "clarity":
 
 result=
 "Improved clarity while keeping your tone:\n\n"+text;
 
-}
-
-
-
-addMessage(result,"jarvis");
+break;
 
 
 }
 
 
 
-/* =========================
-   JARVIS BRAIN
-========================= */
+addMessage(
+result,
+"jarvis"
+);
+
+
+}
+
+
+
+
+// =========================
+// CONVERSATION ENGINE
+// =========================
 
 
 function jarvisReply(message){
 
 
 let text=message.toLowerCase();
+
+
 
 
 
@@ -1145,6 +1052,9 @@ return mathEngine(message);
 
 
 
+
+
+// SEARCH KNOWLEDGE
 
 
 for(let item in knowledge){
@@ -1176,12 +1086,16 @@ knowledge[item].text
 
 
 
+// FOLLOW UP QUESTIONS
+
+
 if(
 context.topic &&
 (
 text.includes("how") ||
 text.includes("why") ||
-text.includes("more")
+text.includes("more") ||
+text.includes("explain")
 )
 ){
 
@@ -1190,28 +1104,14 @@ return explain(
 knowledge[context.topic].text
 );
 
-}
-
-
-
-
-if(text.includes("hello")||
-text.includes("hi")){
-
-return "Hello. JARVIS systems are online.";
 
 }
 
 
 
-if(text.includes("your name")){
-
-return "I am JARVIS, your personal intelligence assistant.";
-
-}
 
 
-
+// MEMORY
 
 
 if(text.includes("remember")){
@@ -1248,6 +1148,7 @@ return "Memory saved.";
 
 
 
+
 if(text.includes("memory")){
 
 
@@ -1261,10 +1162,10 @@ return "No memories saved.";
 
 return memory.notes
 .map(
-(x,i)=>
-`${i+1}. ${x.text} (${x.date})`
+(item,index)=>
+`${index+1}. ${item.text} (${item.date})`
 )
-.join("\n");
+.join("\n\n");
 
 }
 
@@ -1272,20 +1173,49 @@ return memory.notes
 
 
 
-if(text.includes("tell me about")||
-text.includes("what is")||
-text.includes("explain")){
+// BASIC QUESTIONS
 
 
-let topic=message
+if(
+text.includes("hello") ||
+text.includes("hi") ||
+text.includes("hey")
+){
+
+return "Hello. JARVIS systems are online.";
+
+}
+
+
+
+
+
+if(text.includes("your name")){
+
+return "I am JARVIS, your personal intelligence assistant.";
+
+}
+
+
+
+
+
+if(
+text.includes("tell me about") ||
+text.includes("what is") ||
+text.includes("explain")
+){
+
+
+let subject=message
 .replace(/tell me about|what is|explain/gi,"")
 .trim();
 
 
 return `
-I can explain ${topic}.
+I can explain ${subject}.
 
-I can provide a simple, detailed, or expert explanation.
+My knowledge system is organized by category and can continue expanding.
 `;
 
 }
@@ -1297,20 +1227,30 @@ I can provide a simple, detailed, or expert explanation.
 return `
 I understand.
 
-I can answer questions, explain topics, help with writing, solve math problems, and remember information.
+I can help with:
+
+• Everyday knowledge
+• Engineering
+• Science
+• Technology
+• Finance
+• Writing
+• Mathematics
+• Memory
 `;
 
 }
 
 
 
-/* =========================
-   INPUT
-========================= */
+
+
+// =========================
+// SEND SYSTEM
+// =========================
 
 
 function sendMessage(){
-
 
 let text=input.value.trim();
 
@@ -1318,10 +1258,16 @@ let text=input.value.trim();
 if(!text)return;
 
 
-addMessage(text,"user");
+
+addMessage(
+text,
+"user"
+);
+
 
 
 input.value="";
+
 
 
 setTimeout(()=>{
@@ -1334,6 +1280,7 @@ jarvisReply(text),
 
 
 },300);
+
 
 
 }
@@ -1351,10 +1298,21 @@ sendMessage();
 }
 
 });
+
+
+
+
+
+// =========================
+// STARTUP
+// =========================
+
+
 addMessage(
-"JARVIS v1.2 initialized. Intelligence systems online.",
+"JARVIS v1.3 initialized. Organized intelligence core online.",
 "jarvis"
 );
+
 
 
 </script>
