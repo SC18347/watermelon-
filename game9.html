@@ -1797,6 +1797,8 @@ return null;
 
 function reasoningEngine(message){
 
+let intent = detectIntent(message);
+
 let text = message.toLowerCase();
 
 
@@ -1898,16 +1900,141 @@ return null;
 }
 
 
-
 // ==================================================
-// JARVIS V3.2 VOICE SYSTEM
+// JARVIS V3.2 INTENT UNDERSTANDING SYSTEM
 // ==================================================
-
 
 
-// ==================================================
-// JARVIS V3.3 ADVANCED MEMORY
-// ==================================================
+function detectIntent(message){
+
+let text = message.toLowerCase();
+
+
+
+// =========================
+// CALENDAR INTENTS
+// =========================
+
+
+if(
+(text.includes("add") ||
+text.includes("create") ||
+text.includes("schedule"))
+&&
+(
+text.includes("calendar") ||
+text.includes("appointment") ||
+text.includes("event") ||
+text.includes("meeting")
+)
+){
+
+return {
+
+type:"calendar",
+action:"add",
+details:message
+
+};
+
+}
+
+
+
+if(
+(text.includes("remove") ||
+text.includes("delete") ||
+text.includes("cancel"))
+&&
+(
+text.includes("calendar") ||
+text.includes("appointment") ||
+text.includes("event") ||
+text.includes("meeting") ||
+text.includes("dentist")
+)
+){
+
+return {
+
+type:"calendar",
+action:"remove",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// KNOWLEDGE INTENTS
+// =========================
+
+
+if(
+text.includes("what is") ||
+text.includes("tell me about") ||
+text.includes("explain")
+){
+
+return {
+
+type:"knowledge",
+action:"explain",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// PROBLEM SOLVING INTENTS
+// =========================
+
+
+if(
+text.includes("how do i") ||
+text.includes("how can i") ||
+text.includes("help me")
+){
+
+return {
+
+type:"problem",
+action:"solve",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// UNKNOWN
+// =========================
+
+
+return {
+
+type:"unknown",
+action:"none",
+details:message
+
+};
+
+}
+
+
+
+
+
+
+
+
 
 
 
