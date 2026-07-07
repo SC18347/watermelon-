@@ -1935,7 +1935,343 @@ bootJarvis();
 
 
 
+// ==================================================
+// JARVIS V4 MODULE 14
+// CORE ENGINE
+//
+// Purpose:
+// - Central system controller
+// - Module management
+// - System status
+// - Command routing foundation
+// - Error protection
+// ==================================================
 
+
+
+const JARVIS_CORE = {
+
+
+version:"V4.0",
+
+status:"ONLINE",
+
+modules:{},
+
+
+settings:{
+
+debug:true,
+
+safeMode:false
+
+},
+
+
+stats:{
+
+commands:0,
+
+errors:0,
+
+startupTime:new Date()
+
+}
+
+
+};
+
+
+
+
+
+
+// ===============================
+// MODULE REGISTRATION SYSTEM
+// ===============================
+
+
+function registerModule(name,module){
+
+
+if(!name || !module){
+
+return false;
+
+}
+
+
+
+JARVIS_CORE.modules[name]={
+
+
+status:"ONLINE",
+
+module:module,
+
+loaded:new Date()
+
+
+};
+
+
+
+return true;
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// MODULE STATUS
+// ===============================
+
+
+function getSystemStatus(){
+
+
+let output=
+
+`
+
+JARVIS V4 SYSTEM STATUS
+
+
+Core:
+${JARVIS_CORE.status}
+
+
+Version:
+${JARVIS_CORE.version}
+
+
+Modules:
+
+`;
+
+
+
+for(let module in JARVIS_CORE.modules){
+
+
+output +=
+
+`${module}: ${JARVIS_CORE.modules[module].status}\n`;
+
+
+}
+
+
+
+output +=`
+
+Commands:
+${JARVIS_CORE.stats.commands}
+
+
+Errors:
+${JARVIS_CORE.stats.errors}
+
+`;
+
+
+
+return output;
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// SAFE EXECUTION SYSTEM
+// ===============================
+
+
+function runSafe(functionName){
+
+
+try{
+
+
+JARVIS_CORE.stats.commands++;
+
+
+return functionName();
+
+
+
+}
+
+catch(error){
+
+
+JARVIS_CORE.stats.errors++;
+
+
+
+console.error(
+
+"JARVIS ERROR:",
+
+error
+
+);
+
+
+
+return "JARVIS encountered an internal error.";
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// COMMAND PIPELINE
+// ===============================
+
+
+function coreCommandRouter(message){
+
+
+let text=
+
+message.toLowerCase();
+
+
+
+if(
+
+text.includes("system status") ||
+
+text==="status"
+
+){
+
+
+return getSystemStatus();
+
+
+}
+
+
+
+return null;
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// REGISTER EXISTING SYSTEMS
+// ===============================
+
+
+registerModule(
+
+"Knowledge",
+
+knowledge
+
+);
+
+
+
+registerModule(
+
+"Memory",
+
+memory
+
+);
+
+
+
+registerModule(
+
+"Calendar",
+
+calendar
+
+);
+
+
+
+registerModule(
+
+"Reasoning",
+
+{
+
+engine:reasoningEngine
+
+}
+
+);
+
+
+
+
+
+
+
+// ===============================
+// CORE STARTUP CHECK
+// ===============================
+
+
+function coreStartup(){
+
+
+console.log(
+
+"JARVIS V4 Core Engine Online"
+
+);
+
+
+
+console.log(
+
+JARVIS_CORE
+
+);
+
+
+
+}
+
+
+
+coreStartup();
+
+
+// ==================================================
+// END JARVIS V4 MODULE 14
+// ==================================================
 
 
 </script>
