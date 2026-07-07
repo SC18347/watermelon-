@@ -1,0 +1,2468 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JARVIS v1.3</title>
+
+
+<style>
+
+:root{
+
+--bg:#0b0f14;
+--panel:#121922;
+--text:#e8f0ff;
+--accent:#4da3ff;
+--border:#263445;
+
+}
+
+
+*{
+
+box-sizing:border-box;
+
+}
+
+
+
+body{
+
+margin:0;
+
+height:100vh;
+
+background:var(--bg);
+
+color:var(--text);
+
+font-family:Arial,Helvetica,sans-serif;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+}
+
+
+
+.app{
+
+width:min(100%,1000px);
+
+height:100vh;
+
+max-height:950px;
+
+display:flex;
+
+flex-direction:column;
+
+background:var(--panel);
+
+border:1px solid var(--border);
+
+}
+
+
+
+header{
+
+padding:18px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+border-bottom:1px solid var(--border);
+
+}
+
+
+
+.logo{
+
+font-size:28px;
+
+font-weight:bold;
+
+color:var(--accent);
+
+}
+
+
+
+.status{
+
+font-size:12px;
+
+opacity:.8;
+
+}
+
+
+
+#tools{
+
+display:flex;
+
+gap:8px;
+
+padding:10px;
+
+border-bottom:1px solid var(--border);
+
+overflow-x:auto;
+
+}
+
+
+
+.tool{
+
+background:#182331;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:8px 14px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+}
+
+
+
+.tool.active{
+
+background:var(--accent);
+
+color:#001020;
+
+}
+
+
+
+#chat{
+
+flex:1;
+
+overflow-y:auto;
+
+padding:20px;
+
+}
+
+
+
+.message{
+
+max-width:85%;
+
+padding:12px 15px;
+
+border-radius:12px;
+
+margin-bottom:14px;
+
+line-height:1.5;
+
+white-space:pre-wrap;
+
+}
+
+
+
+.user{
+
+margin-left:auto;
+
+background:#1d3552;
+
+}
+
+
+
+.jarvis{
+
+background:#182331;
+
+}
+
+
+
+#panel{
+
+display:none;
+
+padding:15px;
+
+border-top:1px solid var(--border);
+
+}
+
+
+
+select,
+textarea{
+
+width:100%;
+
+background:#0b1119;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:10px;
+
+border-radius:8px;
+
+}
+
+
+
+textarea{
+
+height:120px;
+
+}
+
+
+
+button{
+
+background:var(--accent);
+
+color:#001020;
+
+border:0;
+
+padding:12px 16px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+font-weight:bold;
+
+}
+
+
+
+footer{
+
+display:flex;
+
+gap:10px;
+
+padding:15px;
+
+border-top:1px solid var(--border);
+
+}
+
+
+
+input{
+
+flex:1;
+
+background:#0b1119;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:12px;
+
+border-radius:8px;
+
+}
+
+
+</style>
+
+</head>
+
+
+
+<body>
+
+
+<div class="app">
+
+
+<header>
+
+<div class="logo">
+JARVIS
+</div>
+
+
+<div class="status">
+ONLINE • v1.3 ORGANIZED CORE
+</div>
+
+</header>
+
+
+
+<div id="tools">
+
+
+<button class="tool active" onclick="setMode('chat',this)">
+Chat
+</button>
+
+
+<button class="tool" onclick="setMode('math',this)">
+Math
+</button>
+
+
+<button class="tool" onclick="setMode('writing',this)">
+Writing
+</button>
+
+
+<button class="tool" onclick="setExplanation('simple',this)">
+Simple
+</button>
+
+
+<button class="tool" onclick="setExplanation('detailed',this)">
+Detailed
+</button>
+
+
+<button class="tool" onclick="setExplanation('expert',this)">
+Expert
+</button>
+
+
+</div>
+
+
+
+<div id="panel">
+
+
+<select id="writingMode">
+
+<option value="grammar">
+Fix grammar only
+</option>
+
+
+<option value="professional">
+Make it professional
+</option>
+
+
+<option value="friendly">
+Make it friendlier
+</option>
+
+
+<option value="shorter">
+Make it shorter
+</option>
+
+
+<option value="clarity">
+Keep my tone, improve clarity
+</option>
+
+
+</select>
+
+
+
+<textarea id="writingInput"
+placeholder="Paste writing here..."></textarea>
+
+
+<button onclick="processWriting()">
+Improve Writing
+</button>
+
+
+</div>
+
+
+
+<div id="chat"></div>
+
+
+
+<footer>
+
+<input id="input"
+placeholder="Ask JARVIS something...">
+
+
+<button onclick="sendMessage()">
+Send
+</button>
+
+</footer>
+
+
+</div>
+
+
+<script>
+// =========================
+// CORE VARIABLES
+// =========================
+
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
+const panel=document.getElementById("panel");
+
+
+let currentMode="chat";
+
+let explanationMode="normal";
+
+
+let memory=JSON.parse(
+localStorage.getItem("jarvisMemory") || "{}"
+);
+
+
+if(!memory.notes){
+memory.notes=[];
+}
+
+
+
+let context={
+
+topic:""
+
+};
+
+
+
+// =========================
+// MESSAGE SYSTEM
+// =========================
+
+
+function addMessage(text,type){
+
+const div=document.createElement("div");
+
+div.className="message "+type;
+
+div.textContent=text;
+
+chat.appendChild(div);
+
+chat.scrollTop=chat.scrollHeight;
+
+}
+
+
+
+
+// =========================
+// MODE SYSTEM
+// =========================
+
+
+function setMode(mode, button){
+
+currentMode = mode;
+
+
+document.querySelectorAll(".tool")
+.forEach(btn=>{
+btn.classList.remove("active");
+});
+
+
+if(button){
+button.classList.add("active");
+}
+
+
+if(mode==="writing"){
+
+panel.style.display="block";
+
+addMessage(
+"Writing mode activated.",
+"jarvis"
+);
+
+}
+
+else{
+
+panel.style.display="none";
+
+}
+
+
+if(mode==="math"){
+
+addMessage(
+"Math mode activated.",
+"jarvis"
+);
+
+}
+
+
+if(mode==="chat"){
+
+addMessage(
+"Chat mode activated.",
+"jarvis"
+);
+
+}
+
+}
+
+
+if(mode==="writing"){
+
+panel.style.display="block";
+
+addMessage(
+"Fixing mode activated.",
+"jarvis"
+);
+
+}
+
+else{
+
+panel.style.display="none";
+
+}
+
+
+
+if(mode==="math"){
+
+addMessage(
+"Math mode activated.",
+"jarvis"
+);
+
+}
+
+
+
+if(mode==="chat"){
+
+addMessage(
+"Chatting mode activated.",
+"jarvis"
+);
+
+}
+
+
+}
+
+
+
+
+// =========================
+// KNOWLEDGE DATABASE
+// ORGANIZED BY CATEGORY
+// =========================
+
+
+
+// ===== EVERYDAY KNOWLEDGE =====
+
+
+const everydayKnowledge={
+
+
+orange:{
+
+keywords:[
+"orange",
+"oranges",
+"citrus"
+],
+
+text:
+"Oranges are citrus fruits that grow on trees in warm climates. They are known for their sweet flavor and vitamin C. They are commonly eaten fresh or made into juice."
+
+},
+
+
+cars:{
+
+keywords:[
+"car",
+"cars",
+"vehicle",
+"vehicles"
+],
+
+text:
+"Cars are machines designed for transportation. They use systems such as engines, transmissions, brakes, suspension, and electronics to move safely and efficiently."
+
+},
+
+
+food:{
+
+keywords:[
+"food",
+"meal",
+"cooking"
+],
+
+text:
+"Food provides the energy and nutrients living things need. Different foods contain different amounts of proteins, carbohydrates, fats, vitamins, and minerals."
+
+}
+
+
+};
+
+
+
+
+// ===== ENGINEERING KNOWLEDGE =====
+
+
+const engineeringKnowledge={
+
+
+engine:{
+
+keywords:[
+"engine",
+"motor",
+"combustion engine"
+],
+
+text:
+"An engine converts energy into mechanical motion. Combustion engines burn fuel to create expanding gases that move pistons and produce power."
+
+},
+
+
+radiator:{
+
+keywords:[
+"radiator",
+"cooling system",
+"overheating"
+],
+
+text:
+"A radiator helps control engine temperature by removing heat from coolant. Air flowing through radiator fins transfers heat away from the engine."
+
+},
+
+
+jetEngine:{
+
+keywords:[
+"jet engine",
+"jet engines",
+"aircraft engine"
+],
+
+text:
+"A jet engine creates thrust by compressing air, mixing it with fuel, burning the mixture, and pushing exhaust gases backward to move an aircraft forward."
+
+},
+
+
+mechanicalEngineering:{
+
+keywords:[
+"mechanical engineering",
+"mechanical engineer"
+],
+
+text:
+"Mechanical engineering focuses on designing and building machines using principles of forces, motion, energy, and materials."
+
+}
+
+
+};
+
+
+
+
+// ===== SCIENCE KNOWLEDGE =====
+
+
+const scienceKnowledge={
+
+
+space:{
+
+keywords:[
+"space",
+"universe",
+"galaxy"
+],
+
+text:
+"Space is the vast area beyond Earth's atmosphere containing planets, stars, galaxies, and other objects."
+
+},
+
+
+physics:{
+
+keywords:[
+"physics",
+"force",
+"energy"
+],
+
+text:
+"Physics studies matter, energy, forces, and how objects interact with each other."
+
+}
+
+
+};
+
+
+
+
+// ===== TECHNOLOGY KNOWLEDGE =====
+
+
+const technologyKnowledge={
+
+
+computer:{
+
+keywords:[
+"computer",
+"pc",
+"cpu"
+],
+
+text:
+"Computers process information using hardware and software. They use processors, memory, storage, and programs to complete tasks."
+
+},
+
+
+ai:{
+
+keywords:[
+"ai",
+"artificial intelligence",
+"machine learning"
+],
+
+text:
+"Artificial intelligence allows computers to perform tasks that normally require human intelligence, such as recognizing patterns and understanding language."
+
+}
+
+
+};
+
+
+
+
+// ===== FINANCE KNOWLEDGE =====
+
+
+const financeKnowledge={
+
+
+money:{
+
+keywords:[
+"money",
+"finance",
+"financial"
+],
+
+text:
+"Finance is the management of money, including saving, investing, borrowing, and planning expenses."
+
+},
+
+
+accounting:{
+
+keywords:[
+"accounting",
+"balance sheet",
+"profit"
+],
+
+text:
+"Accounting records and organizes financial information. Businesses use accounting to track income, expenses, assets, and liabilities."
+
+}
+
+
+};
+
+
+
+
+// COMBINE KNOWLEDGE
+
+
+const knowledge={
+
+...everydayKnowledge,
+
+...engineeringKnowledge,
+
+...scienceKnowledge,
+
+...technologyKnowledge,
+
+...financeKnowledge
+
+};
+
+
+// =========================
+// EXPLANATION SYSTEM
+// =========================
+
+
+function setExplanation(mode){
+
+    explanationMode = mode;
+
+    addMessage(
+        mode.charAt(0).toUpperCase()+mode.slice(1)+" explanation mode activated.",
+        "jarvis"
+    );
+
+}
+
+
+
+
+function explain(text){
+
+    if(explanationMode==="simple"){
+
+        return `
+Simple explanation:
+
+${text}
+`;
+
+    }
+
+
+
+    if(explanationMode==="detailed"){
+
+        return `
+Detailed explanation:
+
+${text}
+
+I can provide more examples or go deeper if needed.
+`;
+
+    }
+
+
+
+    if(explanationMode==="expert"){
+
+        return `
+Expert explanation:
+
+${text}
+
+This explanation focuses on deeper concepts, systems, and technical understanding.
+`;
+
+    }
+
+
+
+    return text;
+
+}
+
+
+
+// =========================
+// MATH ENGINE
+// =========================
+
+
+function mathEngine(problem){
+
+let clean=problem
+.replace(/solve|calculate|what is/gi,"")
+.trim();
+
+
+
+if(/^[0-9+\-*/().\s]+$/.test(clean)){
+
+
+try{
+
+let answer=Function(
+"return "+clean
+)();
+
+
+return `
+Math Solution:
+
+Problem:
+${clean}
+
+Step 1:
+Identify the operations.
+
+Step 2:
+Apply mathematical rules.
+
+Step 3:
+Calculate the answer.
+
+Result:
+${answer}
+`;
+
+}
+
+catch(error){}
+
+}
+
+
+
+if(clean.includes("circle")){
+
+return `
+Geometry:
+
+Circle formulas:
+
+Area = π × radius²
+
+Circumference = 2π × radius
+
+Provide the radius and I can calculate it.
+`;
+
+}
+
+
+
+if(clean.includes("derivative")){
+
+return `
+Calculus:
+
+Derivatives measure change.
+
+Example:
+
+d/dx(x²)=2x
+
+Provide the function for a complete solution.
+`;
+
+}
+
+
+
+return `
+Math mode active.
+
+I can help with:
+
+• Arithmetic
+• Algebra
+• Geometry
+• Calculus
+• Statistics
+`;
+
+}
+
+
+
+
+// =========================
+// WRITING ASSISTANT
+// =========================
+
+
+function processWriting(){
+
+let text=document
+.getElementById("writingInput")
+.value;
+
+
+let mode=document
+.getElementById("writingMode")
+.value;
+
+
+if(!text.trim())return;
+
+
+
+let result=text;
+
+
+
+switch(mode){
+
+
+case "grammar":
+
+result=text
+.replace(/\bi\b/g,"I")
+.trim();
+
+break;
+
+
+
+case "professional":
+
+result=
+"Professional version:\n\n"+text;
+
+break;
+
+
+
+case "friendly":
+
+result=
+"Friendlier version:\n\n"+text;
+
+break;
+
+
+
+case "shorter":
+
+result=
+text
+.split(".")
+.slice(0,2)
+.join(".")+".";
+
+break;
+
+
+
+case "clarity":
+
+result=
+"Improved clarity while keeping your tone:\n\n"+text;
+
+break;
+
+
+}
+
+
+
+addMessage(
+result,
+"jarvis"
+);
+
+
+}
+
+
+
+
+// =========================
+// CONVERSATION ENGINE
+// =========================
+
+
+function jarvisReply(message){let personality = personalityCheck(message);
+
+if(personality){
+
+return personality;
+
+}
+
+let clock = clockCheck(message);
+
+if(clock){
+
+return clock;
+
+}
+
+let calendar = calendarCheck(message);
+
+if(calendar){
+
+return calendar;
+
+}
+
+let reasoning = reasoningEngine(message);
+
+if(reasoning){
+
+return reasoning;
+
+}
+
+
+
+
+
+
+let text=message.toLowerCase();
+
+updateContext({
+
+question:message
+
+});
+
+
+
+if(currentMode==="math"){
+
+return mathEngine(message);
+
+}
+
+
+
+
+
+// SEARCH KNOWLEDGE
+
+if(activeContext){
+
+    if(activeContext.category==="knowledge"){
+
+        return explain(
+
+            "Continuing our discussion about " +
+
+            activeContext.topic +
+
+            ".\n\n" +
+
+            knowledge[activeContext.topic].text
+
+        );
+
+    }
+
+}
+for(let item in knowledge){
+
+
+for(let keyword of knowledge[item].keywords){
+
+
+if(text.includes(keyword)){
+
+
+context.topic=item;
+
+
+updateContext({
+
+topic:item,
+
+category:"knowledge",
+
+answer:knowledge[item].text,
+
+intent:"explain"
+
+});
+
+return explain(
+knowledge[item].text
+);
+
+
+}
+
+
+}
+
+
+}
+
+
+
+
+
+// FOLLOW UP QUESTIONS
+
+
+if(
+context.topic &&
+(
+text.includes("how") ||
+text.includes("why") ||
+text.includes("more") ||
+text.includes("explain")
+)
+){
+
+
+return explain(
+knowledge[context.topic].text
+);
+
+
+}
+
+
+
+
+
+// MEMORY
+
+
+if(text.includes("remember")){
+
+
+let note=message
+.replace(/remember/i,"")
+.trim();
+
+
+
+memory.notes.push({
+
+text:note,
+
+date:new Date()
+.toLocaleString()
+
+});
+
+
+
+localStorage.setItem(
+"jarvisMemory",
+JSON.stringify(memory)
+);
+
+
+
+return "Memory saved.";
+
+}
+
+
+
+
+
+if(text.includes("memory")){
+
+
+if(memory.notes.length===0){
+
+return "No memories saved.";
+
+}
+
+
+
+return memory.notes
+.map(
+(item,index)=>
+`${index+1}. ${item.text} (${item.date})`
+)
+.join("\n\n");
+
+}
+
+
+
+
+
+// BASIC QUESTIONS
+
+
+if(
+text.includes("hello") ||
+text.includes("hi") ||
+text.includes("hey")
+){
+
+return "Hello. JARVIS systems are online.";
+
+}
+
+
+
+
+
+if(text.includes("your name")){
+
+return "I am JARVIS, your personal intelligence assistant.";
+
+}
+
+
+
+
+
+if(
+text.includes("tell me about") ||
+text.includes("what is") ||
+text.includes("explain")
+){
+
+
+let subject=message
+.replace(/tell me about|what is|explain/gi,"")
+.trim();
+
+
+return `
+I can explain ${subject}.
+
+My knowledge system is organized by category and can continue expanding.
+`;
+
+}
+
+
+
+
+
+return `
+I understand.
+
+I can help with:
+
+• Everyday knowledge
+• Engineering
+• Science
+• Technology
+• Finance
+• Writing
+• Mathematics
+• Memory
+`;
+
+}
+
+
+
+
+
+// =========================
+// SEND SYSTEM
+// =========================
+
+
+function sendMessage(){
+
+let text=input.value.trim();
+
+
+if(!text)return;
+
+
+
+addMessage(
+text,
+"user"
+);
+
+
+
+input.value="";
+
+
+
+setTimeout(()=>{
+
+
+addMessage(
+jarvisReply(text),
+"jarvis"
+);
+
+
+},300);
+
+
+
+}
+
+
+
+input.addEventListener(
+"keydown",
+function(e){
+
+if(e.key==="Enter"){
+
+sendMessage();
+
+}
+
+});
+
+
+// =========================
+// JARVIS PERSONALITY SYSTEM
+// =========================
+
+
+const personalityResponses = {
+
+greetingMorning:[
+"Good morning. JARVIS systems are online. How may I assist you today?",
+"Good morning. I hope your day is starting well. What can I help you with?",
+"Good morning. All systems are operational."
+],
+
+
+greetingAfternoon:[
+"Good afternoon. JARVIS is ready to assist.",
+"Good afternoon. How may I help you?",
+"Systems are online. Ready when you are."
+],
+
+
+greetingEvening:[
+"Good evening. JARVIS is online and ready.",
+"Good evening. How can I assist you?",
+"I am ready to help with anything you need."
+],
+
+
+thanks:[
+"You're welcome. I am always ready to assist.",
+"Of course. Happy to help.",
+"Anytime. Let me know if you need anything else."
+],
+
+
+unknown:[
+"I can help with that. Let me analyze the information.",
+"Certainly. I will do my best to assist.",
+"Let me look into that for you."
+]
+
+};
+
+
+
+
+
+function getTimeGreeting(){
+
+let hour = new Date().getHours();
+
+
+if(hour < 12){
+
+return randomResponse(
+personalityResponses.greetingMorning
+);
+
+}
+
+
+if(hour < 18){
+
+return randomResponse(
+personalityResponses.greetingAfternoon
+);
+
+}
+
+
+return randomResponse(
+personalityResponses.greetingEvening
+);
+
+}
+
+
+
+
+
+function randomResponse(array){
+
+return array[
+Math.floor(Math.random()*array.length)
+];
+
+}
+
+
+
+
+
+function personalityCheck(message){
+
+let text = message.toLowerCase();
+const activeContext = resolveContext(message);
+
+
+if(
+text.includes("good morning") ||
+text.includes("morning")
+){
+
+return getTimeGreeting();
+
+}
+
+
+
+if(
+text.includes("good afternoon") ||
+text.includes("afternoon")
+){
+
+return randomResponse(
+personalityResponses.greetingAfternoon
+);
+
+}
+
+
+
+if(
+text.includes("good evening") ||
+text.includes("evening")
+){
+
+return randomResponse(
+personalityResponses.greetingEvening
+);
+
+}
+
+
+
+if(
+text.includes("thank") ||
+text.includes("thanks")
+){
+
+return randomResponse(
+personalityResponses.thanks
+);
+
+}
+
+
+
+return null;
+
+}
+
+// =========================
+// JARVIS CLOCK SYSTEM
+// =========================
+
+
+function getCurrentTime(){
+
+let now = new Date();
+
+
+let hours = now.getHours();
+
+let minutes = now.getMinutes();
+
+
+minutes = minutes.toString().padStart(2,"0");
+
+
+return `${hours}:${minutes}`;
+
+}
+
+
+
+
+
+function getTimePeriod(){
+
+let hour = new Date().getHours();
+
+
+if(hour >= 5 && hour < 12){
+
+return "morning";
+
+}
+
+
+if(hour >= 12 && hour < 18){
+
+return "afternoon";
+
+}
+
+
+if(hour >= 18 && hour < 24){
+
+return "evening";
+
+}
+
+
+return "night";
+
+}
+
+
+
+
+
+function clockCheck(message){
+
+let text = message.toLowerCase();
+
+
+if(
+text.includes("what time") ||
+text.includes("current time") ||
+text.includes("time is it")
+){
+
+return `The current time is ${getCurrentTime()} (24-hour format).`;
+
+}
+
+
+
+return null;
+
+}
+
+// =========================
+// JARVIS CALENDAR SYSTEM
+// V3.2.1
+// =========================
+
+
+// Load calendar
+
+let calendar = JSON.parse(
+localStorage.getItem("jarvisCalendar") || "[]"
+);
+
+
+
+
+// Save calendar
+
+function saveCalendar(){
+
+    localStorage.setItem(
+        "jarvisCalendar",
+        JSON.stringify(calendar)
+    );
+
+}
+
+
+
+
+// Create event
+
+function createCalendarEvent(name,date="",time=""){
+
+    const event={
+
+        id:Date.now(),
+
+        name:name.trim(),
+
+        date:date,
+
+        time:time,
+
+        created:new Date().toISOString()
+
+    };
+
+
+    calendar.push(event);
+
+    saveCalendar();
+
+    return event;
+
+}
+
+
+
+
+// Find event
+
+function findCalendarEvent(search){
+
+const target = normalizeText(search);
+
+return calendar.find(event =>
+
+normalizeText(event.name).includes(target)
+
+);
+
+}
+
+
+
+// Remove event
+
+
+function removeCalendarEvent(search){
+
+const target = normalizeText(search);
+
+
+const index = calendar.findIndex(event =>
+
+normalizeText(event.name).includes(target)
+
+);
+
+
+if(index === -1){
+
+return null;
+
+}
+
+
+const removed = calendar.splice(index,1)[0];
+
+
+saveCalendar();
+
+
+return removed;
+
+}
+
+
+// Show calendar
+
+function showCalendar(){
+
+    if(calendar.length===0){
+
+        return "Your calendar is empty.";
+
+    }
+
+
+    let output="Upcoming Events\n\n";
+
+
+    calendar.forEach((event,i)=>{
+
+        output+=`${i+1}. ${event.name}`;
+
+        if(event.date){
+
+            output+=` — ${event.date}`;
+
+        }
+
+        if(event.time){
+
+            output+=` at ${event.time}`;
+
+        }
+
+        output+="\n";
+
+    });
+
+
+    return output;
+
+}
+// Calendar command processor
+
+function calendarCheck(message){
+
+    let text = message.toLowerCase();
+
+
+
+    // ---------- ADD / CREATE / SCHEDULE ----------
+
+    if(
+
+        (text.includes("add") ||
+
+        text.includes("create") ||
+
+        text.includes("schedule"))
+
+    ){
+
+        let eventName = message
+
+        .replace(/add|create|schedule/gi,"")
+
+        .replace(/calendar|appointment|event|meeting/gi,"")
+
+        .trim();
+
+
+
+        if(eventName.length===0){
+
+            return "What would you like me to add to your calendar?";
+
+        }
+
+
+
+        createCalendarEvent(eventName);
+
+        return `Calendar event added: ${eventName}`;
+
+    }
+
+
+
+
+    // ---------- SHOW ----------
+
+    if(
+
+        text.includes("calendar") ||
+
+        text.includes("my schedule") ||
+
+        text.includes("my events")
+
+    ){
+
+        if(
+
+            text.includes("show") ||
+
+            text.includes("view") ||
+
+            text.includes("what") ||
+
+            text.includes("list")
+
+        ){
+
+            return showCalendar();
+
+        }
+
+    }
+
+
+
+
+    // ---------- REMOVE ----------
+
+    if(
+
+        text.includes("remove") ||
+
+        text.includes("delete") ||
+
+        text.includes("cancel")
+
+    ){
+
+        let eventName = message
+
+        .replace(/remove|delete|cancel/gi,"")
+
+        .replace(/calendar|appointment|event|meeting/gi,"")
+
+        .trim();
+
+
+
+        if(eventName.length===0){
+
+            return "Which event would you like me to remove?";
+
+        }
+
+
+
+        let removed = removeCalendarEvent(eventName);
+
+
+
+        if(removed){
+
+            return `Removed calendar event: ${removed.name}`;
+
+        }
+
+
+
+        return `I couldn't find an event matching "${eventName}".`;
+
+    }
+
+
+
+
+    // ---------- CLEAR ----------
+
+    if(text.includes("clear calendar")){
+
+        calendar=[];
+
+        saveCalendar();
+
+        return "Calendar cleared.";
+
+    }
+
+
+
+    return null;
+
+}
+
+
+// ==================================================
+// JARVIS V2 COMPLETE
+// Core Assistant Systems
+//
+// Included:
+// - Knowledge Database
+// - Math Engine
+// - Writing Assistant
+// - Explanation Modes
+// - Memory System
+// - Personality System
+// - Clock System
+// - Calendar System
+// ==================================================
+
+
+
+// ==================================================
+// JARVIS V3 START
+// Advanced Intelligence Upgrade
+//
+// New Systems:
+// - Reasoning Engine
+// - Intent Understanding
+// - Context Awareness
+// - Improved Problem Solving
+// ==================================================
+
+
+// ==================================================
+// JARVIS V3.1 REASONING ENGINE
+// ==================================================
+
+
+function reasoningEngine(message){
+
+let intent = detectIntent(message);
+
+let text = message.toLowerCase();
+
+
+// DATE QUESTIONS
+
+if(
+text.includes("today") ||
+text.includes("what day") ||
+text.includes("date")
+){
+
+let now = new Date();
+
+return `
+Today is ${now.toLocaleDateString("en-US",{
+weekday:"long",
+year:"numeric",
+month:"long",
+day:"numeric"
+})}.
+`;
+
+}
+
+
+
+// REMOVE CALENDAR EVENTS
+
+if(
+text.includes("remove") ||
+text.includes("delete") ||
+text.includes("cancel")
+){
+
+if(
+text.includes("appointment") ||
+text.includes("calendar") ||
+text.includes("event")
+){
+
+return `
+I understand you want to modify your calendar.
+
+The calendar management system is ready to remove events.
+Please specify the exact event name.
+`;
+
+}
+
+}
+
+
+
+
+// GENERAL PROBLEM SOLVING
+
+if(
+text.includes("how do i") ||
+text.includes("how can i") ||
+text.includes("what should i do")
+){
+
+return `
+I can help solve that.
+
+To provide the best solution, I need more details about the situation, the goal, and any limits or problems you are experiencing.
+`;
+
+}
+
+
+
+
+// EXPLAIN UNKNOWN TOPICS
+
+if(
+text.includes("what is") ||
+text.includes("explain") ||
+text.includes("tell me about")
+){
+
+let topic = message
+.replace(/what is|explain|tell me about/gi,"")
+.trim();
+
+
+return `
+I can help explain ${topic}.
+
+I do not have a dedicated knowledge entry for this topic yet, but I can analyze it if you provide more details or I can add it to my knowledge system.
+`;
+
+}
+
+
+
+return null;
+
+}
+
+
+
+
+
+// ==================================================
+// JARVIS V3.3 SMART MATCHING ENGINE
+// ==================================================
+
+const ignoredWords = [
+
+"the",
+"a",
+"an",
+"my",
+"please",
+"could",
+"would",
+"can",
+"you",
+"me",
+"to",
+"for",
+"on",
+"at",
+"of",
+"about",
+"is",
+"are",
+"do",
+"does",
+"did",
+"be",
+"with"
+
+];
+
+
+
+function normalizeText(text){
+
+return text
+.toLowerCase()
+
+.replace(/[^\w\s]/g," ")
+
+.split(/\s+/)
+
+.filter(word=>
+
+word.length>0 &&
+!ignoredWords.includes(word)
+
+)
+
+.join(" ")
+
+.trim();
+
+}
+
+
+
+
+
+
+
+function detectIntent(message){
+
+let text = message.toLowerCase();
+
+
+
+// =========================
+// CALENDAR INTENTS
+// =========================
+
+
+if(
+(text.includes("add") ||
+text.includes("create") ||
+text.includes("schedule"))
+&&
+(
+text.includes("calendar") ||
+text.includes("appointment") ||
+text.includes("event") ||
+text.includes("meeting")
+)
+){
+
+return {
+
+type:"calendar",
+action:"add",
+details:message
+
+};
+
+}
+
+
+
+if(
+(text.includes("remove") ||
+text.includes("delete") ||
+text.includes("cancel"))
+&&
+(
+text.includes("calendar") ||
+text.includes("appointment") ||
+text.includes("event") ||
+text.includes("meeting") ||
+text.includes("dentist")
+)
+){
+
+return {
+
+type:"calendar",
+action:"remove",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// KNOWLEDGE INTENTS
+// =========================
+
+
+if(
+text.includes("what is") ||
+text.includes("tell me about") ||
+text.includes("explain")
+){
+
+return {
+
+type:"knowledge",
+action:"explain",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// PROBLEM SOLVING INTENTS
+// =========================
+
+
+if(
+text.includes("how do i") ||
+text.includes("how can i") ||
+text.includes("help me")
+){
+
+return {
+
+type:"problem",
+action:"solve",
+details:message
+
+};
+
+}
+
+
+
+// =========================
+// UNKNOWN
+// =========================
+
+
+return {
+
+type:"unknown",
+action:"none",
+details:message
+
+};
+
+}
+// ==================================================
+// JARVIS V3.4 CONTEXT AWARENESS
+// Version: 1.0
+// Status: Development
+// Last Updated: 2026-07-07
+// ==================================================
+
+
+const conversationContext={
+
+topic:null,
+category:null,
+lastQuestion:null,
+lastAnswer:null,
+lastIntent:null,
+timestamp:null
+
+};
+
+
+
+
+function updateContext(data={}){
+
+conversationContext.topic=
+data.topic ?? conversationContext.topic;
+
+conversationContext.category=
+data.category ?? conversationContext.category;
+
+conversationContext.lastQuestion=
+data.question ?? conversationContext.lastQuestion;
+
+conversationContext.lastAnswer=
+data.answer ?? conversationContext.lastAnswer;
+
+conversationContext.lastIntent=
+data.intent ?? conversationContext.lastIntent;
+
+conversationContext.timestamp=
+Date.now();
+
+}
+
+
+
+
+function clearContext(){
+
+conversationContext.topic=null;
+conversationContext.category=null;
+conversationContext.lastQuestion=null;
+conversationContext.lastAnswer=null;
+conversationContext.lastIntent=null;
+conversationContext.timestamp=null;
+
+}
+
+
+
+
+function isFollowUp(message){
+
+const text=message.toLowerCase();
+
+const followUps=[
+
+"it",
+"that",
+"this",
+"they",
+"them",
+"those",
+"these",
+
+"more",
+
+"continue",
+
+"why",
+
+"how",
+
+"what about",
+
+"tell me more",
+
+"go on"
+
+];
+
+
+return followUps.some(word=>text.includes(word));
+
+}
+// ==================================================
+// JARVIS V3.4 CONTEXT AWARENESS
+// ==================================================
+// ==================================================
+// JARVIS V3.4.1 CONTEXT RESOLVER
+// Version: 1.0
+// Status: Development
+// Last Updated: 2026-07-07
+//
+// Changelog:
+// • Added follow-up question handling
+// • Added topic continuation
+// • Added context-based responses
+// ==================================================
+
+
+// Determine whether the current message refers to
+// the previous conversation topic.
+
+function resolveContext(message){
+
+    if(!conversationContext.topic){
+
+        return null;
+
+    }
+
+    if(!isFollowUp(message)){
+
+        return null;
+
+    }
+
+
+    return{
+
+        topic:conversationContext.topic,
+
+        category:conversationContext.category,
+
+        intent:conversationContext.lastIntent
+
+    };
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// =========================
+// STARTUP
+// =========================
+
+
+addMessage(
+"JARVIS v1.3 initialized. Organized intelligence core online.",
+"jarvis"
+);
+
+</script>
+
+</body>
+
+</html>
