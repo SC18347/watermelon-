@@ -2547,13 +2547,6 @@ JARVIS_VOICE.recognition.start();
 
 
 
-JARVIS_VOICE.recognition.start();
-
-
-}
-
-
-
 
 
 
@@ -2628,12 +2621,10 @@ JARVIS_VOICE
 
 function showVoiceOverlay(){
 
-const overlay = document.getElementById("voiceOverlay");
+const overlay=document.getElementById("voiceOverlay");
 
 if(overlay){
-
 overlay.style.display="flex";
-
 }
 
 }
@@ -2641,13 +2632,26 @@ overlay.style.display="flex";
 
 function hideVoiceOverlay(){
 
-const overlay = document.getElementById("voiceOverlay");
+const overlay=document.getElementById("voiceOverlay");
 
 if(overlay){
-
 overlay.style.display="none";
+}
 
 }
+
+
+const voiceStopButton=document.getElementById("voiceStopButton");
+
+if(voiceStopButton){
+
+voiceStopButton.onclick=function(){
+
+stopListening();
+
+hideVoiceOverlay();
+
+};
 
 }
 
