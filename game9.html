@@ -1095,6 +1095,19 @@ return calendar;
 
 }
 
+let reasoning = reasoningEngine(message);
+
+if(reasoning){
+
+return reasoning;
+
+}
+
+
+
+
+
+
 let text=message.toLowerCase();
 
 
@@ -1748,6 +1761,156 @@ return null;
 
 }
 
+// ==================================================
+// JARVIS V2 COMPLETE
+// Core Assistant Systems
+//
+// Included:
+// - Knowledge Database
+// - Math Engine
+// - Writing Assistant
+// - Explanation Modes
+// - Memory System
+// - Personality System
+// - Clock System
+// - Calendar System
+// ==================================================
+
+
+
+// ==================================================
+// JARVIS V3 START
+// Advanced Intelligence Upgrade
+//
+// New Systems:
+// - Reasoning Engine
+// - Intent Understanding
+// - Context Awareness
+// - Improved Problem Solving
+// ==================================================
+
+
+// ==================================================
+// JARVIS V3.1 REASONING ENGINE
+// ==================================================
+
+
+function reasoningEngine(message){
+
+let text = message.toLowerCase();
+
+
+// DATE QUESTIONS
+
+if(
+text.includes("today") ||
+text.includes("what day") ||
+text.includes("date")
+){
+
+let now = new Date();
+
+return `
+Today is ${now.toLocaleDateString("en-US",{
+weekday:"long",
+year:"numeric",
+month:"long",
+day:"numeric"
+})}.
+`;
+
+}
+
+
+
+// REMOVE CALENDAR EVENTS
+
+if(
+text.includes("remove") ||
+text.includes("delete") ||
+text.includes("cancel")
+){
+
+if(
+text.includes("appointment") ||
+text.includes("calendar") ||
+text.includes("event")
+){
+
+return `
+I understand you want to modify your calendar.
+
+The calendar management system is ready to remove events.
+Please specify the exact event name.
+`;
+
+}
+
+}
+
+
+
+
+// GENERAL PROBLEM SOLVING
+
+if(
+text.includes("how do i") ||
+text.includes("how can i") ||
+text.includes("what should i do")
+){
+
+return `
+I can help solve that.
+
+To provide the best solution, I need more details about the situation, the goal, and any limits or problems you are experiencing.
+`;
+
+}
+
+
+
+
+// EXPLAIN UNKNOWN TOPICS
+
+if(
+text.includes("what is") ||
+text.includes("explain") ||
+text.includes("tell me about")
+){
+
+let topic = message
+.replace(/what is|explain|tell me about/gi,"")
+.trim();
+
+
+return `
+I can help explain ${topic}.
+
+I do not have a dedicated knowledge entry for this topic yet, but I can analyze it if you provide more details or I can add it to my knowledge system.
+`;
+
+}
+
+
+
+return null;
+
+}
+
+
+
+// ==================================================
+// JARVIS V3.2 VOICE SYSTEM
+// ==================================================
+
+
+
+// ==================================================
+// JARVIS V3.3 ADVANCED MEMORY
+// ==================================================
+
+
+
 // =========================
 // STARTUP
 // =========================
@@ -1757,8 +1920,6 @@ addMessage(
 "JARVIS v1.3 initialized. Organized intelligence core online.",
 "jarvis"
 );
-
-
 
 </script>
 
