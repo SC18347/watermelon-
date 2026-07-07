@@ -11,24 +11,30 @@
 <style>
 
 :root{
+
 --bg:#080c12;
 --panel:#121922;
 --panel2:#182331;
 --text:#e8f0ff;
 --accent:#4da3ff;
 --border:#263445;
---danger:#ff5050;
+
 }
+
 
 
 *{
+
 box-sizing:border-box;
+
 }
+
 
 
 body{
 
 margin:0;
+
 height:100vh;
 
 background:var(--bg);
@@ -44,6 +50,7 @@ justify-content:center;
 align-items:center;
 
 }
+
 
 
 
@@ -64,6 +71,7 @@ display:flex;
 flex-direction:column;
 
 }
+
 
 
 
@@ -147,6 +155,51 @@ color:#001020;
 
 
 
+
+
+#panel{
+
+display:none;
+
+padding:15px;
+
+border-bottom:1px solid var(--border);
+
+}
+
+
+
+textarea,
+input,
+select{
+
+width:100%;
+
+background:#0b1119;
+
+color:white;
+
+border:1px solid var(--border);
+
+padding:12px;
+
+border-radius:8px;
+
+}
+
+
+
+
+
+textarea{
+
+height:120px;
+
+}
+
+
+
+
 #chat{
 
 flex:1;
@@ -159,19 +212,18 @@ padding:20px;
 
 
 
+
 .message{
 
 max-width:85%;
 
-padding:12px 15px;
-
-border-radius:12px;
+padding:12px;
 
 margin-bottom:12px;
 
-white-space:pre-wrap;
+border-radius:12px;
 
-line-height:1.5;
+white-space:pre-wrap;
 
 }
 
@@ -195,6 +247,7 @@ background:#182331;
 
 
 
+
 footer{
 
 display:flex;
@@ -204,24 +257,6 @@ gap:10px;
 padding:15px;
 
 border-top:1px solid var(--border);
-
-}
-
-
-
-input{
-
-flex:1;
-
-background:#0b1119;
-
-color:white;
-
-border:1px solid var(--border);
-
-padding:12px;
-
-border-radius:8px;
 
 }
 
@@ -239,17 +274,19 @@ padding:12px 16px;
 
 border-radius:8px;
 
-cursor:pointer;
-
 font-weight:bold;
+
+cursor:pointer;
 
 }
 
 
 
-/* =========================
+
+
+/* ==========================
 VOICE OVERLAY
-========================= */
+========================== */
 
 
 #voiceOverlay{
@@ -276,34 +313,6 @@ z-index:9999;
 
 
 
-#voiceBackground{
-
-position:absolute;
-
-inset:0;
-
-background:
-radial-gradient(circle,
-rgba(77,163,255,.25),
-transparent 65%);
-
-}
-
-
-
-#voiceCenter{
-
-z-index:2;
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-}
-
-
 
 #voiceOrb{
 
@@ -314,21 +323,19 @@ height:170px;
 border-radius:50%;
 
 background:
-radial-gradient(circle,
-#b5dcff,
-#4da3ff,
-#14549c);
+radial-gradient(circle,#b5dcff,#4da3ff,#14549c);
 
 
 box-shadow:
 
 0 0 40px #4da3ff,
-0 0 90px #4da3ff;
+0 0 100px #4da3ff;
 
 
 animation:pulse 2s infinite;
 
 }
+
 
 
 
@@ -341,6 +348,7 @@ transform:scale(1.12);
 }
 
 }
+
 
 
 
@@ -362,8 +370,6 @@ font-weight:bold;
 
 margin-top:15px;
 
-font-size:18px;
-
 }
 
 
@@ -380,13 +386,15 @@ height:60px;
 
 border-radius:40px;
 
-background:var(--danger);
+background:#ff5050;
 
 color:white;
 
 font-size:20px;
 
 }
+
+
 
 </style>
 
@@ -407,27 +415,43 @@ JARVIS
 
 
 <div class="status">
-V4 ONLINE
+V4 OFFLINE
 </div>
 
 </header>
 
 
+
 <div id="tools">
 
 
-<button class="tool active">
+<button class="tool active" onclick="setMode('chat',this)">
 Chat
 </button>
 
 
-<button class="tool">
+<button class="tool" onclick="setMode('math',this)">
 Math
 </button>
 
 
-<button class="tool">
+<button class="tool" onclick="setMode('writing',this)">
 Writing
+</button>
+
+
+<button class="tool" onclick="setExplanation('simple')">
+Simple
+</button>
+
+
+<button class="tool" onclick="setExplanation('detailed')">
+Detailed
+</button>
+
+
+<button class="tool" onclick="setExplanation('expert')">
+Expert
 </button>
 
 
@@ -439,34 +463,80 @@ Writing
 </div>
 
 
-<div id="chat"></div>
 
 
-<footer>
 
-<input id="input" placeholder="Ask JARVIS...">
+<div id="panel">
 
-<button onclick="sendMessage()">
-Send
+
+<select id="writingMode">
+
+<option value="grammar">
+Fix Grammar
+</option>
+
+<option value="professional">
+Professional
+</option>
+
+<option value="friendly">
+Friendly
+</option>
+
+<option value="shorter">
+Shorter
+</option>
+
+
+</select>
+
+
+
+<textarea id="writingInput" placeholder="Enter text..."></textarea>
+
+
+<button onclick="processWriting()">
+Improve
 </button>
-
-</footer>
 
 
 </div>
 
 
 
-<!-- VOICE MODE -->
+
+
+<div id="chat"></div>
+
+
+
+
+
+<footer>
+
+
+<input id="input" placeholder="Ask JARVIS...">
+
+
+<button onclick="sendMessage()">
+Send
+</button>
+
+
+</footer>
+
+
+
+</div>
+
+
+
+
+
+<!-- VOICE SCREEN -->
 
 
 <div id="voiceOverlay">
-
-
-<div id="voiceBackground"></div>
-
-
-<div id="voiceCenter">
 
 
 <div id="voiceOrb"></div>
@@ -478,10 +548,7 @@ JARVIS
 
 
 <div id="voiceSubtitle">
-Listening...
-</div>
-
-
+Ready
 </div>
 
 
@@ -491,30 +558,21 @@ STOP
 
 
 </div>
-<script>
-
-// ===============================
-// JARVIS V4 CORE
-// ===============================
-
-
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
+// ==================================================
+// JARVIS V4 INTELLIGENCE CORE
+// PART 2/6
+// ==================================================
 
 
-let memory = JSON.parse(
-localStorage.getItem("jarvisMemory") || '{"notes":[]}'
-);
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
+const panel=document.getElementById("panel");
 
 
 
-let context = {
+let currentMode="chat";
 
-topic:null,
-
-answer:null
-
-};
+let explanationMode="normal";
 
 
 
@@ -528,16 +586,16 @@ answer:null
 function addMessage(text,type){
 
 
-let message=document.createElement("div");
+const div=document.createElement("div");
 
 
-message.className="message "+type;
+div.className="message "+type;
 
 
-message.textContent=text;
+div.textContent=text;
 
 
-chat.appendChild(message);
+chat.appendChild(div);
 
 
 chat.scrollTop=chat.scrollHeight;
@@ -549,19 +607,56 @@ chat.scrollTop=chat.scrollHeight;
 
 
 
+
 // ===============================
-// MEMORY SYSTEM
+// MODE SYSTEM
 // ===============================
 
 
-function saveMemory(){
+function setMode(mode,button){
 
 
-localStorage.setItem(
+currentMode=mode;
 
-"jarvisMemory",
 
-JSON.stringify(memory)
+
+document.querySelectorAll(".tool")
+
+.forEach(btn=>{
+
+btn.classList.remove("active");
+
+});
+
+
+
+if(button){
+
+button.classList.add("active");
+
+}
+
+
+
+if(mode==="writing"){
+
+panel.style.display="block";
+
+}
+
+else{
+
+panel.style.display="none";
+
+}
+
+
+
+addMessage(
+
+mode+" mode activated.",
+
+"jarvis"
 
 );
 
@@ -570,48 +665,28 @@ JSON.stringify(memory)
 
 
 
-function remember(text){
 
 
-memory.notes.push({
-
-text:text,
-
-date:new Date().toLocaleString()
-
-});
 
 
-saveMemory();
+function setExplanation(mode){
 
 
-return "Memory saved.";
+explanationMode=mode;
+
+
+addMessage(
+
+mode+" explanation mode enabled.",
+
+"jarvis"
+
+);
+
 
 }
 
 
-
-
-
-function readMemory(){
-
-
-if(memory.notes.length===0){
-
-return "No memories saved.";
-
-}
-
-
-return memory.notes.map(
-
-(item,index)=>
-
-`${index+1}. ${item.text}`
-
-).join("\n");
-
-}
 
 
 
@@ -625,9 +700,11 @@ return memory.notes.map(
 const knowledge={
 
 
+
 ai:
 
-"Artificial intelligence allows computers to perform tasks that normally require human intelligence such as learning and reasoning.",
+"Artificial intelligence allows computers to learn, reason, and solve problems.",
+
 
 
 computer:
@@ -635,26 +712,101 @@ computer:
 "Computers use hardware and software to process information.",
 
 
-car:
-
-"Cars are machines designed for transportation using systems like engines, transmissions, brakes, and electronics.",
-
 
 space:
 
-"Space contains planets, stars, galaxies, and other objects beyond Earth's atmosphere.",
+"Space contains planets, stars, galaxies, and other objects.",
+
+
+
+car:
+
+"Cars use systems like engines, transmissions, brakes, and electronics.",
+
 
 
 engine:
 
-"An engine converts energy into motion.",
+"An engine converts energy into mechanical movement.",
+
 
 
 money:
 
-"Money systems involve earning, saving, spending, and investing."
+"Money is used for exchanging value and managing finances."
+
+
 
 };
+
+
+
+
+
+
+
+// ===============================
+// EXPLANATION SYSTEM
+// ===============================
+
+
+function explain(text){
+
+
+if(explanationMode==="simple"){
+
+
+return "Simple explanation:\n\n"+text;
+
+
+}
+
+
+
+if(explanationMode==="detailed"){
+
+
+return "Detailed explanation:\n\n"+text+
+"\n\nThis can be explored with more examples.";
+
+}
+
+
+
+if(explanationMode==="expert"){
+
+
+return "Expert explanation:\n\n"+text+
+"\n\nThis includes deeper technical concepts.";
+
+}
+
+
+
+return text;
+
+
+}
+
+
+
+
+
+
+
+// ===============================
+// CONTEXT MEMORY
+// ===============================
+
+
+let context={
+
+topic:null,
+
+answer:null
+
+};
+
 
 
 
@@ -666,27 +818,28 @@ money:
 // ===============================
 
 
-function searchKnowledge(text){
+function searchKnowledge(message){
 
 
-let message=text.toLowerCase();
+let text=message.toLowerCase();
 
 
-for(let topic in knowledge){
+
+for(let item in knowledge){
 
 
-if(message.includes(topic)){
+if(text.includes(item)){
 
 
-context.topic=topic;
+context.topic=item;
 
-context.answer=knowledge[topic];
+context.answer=knowledge[item];
 
 
-return knowledge[topic];
+return explain(knowledge[item]);
+
 
 }
-
 
 }
 
@@ -703,7 +856,7 @@ return null;
 
 
 // ===============================
-// RESPONSE ENGINE
+// MAIN RESPONSE ENGINE
 // ===============================
 
 
@@ -715,10 +868,21 @@ let text=message.toLowerCase();
 
 
 
-// memory
 
-if(text.startsWith("remember")){
+if(currentMode==="math"){
 
+return mathEngine(message);
+
+}
+
+
+
+
+
+
+if(
+text.includes("remember")
+){
 
 return remember(
 
@@ -730,8 +894,11 @@ message.replace(/remember/i,"").trim()
 
 
 
-if(text.includes("memory")){
 
+
+if(
+text.includes("memory")
+){
 
 return readMemory();
 
@@ -741,33 +908,19 @@ return readMemory();
 
 
 
-// context
+
 
 if(
 context.topic &&
 (
 text.includes("more") ||
-text.includes("explain") ||
-text.includes("why")
+text.includes("why") ||
+text.includes("explain")
 )
 
 ){
 
-return context.answer;
-
-}
-
-
-
-
-// knowledge
-
-let result=searchKnowledge(message);
-
-
-if(result){
-
-return result;
+return explain(context.answer);
 
 }
 
@@ -775,7 +928,22 @@ return result;
 
 
 
-// personality
+
+
+let answer=searchKnowledge(message);
+
+
+
+if(answer){
+
+return answer;
+
+}
+
+
+
+
+
 
 
 if(
@@ -784,14 +952,19 @@ text.includes("hi") ||
 text.includes("hey")
 ){
 
-return "Hello. JARVIS systems are online.";
+return "Hello. JARVIS V4 systems are online.";
 
 }
 
 
 
-if(text.includes("your name")){
 
+
+
+
+if(
+text.includes("your name")
+){
 
 return "I am JARVIS, your personal intelligence assistant.";
 
@@ -800,12 +973,17 @@ return "I am JARVIS, your personal intelligence assistant.";
 
 
 
-if(text.includes("thank")){
 
 
-return "You are welcome. Ready when needed.";
+
+if(
+text.includes("thank")
+){
+
+return "You are welcome. Ready to assist.";
 
 }
+
 
 
 
@@ -815,12 +993,13 @@ return `
 
 I understand.
 
-Current systems:
+Available systems:
 
 • Knowledge
 • Memory
+• Math
+• Writing
 • Voice
-• Commands
 
 `;
 
@@ -830,15 +1009,19 @@ Current systems:
 
 
 
+
+
+
 // ===============================
-// SEND SYSTEM
+// SEND MESSAGE
 // ===============================
 
 
 function sendMessage(){
 
 
-let text=input.value.trim();
+const text=input.value.trim();
+
 
 
 if(!text){
@@ -878,21 +1061,17 @@ speak(reply);
 
 
 
-// ENTER KEY
-
 
 input.addEventListener(
 
 "keydown",
 
-function(event){
+function(e){
 
 
-if(event.key==="Enter"){
-
+if(e.key==="Enter"){
 
 sendMessage();
-
 
 }
 
@@ -900,41 +1079,345 @@ sendMessage();
 }
 
 );
+// ==================================================
+// JARVIS V4 TOOLS
+// PART 3/6
+// ==================================================
+
+
+// ===============================
+// MEMORY SYSTEM
+// ===============================
+
+
+let memory = JSON.parse(
+
+localStorage.getItem("jarvisMemory") ||
+
+'{"notes":[]}'
+
+);
 
 
 
-// START MESSAGE
+
+function saveMemory(){
+
+
+localStorage.setItem(
+
+"jarvisMemory",
+
+JSON.stringify(memory)
+
+);
+
+
+}
+
+
+
+
+function remember(text){
+
+
+if(!text){
+
+return "Nothing to remember.";
+
+}
+
+
+
+memory.notes.push({
+
+text:text,
+
+date:new Date().toLocaleString()
+
+});
+
+
+saveMemory();
+
+
+
+return "Memory saved: "+text;
+
+
+}
+
+
+
+
+
+function readMemory(){
+
+
+if(memory.notes.length===0){
+
+
+return "No saved memories.";
+
+}
+
+
+
+return memory.notes.map(
+
+(note,index)=>
+
+`${index+1}. ${note.text}`
+
+).join("\n\n");
+
+
+}
+
+
+
+
+
+
+// ===============================
+// MATH ENGINE
+// ===============================
+
+
+function mathEngine(problem){
+
+
+let clean=problem
+
+.replace(/solve|calculate|what is/gi,"")
+
+.trim();
+
+
+
+try{
+
+
+let result=Function(
+
+"return "+clean
+
+)();
+
+
+
+return `
+
+Math Result:
+
+${clean}
+
+=
+
+${result}
+
+`;
+
+
+
+}
+
+catch(error){
+
+
+return `
+
+Math mode active.
+
+Example:
+
+5+5
+
+20/4
+
+10*3
+
+`;
+
+}
+
+
+}
+
+
+
+
+
+
+// ===============================
+// WRITING ASSISTANT
+// ===============================
+
+
+function processWriting(){
+
+
+let text=document.getElementById(
+
+"writingInput"
+
+).value;
+
+
+
+let mode=document.getElementById(
+
+"writingMode"
+
+).value;
+
+
+
+if(!text.trim()){
+
+return;
+
+}
+
+
+
+let result=text;
+
+
+
+
+if(mode==="grammar"){
+
+
+result=text.replace(
+
+/\bi\b/g,
+
+"I"
+
+);
+
+
+}
+
+
+
+
+
+if(mode==="professional"){
+
+
+result=
+
+"Professional version:\n\n"+text;
+
+
+}
+
+
+
+
+
+if(mode==="friendly"){
+
+
+result=
+
+"Friendly version:\n\n"+text;
+
+
+}
+
+
+
+
+
+if(mode==="shorter"){
+
+
+result=
+
+text.split(".")
+
+.slice(0,2)
+
+.join(".")+".";
+
+
+}
+
+
+
+
 
 
 addMessage(
 
-"JARVIS V4 initialized. Systems online.",
+result,
 
 "jarvis"
 
 );
+
+
+
+speak(result);
+
+
+
+}
+
+
+
+
+
+// ===============================
+// WRITING MODE SUPPORT
+// ===============================
+
+
+function activateWriting(){
+
+
+panel.style.display="block";
+
+
+currentMode="writing";
+
+
+}
 // ==================================================
-// JARVIS V4 MODULE SYSTEM
+// JARVIS V4 COMMAND SYSTEM
+// PART 4/6
 // ==================================================
 
 
 const JARVIS_CORE={
 
+
 version:"V4.0",
+
 
 status:"ONLINE",
 
+
 modules:{},
+
 
 stats:{
 
+
 commands:0,
+
 
 errors:0
 
+
 }
 
+
 };
+
 
 
 
@@ -950,9 +1433,12 @@ function registerModule(name,data){
 
 JARVIS_CORE.modules[name]={
 
+
 status:"ONLINE",
 
+
 data:data
+
 
 };
 
@@ -963,12 +1449,10 @@ data:data
 
 
 
-// ===============================
-// SYSTEM STATUS
-// ===============================
 
 
 function getSystemStatus(){
+
 
 
 let output=
@@ -996,7 +1480,7 @@ Modules:
 for(let module in JARVIS_CORE.modules){
 
 
-output+=
+output +=
 
 `${module}: ${JARVIS_CORE.modules[module].status}\n`;
 
@@ -1027,8 +1511,9 @@ return output;
 
 
 
+
 // ===============================
-// COMMAND ENGINE
+// COMMAND ROUTER
 // ===============================
 
 
@@ -1039,12 +1524,22 @@ const text=message.toLowerCase().trim();
 
 
 
+
+
+JARVIS_CORE.stats.commands++;
+
+
+
+
+
 if(
 text==="status" ||
 text==="system status"
 ){
 
+
 return getSystemStatus();
+
 
 }
 
@@ -1065,36 +1560,22 @@ return "Chat cleared.";
 
 
 
-if(text==="time"){
 
-
-return "Current time: "+
-
-new Date().toLocaleTimeString();
-
-
-}
-
-
-
-
-
-if(
-text==="help" ||
-text==="commands"
-){
+if(text==="help" ||
+text==="commands")
+{
 
 
 return `
 
-Available commands:
+JARVIS COMMANDS:
 
 
 status
 
 clear
 
-time
+help
 
 voice status
 
@@ -1109,6 +1590,22 @@ stop listening
 
 
 
+
+
+if(text==="time"){
+
+
+return "Current time: "+
+
+new Date().toLocaleTimeString();
+
+
+}
+
+
+
+
+
 return null;
 
 
@@ -1118,15 +1615,22 @@ return null;
 
 
 
+
+
 // ===============================
-// OVERRIDE SEND SYSTEM
+// UPDATED SEND SYSTEM
 // ===============================
 
 
-function sendMessage(){
+const originalSend=sendMessage;
 
 
-let text=input.value.trim();
+
+sendMessage=function(){
+
+
+const text=input.value.trim();
+
 
 
 if(!text){
@@ -1162,13 +1666,12 @@ speak(command);
 
 return;
 
+
 }
 
 
 
-
 let reply=jarvisReply(text);
-
 
 
 addMessage(reply,"jarvis");
@@ -1181,15 +1684,26 @@ speak(reply);
 },300);
 
 
-}
+};
+
 
 
 
 
 
 // ===============================
-// REGISTER CORE MODULES
+// REGISTER MODULES
 // ===============================
+
+
+registerModule(
+
+"Core",
+
+JARVIS_CORE
+
+);
+
 
 
 registerModule(
@@ -1201,6 +1715,7 @@ memory
 );
 
 
+
 registerModule(
 
 "Knowledge",
@@ -1210,27 +1725,44 @@ knowledge
 );
 
 
+
 registerModule(
 
-"Core",
+"Math",
 
-JARVIS_CORE
+mathEngine
+
+);
+
+
+
+registerModule(
+
+"Writing",
+
+processWriting
 
 );
 // ==================================================
 // JARVIS V4 VOICE ENGINE
+// PART 5/6
 // ==================================================
 
 
 const JARVIS_VOICE={
 
+
 status:"OFFLINE",
+
 
 supported:false,
 
+
 listening:false,
 
+
 recognition:null
+
 
 };
 
@@ -1238,12 +1770,34 @@ recognition:null
 
 
 
+
+const voiceOverlay=document.getElementById(
+"voiceOverlay"
+);
+
+
+const voiceSubtitle=document.getElementById(
+"voiceSubtitle"
+);
+
+
+const voiceStopButton=document.getElementById(
+"voiceStopButton"
+);
+
+
+
+
+
+
+
 // ===============================
-// INITIALIZE VOICE
+// VOICE INITIALIZATION
 // ===============================
 
 
 function initializeVoice(){
+
 
 
 const SpeechRecognition =
@@ -1251,6 +1805,8 @@ const SpeechRecognition =
 window.SpeechRecognition ||
 
 window.webkitSpeechRecognition;
+
+
 
 
 
@@ -1262,18 +1818,27 @@ JARVIS_VOICE.status="NOT SUPPORTED";
 
 return;
 
+
 }
 
 
 
+
+
+
 JARVIS_VOICE.supported=true;
+
 
 JARVIS_VOICE.status="READY";
 
 
 
 
+
+
 const recognition=new SpeechRecognition();
+
+
 
 
 
@@ -1284,6 +1849,9 @@ recognition.continuous=false;
 
 
 recognition.interimResults=false;
+
+
+
 
 
 
@@ -1308,12 +1876,16 @@ updateVoiceText("Listening...");
 
 
 
+
+
 recognition.onresult=function(event){
 
 
 const text=
 
 event.results[0][0].transcript;
+
+
 
 
 
@@ -1327,9 +1899,13 @@ text,
 
 
 
-let response=
+
+
+const response=
 
 jarvisReply(text);
+
+
 
 
 
@@ -1340,6 +1916,8 @@ response,
 "jarvis"
 
 );
+
+
 
 
 
@@ -1354,17 +1932,22 @@ speak(response);
 
 
 
+
 recognition.onerror=function(event){
 
 
 updateVoiceText(
 
-"Voice error: "+event.error
+"Error: "+event.error
 
 );
 
 
 };
+
+
+
+
 
 
 
@@ -1382,7 +1965,10 @@ hideVoiceOverlay();
 
 
 
+
+
 JARVIS_VOICE.recognition=recognition;
+
 
 
 }
@@ -1391,12 +1977,16 @@ JARVIS_VOICE.recognition=recognition;
 
 
 
+
+
+
 // ===============================
-// START LISTENING
+// START VOICE
 // ===============================
 
 
 function startListening(){
+
 
 
 if(!JARVIS_VOICE.supported){
@@ -1404,7 +1994,7 @@ if(!JARVIS_VOICE.supported){
 
 addMessage(
 
-"Voice recognition is not supported on this browser.",
+"Voice is unavailable on this browser.",
 
 "jarvis"
 
@@ -1414,6 +2004,8 @@ addMessage(
 return;
 
 }
+
+
 
 
 
@@ -1434,6 +2026,7 @@ console.log(error);
 }
 
 
+
 }
 
 
@@ -1441,8 +2034,9 @@ console.log(error);
 
 
 
+
 // ===============================
-// STOP LISTENING
+// STOP VOICE
 // ===============================
 
 
@@ -1459,10 +2053,17 @@ JARVIS_VOICE.recognition.stop();
 }
 
 
+
+speechSynthesis.cancel();
+
+
 hideVoiceOverlay();
 
 
+
 }
+
+
 
 
 
@@ -1477,6 +2078,7 @@ hideVoiceOverlay();
 function speak(text){
 
 
+
 if(!window.speechSynthesis){
 
 return;
@@ -1485,13 +2087,19 @@ return;
 
 
 
+
+
 speechSynthesis.cancel();
 
 
 
-let voice=
+
+
+const voice=
 
 new SpeechSynthesisUtterance(text);
+
+
 
 
 
@@ -1502,6 +2110,8 @@ voice.rate=1;
 
 
 voice.pitch=1;
+
+
 
 
 
@@ -1516,8 +2126,97 @@ speechSynthesis.speak(voice);
 
 
 
+
+
+
 // ===============================
-// VOICE STATUS COMMAND
+// OVERLAY CONTROLS
+// ===============================
+
+
+function showVoiceOverlay(){
+
+
+
+if(voiceOverlay){
+
+
+voiceOverlay.style.display="flex";
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+function hideVoiceOverlay(){
+
+
+
+if(voiceOverlay){
+
+
+voiceOverlay.style.display="none";
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+function updateVoiceText(text){
+
+
+
+if(voiceSubtitle){
+
+
+voiceSubtitle.textContent=text;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+voiceStopButton.onclick=function(){
+
+
+stopListening();
+
+
+};
+
+
+
+
+
+
+
+// ===============================
+// VOICE STATUS
 // ===============================
 
 
@@ -1542,53 +2241,38 @@ ${JARVIS_VOICE.listening}
 
 `;
 
+
+
 }
+
+
 
 
 
 
 
 // ===============================
-// VOICE OVERLAY CONTROL
+// VOICE COMMANDS
 // ===============================
 
 
-function showVoiceOverlay(){
-
-
-const overlay=
-
-document.getElementById("voiceOverlay");
+const oldCommandSystem=commandSystem;
 
 
 
-if(overlay){
-
-overlay.style.display="flex";
-
-}
+commandSystem=function(message){
 
 
-}
+const text=message.toLowerCase().trim();
 
 
 
 
 
-function hideVoiceOverlay(){
+if(text==="voice status"){
 
 
-const overlay=
-
-document.getElementById("voiceOverlay");
-
-
-
-if(overlay){
-
-overlay.style.display="none";
-
-}
+return getVoiceStatus();
 
 
 }
@@ -1597,20 +2281,16 @@ overlay.style.display="none";
 
 
 
-function updateVoiceText(text){
+if(
+text==="listen" ||
+text==="start listening"
+){
 
 
-const subtitle=
-
-document.getElementById("voiceSubtitle");
+startListening();
 
 
-
-if(subtitle){
-
-subtitle.textContent=text;
-
-}
+return "Voice activated.";
 
 
 }
@@ -1619,19 +2299,26 @@ subtitle.textContent=text;
 
 
 
-// ===============================
-// STOP BUTTON
-// ===============================
-
-
-document
-
-.getElementById("voiceStopButton")
-
-.onclick=function(){
+if(
+text==="stop voice" ||
+text==="stop listening"
+){
 
 
 stopListening();
+
+
+return "Voice stopped.";
+
+
+}
+
+
+
+
+
+return oldCommandSystem(message);
+
 
 
 };
@@ -1640,8 +2327,6 @@ stopListening();
 
 
 
-
-// START VOICE SYSTEM
 
 
 initializeVoice();
@@ -1655,18 +2340,15 @@ registerModule(
 JARVIS_VOICE
 
 );
-
-
-
-// ==================================================
-// END VOICE ENGINE
-// ==================================================
 // ==================================================
 // JARVIS V4 FINAL STARTUP
+// PART 6/6
 // ==================================================
+
 
 
 function bootJarvis(){
+
 
 
 console.log(
@@ -1677,17 +2359,9 @@ console.log(
 
 
 
-console.log(
-
-JARVIS_CORE
-
-);
-
-
-
 addMessage(
 
-"JARVIS V4 fully initialized.",
+"JARVIS V4 initialized.",
 
 "jarvis"
 
@@ -1697,7 +2371,7 @@ addMessage(
 
 addMessage(
 
-"Voice, memory, commands, and intelligence systems ready.",
+"All systems online. Voice and intelligence ready.",
 
 "jarvis"
 
@@ -1712,72 +2386,6 @@ addMessage(
 
 
 bootJarvis();
-
-
-
-// ===============================
-// VOICE COMMAND SUPPORT
-// ===============================
-
-
-const oldCommandSystem = commandSystem;
-
-
-
-commandSystem=function(message){
-
-
-const text=message.toLowerCase().trim();
-
-
-
-if(text==="voice status"){
-
-
-return getVoiceStatus();
-
-}
-
-
-
-
-if(
-text==="start listening" ||
-text==="listen"
-){
-
-
-startListening();
-
-
-return "Voice activated.";
-
-}
-
-
-
-
-
-if(
-text==="stop listening" ||
-text==="stop voice"
-){
-
-
-stopListening();
-
-
-return "Voice stopped.";
-
-}
-
-
-
-
-return oldCommandSystem(message);
-
-
-};
 
 
 
