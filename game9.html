@@ -1666,188 +1666,170 @@ return oldJarvisReply(message);
 
 
 };
-// ============================
-// FINAL COMMAND SYSTEM
-// ============================
 
+
+// ==================================================
+// JARVIS V4
+// COMMAND ENGINE
+// Replaces ALL previous commandSystem() versions
+// ==================================================
 
 function commandSystem(message){
 
+const text = message.trim().toLowerCase();
 
-let text=message.toLowerCase();
+
+// -------------------------------
+// CORE STATUS
+// -------------------------------
+
+if(
+text==="status" ||
+text==="system status"
+){
+
+if(typeof getSystemStatus==="function"){
+
+return getSystemStatus();
+
+}
+
+return "Core Engine is unavailable.";
+
+}
 
 
+// -------------------------------
+// VOICE STATUS
+// -------------------------------
+
+if(
+text==="voice status"
+){
+
+if(typeof getVoiceStatus==="function"){
+
+return getVoiceStatus();
+
+}
+
+return "Voice module unavailable.";
+
+}
+
+
+// -------------------------------
+// START LISTENING
+// -------------------------------
+
+if(
+text==="start listening" ||
+text==="listen"
+){
+
+if(typeof startListening==="function"){
+
+return startListening();
+
+}
+
+return "Voice module unavailable.";
+
+}
+
+
+// -------------------------------
+// STOP LISTENING
+// -------------------------------
+
+if(
+text==="stop listening" ||
+text==="stop voice"
+){
+
+if(typeof stopListening==="function"){
+
+return stopListening();
+
+}
+
+return "Voice module unavailable.";
+
+}
+
+
+// -------------------------------
+// CLEAR CHAT
+// -------------------------------
 
 if(text==="clear"){
 
-
 chat.innerHTML="";
-
 
 return "Chat cleared.";
 
-
 }
 
 
-
-if(text.includes("status")){
-
-
-return `
-
-JARVIS V3 STATUS
-
-System: ONLINE
-
-Mode: ${currentMode}
-
-Memory:
-${memory.notes.length} items
-
-Calendar:
-${calendar.length} events
-
-Context:
-${context.topic || "None"}
-
-`;
-
-}
-
-
+// -------------------------------
+// NO COMMAND FOUND
+// -------------------------------
 
 return null;
 
-
 }
 
-
-
-
-
-
-
-
-// ============================
-// FINAL SEND SYSTEM
-// ============================
-
+// ==================================================
+// JARVIS V4
+// SEND ENGINE
+// ==================================================
 
 function sendMessage(){
 
-
-let text=input.value.trim();
-
-
+const text=input.value.trim();
 
 if(!text){
+return;
+}
 
+addMessage(text,"user");
+
+input.value="";
+
+setTimeout(()=>{
+
+const commandReply=commandSystem(text);
+
+if(commandReply!==null){
+
+addMessage(commandReply,"jarvis");
 return;
 
 }
 
+const reply=jarvisReply(text);
 
-
-addMessage(
-
-text,
-
-"user"
-
-);
-
-
-
-input.value="";
-
-
-
-setTimeout(()=>{
-
-
-
-let command=
-
-commandSystem(text);
-
-
-
-let reply;
-
-
-
-if(command){
-
-
-reply=command;
-
-
-}
-
-else{
-
-
-reply=jarvisReply(text);
-
-
-}
-
-
-
-addMessage(
-
-reply,
-
-"jarvis"
-
-);
-
-
+addMessage(reply,"jarvis");
 
 },250);
 
-
-
 }
 
 
 
-
-
-
-
-
-
-// ============================
+// ==================================================
 // ENTER KEY SUPPORT
-// ============================
+// ==================================================
 
-
-input.addEventListener(
-
-"keydown",
-
-function(event){
-
+input.addEventListener("keydown",function(event){
 
 if(event.key==="Enter"){
 
-
 sendMessage();
-
 
 }
 
-
 });
-
-
-
-
-
-
-
 
 // ============================
 // BUTTON CONNECTION SYSTEM
