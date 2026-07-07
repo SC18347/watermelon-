@@ -292,36 +292,36 @@ ONLINE • V3 CORE
 
 <div id="tools">
 
-
 <button class="tool active" onclick="setMode('chat',this)">
 Chat
 </button>
-
 
 <button class="tool" onclick="setMode('math',this)">
 Math
 </button>
 
-
 <button class="tool" onclick="setMode('writing',this)">
 Writing
 </button>
-
 
 <button class="tool" onclick="setExplanation('simple')">
 Simple
 </button>
 
-
 <button class="tool" onclick="setExplanation('detailed')">
 Detailed
 </button>
-
 
 <button class="tool" onclick="setExplanation('expert')">
 Expert
 </button>
 
+<button
+id="voiceButton"
+class="tool"
+onclick="toggleVoice(this)">
+🎤 Voice
+</button>
 
 </div>
 
@@ -2742,7 +2742,52 @@ JARVIS_VOICE
 // ==================================================
 // END JARVIS V4 MODULE 15
 // ==================================================
+// ==================================================
+// VOICE BUTTON CONTROLLER
+// ==================================================
 
+function toggleVoice(button){
+
+if(!JARVIS_VOICE.supported){
+
+addMessage(
+"Voice recognition is not supported by this browser.",
+"jarvis"
+);
+
+return;
+
+}
+
+if(JARVIS_VOICE.listening){
+
+stopListening();
+
+button.textContent="🎤 Voice";
+
+button.classList.remove("active");
+
+addMessage(
+"Voice listening stopped.",
+"jarvis"
+);
+
+return;
+
+}
+
+startListening();
+
+button.textContent="🛑 Stop Voice";
+
+button.classList.add("active");
+
+addMessage(
+"Listening...",
+"jarvis"
+);
+
+}
 
 
 </script>
