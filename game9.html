@@ -805,64 +805,73 @@ const knowledge={
 };
 
 
-
-
-
 // =========================
 // EXPLANATION SYSTEM
 // =========================
 
+
 function setExplanation(mode){
+
+    explanationMode = mode;
+
+    addMessage(
+        mode.charAt(0).toUpperCase()+mode.slice(1)+" explanation mode activated.",
+        "jarvis"
+    );
+
+}
+
+
+
 
 function explain(text){
 
+    if(explanationMode==="simple"){
 
-explanationMode = mode;
+        return `
+Simple explanation:
 
-addMessage(
-mode.charAt(0).toUpperCase()+mode.slice(1)+" explanation mode activated.",
-"jarvis"
-);
+${text}
+`;
 
-}
-
-
-if(explanationMode==="simple"){
-
-return "Simple explanation:\n\n"+text;
-
-}
+    }
 
 
-if(explanationMode==="detailed"){
 
-return `
+    if(explanationMode==="detailed"){
+
+        return `
 Detailed explanation:
 
 ${text}
 
-More details can be provided if needed.
+I can provide more examples or go deeper if needed.
 `;
 
-}
+    }
 
 
-if(explanationMode==="expert"){
 
-return `
-Technical explanation:
+    if(explanationMode==="expert"){
+
+        return `
+Expert explanation:
 
 ${text}
 
-This topic can be explored through advanced principles and deeper analysis.
+This explanation focuses on deeper concepts, systems, and technical understanding.
 `;
 
+    }
+
+
+
+    return text;
+
 }
 
 
-return text;
 
-}
 // =========================
 // MATH ENGINE
 // =========================
