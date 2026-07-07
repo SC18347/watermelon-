@@ -1087,7 +1087,13 @@ return clock;
 
 }
 
+let calendar = calendarCheck(message);
 
+if(calendar){
+
+return calendar;
+
+}
 
 let text=message.toLowerCase();
 
@@ -1584,7 +1590,163 @@ return null;
 
 }
 
+// =========================
+// JARVIS CALENDAR SYSTEM
+// =========================
 
+
+let calendar = JSON.parse(
+localStorage.getItem("jarvisCalendar") || "[]"
+);
+
+
+
+
+
+function saveCalendar(){
+
+localStorage.setItem(
+"jarvisCalendar",
+JSON.stringify(calendar)
+);
+
+}
+
+
+
+
+
+function addCalendarEvent(event){
+
+calendar.push({
+
+event:event,
+
+date:new Date().toLocaleDateString(),
+
+created:new Date().toLocaleTimeString()
+
+});
+
+
+saveCalendar();
+
+
+return "Calendar event added: "+event;
+
+}
+
+
+
+
+
+function showCalendar(){
+
+if(calendar.length===0){
+
+return "Your calendar is currently empty.";
+
+}
+
+
+let list="Your upcoming events:\n\n";
+
+
+calendar.forEach((item,index)=>{
+
+
+list += `${index+1}. ${item.event} (${item.date})\n`;
+
+});
+
+
+return list;
+
+}
+
+
+
+
+
+function clearCalendar(){
+
+calendar=[];
+
+saveCalendar();
+
+return "Calendar cleared.";
+
+}
+
+
+
+
+
+function calendarCheck(message){
+
+let text=message.toLowerCase();
+
+
+
+// ADD EVENT
+
+if(
+text.includes("add") &&
+(
+text.includes("calendar") ||
+text.includes("appointment") ||
+text.includes("event")
+)
+){
+
+let event = message
+.replace(/add/gi,"")
+.replace(/calendar/gi,"")
+.replace(/appointment/gi,"")
+.replace(/event/gi,"")
+.trim();
+
+
+return addCalendarEvent(event);
+
+}
+
+
+
+
+// VIEW EVENTS
+
+
+if(
+text.includes("calendar") &&
+(
+text.includes("show") ||
+text.includes("what") ||
+text.includes("view")
+)
+){
+
+return showCalendar();
+
+}
+
+
+
+
+// CLEAR
+
+
+if(text.includes("clear calendar")){
+
+return clearCalendar();
+
+}
+
+
+
+return null;
+
+}
 
 // =========================
 // STARTUP
