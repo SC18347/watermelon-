@@ -262,7 +262,163 @@ flex:1;
 }
 
 
+/* ==================================================
+JARVIS V4
+VOICE OVERLAY UI
+================================================== */
 
+#voiceOverlay{
+
+position:fixed;
+inset:0;
+
+display:none;
+
+justify-content:center;
+align-items:center;
+flex-direction:column;
+
+backdrop-filter:blur(18px);
+
+background:rgba(5,10,18,.72);
+
+z-index:999999;
+
+}
+
+
+#voiceBackground{
+
+position:absolute;
+inset:0;
+
+background:
+radial-gradient(circle at center,
+rgba(77,163,255,.18),
+transparent 65%);
+
+}
+
+
+
+#voiceCenter{
+
+position:relative;
+
+display:flex;
+flex-direction:column;
+
+align-items:center;
+
+z-index:2;
+
+}
+
+
+
+#voiceOrb{
+
+width:170px;
+height:170px;
+
+border-radius:50%;
+
+background:
+radial-gradient(circle,
+#84c5ff,
+#4da3ff,
+#1b5da8);
+
+box-shadow:
+0 0 40px #4da3ff,
+0 0 80px #4da3ff,
+0 0 140px rgba(77,163,255,.55);
+
+animation:jarvisPulse 2s infinite;
+
+}
+
+
+
+@keyframes jarvisPulse{
+
+0%{
+transform:scale(1);
+}
+
+50%{
+transform:scale(1.12);
+}
+
+100%{
+transform:scale(1);
+}
+
+}
+
+
+
+#voiceTitle{
+
+margin-top:40px;
+
+font-size:34px;
+
+font-weight:bold;
+
+letter-spacing:6px;
+
+color:white;
+
+}
+
+
+
+#voiceSubtitle{
+
+margin-top:14px;
+
+font-size:18px;
+
+color:white;
+
+opacity:.85;
+
+}
+
+
+
+#voiceStopButton{
+
+position:absolute;
+
+bottom:55px;
+
+left:50%;
+
+transform:translateX(-50%);
+
+width:220px;
+
+height:62px;
+
+border-radius:999px;
+
+font-size:20px;
+
+font-weight:bold;
+
+background:#ff5050;
+
+color:white;
+
+border:none;
+
+cursor:pointer;
+
+z-index:3;
+
+}
 </style>
 
 </head>
@@ -316,10 +472,7 @@ Detailed
 Expert
 </button>
 
-<button
-id="voiceButton"
-class="tool"
-onclick="toggleVoice(this)">
+<button class="tool" onclick="startJarvisVoice()">
 🎤 Voice
 </button>
 
@@ -2255,166 +2408,80 @@ coreStartup();
 // END JARVIS V4 MODULE 14
 // ==================================================
 
+
+
 // ==================================================
 // JARVIS V4 MODULE 15
-// VOICE SYSTEM
-//
-// Features:
-// - Speech recognition input
-// - Text-to-speech output
-// - Browser compatibility check
-// - Standalone voice controller
+// VOICE ENGINE REBUILD
 // ==================================================
 
-
-
 const JARVIS_VOICE = {
-
 
 status:"OFFLINE",
 
 listening:false,
 
-
 supported:false,
 
-
-recognition:null,
-
-
-settings:{
-
-
-voiceEnabled:true,
-
-language:"en-US",
-
-rate:1,
-
-pitch:1
-
-
-}
-
+recognition:null
 
 };
 
 
 
-
-
-
-
-
 // ===============================
-// VOICE SUPPORT CHECK
+// INITIALIZE VOICE
 // ===============================
-
 
 function initializeVoice(){
 
-
 const SpeechRecognition =
-
 window.SpeechRecognition ||
-
 window.webkitSpeechRecognition;
-
 
 
 if(!SpeechRecognition){
 
-
 JARVIS_VOICE.status="UNSUPPORTED";
 
-
-console.log(
-
-"Voice recognition unavailable."
-
-);
-
-
-return false;
-
+return;
 
 }
 
 
-
 JARVIS_VOICE.supported=true;
 
-
 JARVIS_VOICE.status="READY";
-
 
 
 const recognition=new SpeechRecognition();
 
 
+recognition.lang="en-US";
 
 recognition.continuous=false;
 
 recognition.interimResults=false;
 
-recognition.lang=
-
-JARVIS_VOICE.settings.language;
-
-
-
 
 
 recognition.onstart=function(){
 
-
 JARVIS_VOICE.listening=true;
 
-
-console.log(
-
-"JARVIS listening..."
-
-);
-
+showVoiceOverlay();
 
 };
-
-
-
-
 
 
 
 recognition.onend=function(){
 
-
 JARVIS_VOICE.listening=false;
 
+hideVoiceOverlay();
 
 };
-
-
-
-
-
-
-
-recognition.onerror=function(error){
-
-
-console.error(
-
-"Voice Error:",
-
-error
-
-);
-
-
-};
-
-
 
 
 
@@ -2423,29 +2490,31 @@ error
 recognition.onresult=function(event){
 
 
-let speech=
-
+const text =
 event.results[0][0].transcript;
 
 
 
-console.log(
-
-"Voice Input:",
-
-speech
-
+addMessage(
+text,
+"user"
 );
 
 
 
-if(typeof sendVoiceCommand==="function"){
+let response =
+jarvisReply(text);
 
 
-sendVoiceCommand(speech);
+
+addMessage(
+response,
+"jarvis"
+);
 
 
-}
+
+speak(response);
 
 
 
@@ -2454,19 +2523,10 @@ sendVoiceCommand(speech);
 
 
 
-
-
 JARVIS_VOICE.recognition=recognition;
 
 
-return true;
-
-
 }
-
-
-
-
 
 
 
@@ -2476,30 +2536,20 @@ return true;
 // START LISTENING
 // ===============================
 
-
 function startListening(){
-
 
 
 if(!JARVIS_VOICE.supported){
 
-
-return "Voice recognition is not supported in this browser.";
+return "Voice unavailable.";
 
 }
-
 
 
 JARVIS_VOICE.recognition.start();
 
 
-
-return "Listening activated.";
-
 }
-
-
-
 
 
 
@@ -2510,219 +2560,55 @@ return "Listening activated.";
 // STOP LISTENING
 // ===============================
 
-
 function stopListening(){
 
 
-
 if(
-
-JARVIS_VOICE.recognition &&
-
-JARVIS_VOICE.listening
-
+JARVIS_VOICE.recognition
 ){
-
 
 JARVIS_VOICE.recognition.stop();
 
-
 }
 
 
-
-return "Listening stopped.";
-
 }
-
-
-
-
 
 
 
 
 
 // ===============================
-// VOICE OUTPUT
+// TEXT TO SPEECH
 // ===============================
-
 
 function speak(text){
 
 
-
-if(!JARVIS_VOICE.settings.voiceEnabled){
-
-
-return;
-
-}
-
-
-
-
-
 if(!window.speechSynthesis){
 
-
-console.log(
-
-"Speech output unavailable."
-
-);
-
-
 return;
 
 }
 
 
-
-
-
-let speech=
-
+let speech =
 new SpeechSynthesisUtterance(text);
 
 
+speech.rate=1;
 
-speech.rate=
+speech.pitch=1;
 
-JARVIS_VOICE.settings.rate;
-
-
-speech.pitch=
-
-JARVIS_VOICE.settings.pitch;
+speech.lang="en-US";
 
 
-speech.lang=
-
-JARVIS_VOICE.settings.language;
-
-
-
-window.speechSynthesis.speak(speech);
+speechSynthesis.speak(speech);
 
 
 }
 
 
-
-
-
-
-
-
-
-// ===============================
-// VOICE COMMAND HANDLER
-// ===============================
-
-
-function sendVoiceCommand(text){
-
-
-
-if(typeof addMessage==="function"){
-
-
-addMessage(
-
-text,
-
-"user"
-
-);
-
-}
-
-
-
-if(typeof jarvisReply==="function"){
-
-
-
-let response=
-
-jarvisReply(text);
-
-
-
-if(typeof addMessage==="function"){
-
-
-addMessage(
-
-response,
-
-"jarvis"
-
-);
-
-
-
-speak(response);
-
-
-}
-
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-
-
-// ===============================
-// VOICE STATUS
-// ===============================
-
-
-function getVoiceStatus(){
-
-
-
-return `
-
-VOICE SYSTEM
-
-
-Status:
-${JARVIS_VOICE.status}
-
-
-Listening:
-${JARVIS_VOICE.listening}
-
-
-Supported:
-${JARVIS_VOICE.supported}
-
-`;
-
-}
-
-
-
-
-
-
-
-
-
-// ===============================
-// START VOICE MODULE
-// ===============================
 
 
 initializeVoice();
@@ -2730,67 +2616,100 @@ initializeVoice();
 
 
 registerModule(
-
 "Voice",
-
 JARVIS_VOICE
-
 );
-
 
 
 // ==================================================
 // END JARVIS V4 MODULE 15
 // ==================================================
 // ==================================================
-// VOICE BUTTON CONTROLLER
+// JARVIS V4 MODULE 15.1
+// VOICE OVERLAY CONTROLLER
 // ==================================================
 
-function toggleVoice(button){
 
-if(!JARVIS_VOICE.supported){
+const voiceOverlay =
+document.getElementById("voiceOverlay");
 
-addMessage(
-"Voice recognition is not supported by this browser.",
-"jarvis"
-);
 
-return;
+const voiceStopButton =
+document.getElementById("voiceStopButton");
+
+
+
+
+// ===============================
+// SHOW VOICE MODE
+// ===============================
+
+function showVoiceOverlay(){
+
+
+if(voiceOverlay){
+
+voiceOverlay.style.display="flex";
 
 }
 
-if(JARVIS_VOICE.listening){
+
+}
+
+
+
+
+// ===============================
+// HIDE VOICE MODE
+// ===============================
+
+function hideVoiceOverlay(){
+
+
+if(voiceOverlay){
+
+voiceOverlay.style.display="none";
+
+}
+
+
+}
+
+
+
+
+
+
+// ===============================
+// STOP BUTTON
+// ===============================
+
+if(voiceStopButton){
+
+
+voiceStopButton.onclick=function(){
+
 
 stopListening();
 
-button.textContent="🎤 Voice";
 
-button.classList.remove("active");
+hideVoiceOverlay();
 
-addMessage(
-"Voice listening stopped.",
-"jarvis"
-);
 
-return;
+};
 
-}
-
-startListening();
-
-button.textContent="🛑 Stop Voice";
-
-button.classList.add("active");
-
-addMessage(
-"Listening...",
-"jarvis"
-);
 
 }
 
 
+
+
+
+// ==================================================
+// END MODULE 15.1
+// ==================================================
 </script>
+
 
 
 </body>
