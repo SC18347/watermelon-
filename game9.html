@@ -815,6 +815,18 @@ const knowledge={
 
 function explain(text){
 
+function setExplanation(mode){
+
+explanationMode=mode;
+
+
+addMessage(
+mode.charAt(0).toUpperCase()+mode.slice(1)+" explanation mode activated.",
+"jarvis"
+);
+
+}
+
 if(explanationMode==="simple"){
 
 return "Simple explanation:\n\n"+text;
