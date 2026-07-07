@@ -1110,7 +1110,11 @@ return reasoning;
 
 let text=message.toLowerCase();
 
+updateContext({
 
+question:message
+
+});
 
 
 
@@ -1126,7 +1130,25 @@ return mathEngine(message);
 
 // SEARCH KNOWLEDGE
 
+if(activeContext){
 
+    if(activeContext.category==="knowledge"){
+
+        return explain(
+
+            "Continuing our discussion about " +
+
+            activeContext.topic +
+
+            ".\n\n" +
+
+            knowledge[activeContext.topic].text
+
+        );
+
+    }
+
+}
 for(let item in knowledge){
 
 
@@ -1138,6 +1160,18 @@ if(text.includes(keyword)){
 
 context.topic=item;
 
+
+updateContext({
+
+topic:item,
+
+category:"knowledge",
+
+answer:knowledge[item].text,
+
+intent:"explain"
+
+});
 
 return explain(
 knowledge[item].text
@@ -1465,7 +1499,7 @@ Math.floor(Math.random()*array.length)
 function personalityCheck(message){
 
 let text = message.toLowerCase();
-
+const activeContext = resolveContext(message);
 
 
 if(
@@ -1605,8 +1639,11 @@ return null;
 
 // =========================
 // JARVIS CALENDAR SYSTEM
+// V3.2.1
 // =========================
 
+
+// Load calendar
 
 let calendar = JSON.parse(
 localStorage.getItem("jarvisCalendar") || "[]"
@@ -1615,151 +1652,316 @@ localStorage.getItem("jarvisCalendar") || "[]"
 
 
 
+// Save calendar
 
 function saveCalendar(){
 
-localStorage.setItem(
-"jarvisCalendar",
-JSON.stringify(calendar)
+    localStorage.setItem(
+        "jarvisCalendar",
+        JSON.stringify(calendar)
+    );
+
+}
+
+
+
+
+// Create event
+
+function createCalendarEvent(name,date="",time=""){
+
+    const event={
+
+        id:Date.now(),
+
+        name:name.trim(),
+
+        date:date,
+
+        time:time,
+
+        created:new Date().toISOString()
+
+    };
+
+
+    calendar.push(event);
+
+    saveCalendar();
+
+    return event;
+
+}
+
+
+
+
+// Find event
+
+function findCalendarEvent(search){
+
+const target = normalizeText(search);
+
+return calendar.find(event=>
+
+normalizeText(event.name).includes(target)
+
 );
 
 }
 
+    search=search.toLowerCase();
 
+    return calendar.find(event=>
 
+        event.name.toLowerCase().includes(search)
 
-
-function addCalendarEvent(event){
-
-calendar.push({
-
-event:event,
-
-date:new Date().toLocaleDateString(),
-
-created:new Date().toLocaleTimeString()
-
-});
-
-
-saveCalendar();
-
-
-return "Calendar event added: "+event;
+    );
 
 }
 
 
 
 
+// Remove event
 
-function showCalendar(){
+function removeCalendarEvent(search){
 
-if(calendar.length===0){
+const target = normalizeText(search);
 
-return "Your calendar is currently empty.";
+const index = calendar.findIndex(event=>
 
-}
+normalizeText(event.name).includes(target)
 
+);
 
-let list="Your upcoming events:\n\n";
-
-
-calendar.forEach((item,index)=>{
-
-
-list += `${index+1}. ${item.event} (${item.date})\n`;
-
-});
-
-
-return list;
-
-}
-
-
-
-
-
-function clearCalendar(){
-
-calendar=[];
-
-saveCalendar();
-
-return "Calendar cleared.";
-
-}
-
-
-
-
-
-function calendarCheck(message){
-
-let text=message.toLowerCase();
-
-
-
-// ADD EVENT
-
-if(
-text.includes("add") &&
-(
-text.includes("calendar") ||
-text.includes("appointment") ||
-text.includes("event")
-)
-){
-
-let event = message
-.replace(/add/gi,"")
-.replace(/calendar/gi,"")
-.replace(/appointment/gi,"")
-.replace(/event/gi,"")
-.trim();
-
-
-return addCalendarEvent(event);
-
-}
-
-
-
-
-// VIEW EVENTS
-
-
-if(
-text.includes("calendar") &&
-(
-text.includes("show") ||
-text.includes("what") ||
-text.includes("view")
-)
-){
-
-return showCalendar();
-
-}
-
-
-
-
-// CLEAR
-
-
-if(text.includes("clear calendar")){
-
-return clearCalendar();
-
-}
-
-
+if(index===-1){
 
 return null;
 
 }
+
+const removed=calendar.splice(index,1)[0];
+
+saveCalendar();
+
+return removed;
+
+}
+
+    search=search.toLowerCase();
+
+
+    const index=calendar.findIndex(event=>
+
+        event.name.toLowerCase().includes(search)
+
+    );
+
+
+    if(index===-1){
+
+        return null;
+
+    }
+
+
+    const removed=calendar.splice(index,1)[0];
+
+    saveCalendar();
+
+    return removed;
+
+}
+
+
+
+
+// Show calendar
+
+function showCalendar(){
+
+    if(calendar.length===0){
+
+        return "Your calendar is empty.";
+
+    }
+
+
+    let output="Upcoming Events\n\n";
+
+
+    calendar.forEach((event,i)=>{
+
+        output+=`${i+1}. ${event.name}`;
+
+        if(event.date){
+
+            output+=` — ${event.date}`;
+
+        }
+
+        if(event.time){
+
+            output+=` at ${event.time}`;
+
+        }
+
+        output+="\n";
+
+    });
+
+
+    return output;
+
+}
+// Calendar command processor
+
+function calendarCheck(message){
+
+    let text = message.toLowerCase();
+
+
+
+    // ---------- ADD / CREATE / SCHEDULE ----------
+
+    if(
+
+        (text.includes("add") ||
+
+        text.includes("create") ||
+
+        text.includes("schedule"))
+
+    ){
+
+        let eventName = message
+
+        .replace(/add|create|schedule/gi,"")
+
+        .replace(/calendar|appointment|event|meeting/gi,"")
+
+        .trim();
+
+
+
+        if(eventName.length===0){
+
+            return "What would you like me to add to your calendar?";
+
+        }
+
+
+
+        createCalendarEvent(eventName);
+
+        return `Calendar event added: ${eventName}`;
+
+    }
+
+
+
+
+    // ---------- SHOW ----------
+
+    if(
+
+        text.includes("calendar") ||
+
+        text.includes("my schedule") ||
+
+        text.includes("my events")
+
+    ){
+
+        if(
+
+            text.includes("show") ||
+
+            text.includes("view") ||
+
+            text.includes("what") ||
+
+            text.includes("list")
+
+        ){
+
+            return showCalendar();
+
+        }
+
+    }
+
+
+
+
+    // ---------- REMOVE ----------
+
+    if(
+
+        text.includes("remove") ||
+
+        text.includes("delete") ||
+
+        text.includes("cancel")
+
+    ){
+
+        let eventName = message
+
+        .replace(/remove|delete|cancel/gi,"")
+
+        .replace(/calendar|appointment|event|meeting/gi,"")
+
+        .trim();
+
+
+
+        if(eventName.length===0){
+
+            return "Which event would you like me to remove?";
+
+        }
+
+
+
+        let removed = removeCalendarEvent(eventName);
+
+
+
+        if(removed){
+
+            return `Removed calendar event: ${removed.name}`;
+
+        }
+
+
+
+        return `I couldn't find an event matching "${eventName}".`;
+
+    }
+
+
+
+
+    // ---------- CLEAR ----------
+
+    if(text.includes("clear calendar")){
+
+        calendar=[];
+
+        saveCalendar();
+
+        return "Calendar cleared.";
+
+    }
+
+
+
+    return null;
+
+}
+
 
 // ==================================================
 // JARVIS V2 COMPLETE
@@ -1900,9 +2102,69 @@ return null;
 }
 
 
+
+
+
 // ==================================================
-// JARVIS V3.2 INTENT UNDERSTANDING SYSTEM
+// JARVIS V3.3 SMART MATCHING ENGINE
 // ==================================================
+
+const ignoredWords = [
+
+"the",
+"a",
+"an",
+"my",
+"please",
+"could",
+"would",
+"can",
+"you",
+"me",
+"to",
+"for",
+"on",
+"at",
+"of",
+"about",
+"is",
+"are",
+"do",
+"does",
+"did",
+"be",
+"with"
+
+];
+
+
+
+function normalizeText(text){
+
+return text
+.toLowerCase()
+
+.replace(/[^\w\s]/g," ")
+
+.split(/\s+/)
+
+.filter(word=>
+
+word.length>0 &&
+!ignoredWords.includes(word)
+
+)
+
+.join(" ")
+
+.trim();
+
+}
+
+
+
+
+
 
 
 function detectIntent(message){
@@ -2027,6 +2289,147 @@ details:message
 };
 
 }
+// ==================================================
+// JARVIS V3.4 CONTEXT AWARENESS
+// Version: 1.0
+// Status: Development
+// Last Updated: 2026-07-07
+// ==================================================
+
+
+const conversationContext={
+
+topic:null,
+category:null,
+lastQuestion:null,
+lastAnswer:null,
+lastIntent:null,
+timestamp:null
+
+};
+
+
+
+
+function updateContext(data={}){
+
+conversationContext.topic=
+data.topic ?? conversationContext.topic;
+
+conversationContext.category=
+data.category ?? conversationContext.category;
+
+conversationContext.lastQuestion=
+data.question ?? conversationContext.lastQuestion;
+
+conversationContext.lastAnswer=
+data.answer ?? conversationContext.lastAnswer;
+
+conversationContext.lastIntent=
+data.intent ?? conversationContext.lastIntent;
+
+conversationContext.timestamp=
+Date.now();
+
+}
+
+
+
+
+function clearContext(){
+
+conversationContext.topic=null;
+conversationContext.category=null;
+conversationContext.lastQuestion=null;
+conversationContext.lastAnswer=null;
+conversationContext.lastIntent=null;
+conversationContext.timestamp=null;
+
+}
+
+
+
+
+function isFollowUp(message){
+
+const text=message.toLowerCase();
+
+const followUps=[
+
+"it",
+"that",
+"this",
+"they",
+"them",
+"those",
+"these",
+
+"more",
+
+"continue",
+
+"why",
+
+"how",
+
+"what about",
+
+"tell me more",
+
+"go on"
+
+];
+
+
+return followUps.some(word=>text.includes(word));
+
+}
+// ==================================================
+// JARVIS V3.4 CONTEXT AWARENESS
+// ==================================================
+// ==================================================
+// JARVIS V3.4.1 CONTEXT RESOLVER
+// Version: 1.0
+// Status: Development
+// Last Updated: 2026-07-07
+//
+// Changelog:
+// • Added follow-up question handling
+// • Added topic continuation
+// • Added context-based responses
+// ==================================================
+
+
+// Determine whether the current message refers to
+// the previous conversation topic.
+
+function resolveContext(message){
+
+    if(!conversationContext.topic){
+
+        return null;
+
+    }
+
+    if(!isFollowUp(message)){
+
+        return null;
+
+    }
+
+
+    return{
+
+        topic:conversationContext.topic,
+
+        category:conversationContext.category,
+
+        intent:conversationContext.lastIntent
+
+    };
+
+}
+
 
 
 
