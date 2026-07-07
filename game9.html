@@ -2531,19 +2531,20 @@ JARVIS_VOICE.recognition=recognition;
 
 
 
-
-// ===============================
-// START LISTENING
-// ===============================
-
 function startListening(){
 
+showVoiceOverlay();
 
 if(!JARVIS_VOICE.supported){
 
 return "Voice unavailable.";
 
 }
+
+JARVIS_VOICE.recognition.start();
+
+}
+
 
 
 JARVIS_VOICE.recognition.start();
@@ -2624,92 +2625,31 @@ JARVIS_VOICE
 // ==================================================
 // END JARVIS V4 MODULE 15
 // ==================================================
-// ==================================================
-// JARVIS V4 MODULE 15.1
-// VOICE OVERLAY CONTROLLER
-// ==================================================
-
-
-const voiceOverlay =
-document.getElementById("voiceOverlay");
-
-
-const voiceStopButton =
-document.getElementById("voiceStopButton");
-
-
-
-
-// ===============================
-// SHOW VOICE MODE
-// ===============================
 
 function showVoiceOverlay(){
 
+const overlay = document.getElementById("voiceOverlay");
 
-if(voiceOverlay){
+if(overlay){
 
-voiceOverlay.style.display="flex";
-
-}
-
+overlay.style.display="flex";
 
 }
 
+}
 
-
-
-// ===============================
-// HIDE VOICE MODE
-// ===============================
 
 function hideVoiceOverlay(){
 
+const overlay = document.getElementById("voiceOverlay");
 
-if(voiceOverlay){
+if(overlay){
 
-voiceOverlay.style.display="none";
-
-}
-
+overlay.style.display="none";
 
 }
 
-
-
-
-
-
-// ===============================
-// STOP BUTTON
-// ===============================
-
-if(voiceStopButton){
-
-
-voiceStopButton.onclick=function(){
-
-
-stopListening();
-
-
-hideVoiceOverlay();
-
-
-};
-
-
 }
-
-
-
-
-
-// ==================================================
-// END MODULE 15.1
-// ==================================================
-
-
 
 </script>
 
@@ -2742,4 +2682,5 @@ STOP
 
 
 </body>
+
 </html>
