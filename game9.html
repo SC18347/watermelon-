@@ -1079,6 +1079,15 @@ return personality;
 
 }
 
+let clock = clockCheck(message);
+
+if(clock){
+
+return clock;
+
+}
+
+
 
 let text=message.toLowerCase();
 
@@ -1493,6 +1502,88 @@ personalityResponses.thanks
 return null;
 
 }
+
+// =========================
+// JARVIS CLOCK SYSTEM
+// =========================
+
+
+function getCurrentTime(){
+
+let now = new Date();
+
+
+let hours = now.getHours();
+
+let minutes = now.getMinutes();
+
+
+minutes = minutes.toString().padStart(2,"0");
+
+
+return `${hours}:${minutes}`;
+
+}
+
+
+
+
+
+function getTimePeriod(){
+
+let hour = new Date().getHours();
+
+
+if(hour >= 5 && hour < 12){
+
+return "morning";
+
+}
+
+
+if(hour >= 12 && hour < 18){
+
+return "afternoon";
+
+}
+
+
+if(hour >= 18 && hour < 24){
+
+return "evening";
+
+}
+
+
+return "night";
+
+}
+
+
+
+
+
+function clockCheck(message){
+
+let text = message.toLowerCase();
+
+
+if(
+text.includes("what time") ||
+text.includes("current time") ||
+text.includes("time is it")
+){
+
+return `The current time is ${getCurrentTime()} (24-hour format).`;
+
+}
+
+
+
+return null;
+
+}
+
 
 
 // =========================
