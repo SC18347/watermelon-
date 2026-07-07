@@ -185,6 +185,19 @@ Math Engine
 Writing Assistant
 </button>
 
+
+<button class="tool" onclick="setExplanationMode('simple')">
+Simple
+</button>
+
+<button class="tool" onclick="setExplanationMode('detailed')">
+Detailed
+</button>
+
+<button class="tool" onclick="setExplanationMode('expert')">
+Expert
+</button>
+
 </div>
 
 
@@ -252,7 +265,70 @@ let currentMode="chat";
 let memory=JSON.parse(
  localStorage.getItem("jarvisMemory") || "{}"
 );
+/* =========================
+   JARVIS v1.2 CONVERSATION MEMORY
+========================= */
 
+let conversationContext={
+ topic:"",
+ lastQuestion:"",
+ style:"normal"
+};
+
+
+/* =========================
+   KNOWLEDGE DATABASE
+========================= */
+
+const knowledge={
+
+orange:{
+keywords:[
+"orange",
+"oranges",
+"citrus fruit"
+],
+
+answer:
+"Oranges are citrus fruits known for their sweet flavor and high vitamin C content. They grow on trees in warm climates and are commonly eaten fresh, turned into juice, or used for cooking. The fruit develops from flowers and usually takes several months to mature."
+},
+
+
+apple:{
+keywords:[
+"apple",
+"apples"
+],
+
+answer:
+"Apples are fruits that grow on apple trees. They come in many varieties with different flavors, from sweet to tart. Apples contain fiber and are often eaten raw, baked, or used in drinks and recipes."
+},
+
+
+space:{
+keywords:[
+"space",
+"universe",
+"galaxy"
+],
+
+answer:
+"Space is the vast area beyond Earth's atmosphere. It contains planets, stars, galaxies, and other objects. The universe is constantly changing and contains billions of galaxies."
+},
+
+
+computer:{
+keywords:[
+"computer",
+"pc",
+"cpu"
+],
+
+answer:
+"A computer is an electronic machine that processes information. It uses hardware like processors and memory along with software to perform tasks such as calculations, communication, and running applications."
+}
+
+};
 
 /* =========================
    CORE CHAT SYSTEM
@@ -631,38 +707,111 @@ improveWriting(text,style),
 }
 
 
-/* =========================
-   JARVIS REASONING CORE
-========================= */
-
-
 function jarvisReply(text){
 
 let t=text.toLowerCase();
 
+
+/* =========================
+   MATH MODE
+========================= */
 
 if(currentMode==="math"){
  return mathEngine(text);
 }
 
 
-if(t.includes("hello")||
-t.includes("hi")){
+/* =========================
+   CONVERSATION CONTEXT
+========================= */
 
-return "Hello. JARVIS intelligence systems are online.";
+conversationContext.lastQuestion=text;
+
+
+/* Check known topics */
+
+for(let topic in knowledge){
+
+ let data=knowledge[topic];
+
+ for(let keyword of data.keywords){
+
+  if(t.includes(keyword)){
+
+   conversationContext.topic=topic;
+
+   return data.answer;
+  }
+
+ }
 }
+
+
+/* Follow-up questions */
+
+if(
+ conversationContext.topic &&
+ (
+  t.includes("how") ||
+  t.includes("why") ||
+  t.includes("more") ||
+  t.includes("explain") ||
+  t.includes("what about")
+ )
+){
+
+let topic=conversationContext.topic;
+
+return `
+Continuing our discussion about ${topic}:
+
+${knowledge[topic].answer}
+
+If you want, I can explain it in a simpler way, go deeper, or explain how it works.
+`;
+}
+
+
+
+/* =========================
+   BASIC IDENTITY
+========================= */
+
+if(
+t.includes("hello")||
+t.includes("hi")||
+t.includes("hey")
+){
+
+return `
+Hello. JARVIS conversational intelligence is online.
+
+I can explain topics, help with writing, solve problems, and answer questions.
+`;
+}
+
 
 
 if(t.includes("your name")){
 
-return "I am JARVIS, an adaptive personal intelligence assistant.";
+return `
+I am JARVIS, your personal intelligence assistant.
+
+My systems include conversation, math, writing assistance, and memory functions.
+`;
 }
 
 
 
+/* =========================
+   MEMORY
+========================= */
+
 if(t.includes("remember")){
 
-let item=text.replace(/remember/i,"").trim();
+let item=text
+.replace(/remember/i,"")
+.trim();
 
 memory.note=item;
 
@@ -683,20 +832,130 @@ return memory.note ?
 }
 
 
+
+/* =========================
+   GENERAL EXPLANATIONS
+========================= */
+
+
+if(
+t.includes("tell me about") ||
+t.includes("what is") ||
+t.includes("explain")
+){
+
+let subject=text
+.replace(/tell me about/i,"")
+.replace(/what is/i,"")
+.replace(/explain/i,"")
+.trim();
+
+
+conversationContext.topic=subject;
+
+
 return `
-JARVIS analysis complete.
+I can explain ${subject}.
 
-I understand your request and can assist with:
-• Reasoning
-• Mathematics
-• Writing improvement
-• Language analysis
-• Memory functions
+${subject} is a topic that can be explored from different angles. I can give you a simple explanation, a detailed explanation, examples, or a technical breakdown.
 
-Additional intelligence modules are active.
+Try asking:
+"Explain ${subject} simply"
+or
+"Explain ${subject} in detail"
 `;
 }
 
+
+
+/* =========================
+   DEFAULT RESPONSE
+========================= */
+
+return `
+I understand your request.
+
+I can help explain topics, answer questions, improve writing, solve math problems, and remember information you choose to save.
+
+Try asking:
+"Tell me about oranges"
+"Explain how airplanes work"
+"Why does lightning happen?"
+`;
+}
+
+/* =========================
+   JARVIS EXPLANATION MODES
+========================= */
+
+let explanationMode="normal";
+
+
+function setExplanationMode(mode){
+
+ explanationMode=mode;
+
+ addMessage(
+ "Explanation mode changed to: "+mode,
+ "jarvis"
+ );
+
+}
+
+
+/* =========================
+   INTELLIGENT EXPLANATION BUILDER
+========================= */
+
+function explainTopic(topic,information){
+
+if(explanationMode==="simple"){
+
+return `
+Simple explanation:
+
+${information}
+
+In simple terms:
+${topic} is something that can be understood by learning the basic ideas first.
+`;
+}
+
+
+if(explanationMode==="detailed"){
+
+return `
+Detailed explanation:
+
+${information}
+
+More details:
+
+• How it works
+• Why it matters
+• Common examples
+• Real-world uses
+`;
+}
+
+
+if(explanationMode==="expert"){
+
+return `
+Technical explanation:
+
+${information}
+
+Advanced analysis:
+
+This topic can be studied through deeper concepts, systems, and relationships between different parts.
+`;
+}
+
+
+return information;
+
+}
 
 /* =========================
    MESSAGE HANDLING
