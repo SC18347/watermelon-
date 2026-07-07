@@ -2273,6 +2273,495 @@ coreStartup();
 // END JARVIS V4 MODULE 14
 // ==================================================
 
+// ==================================================
+// JARVIS V4 MODULE 15
+// VOICE SYSTEM
+//
+// Features:
+// - Speech recognition input
+// - Text-to-speech output
+// - Browser compatibility check
+// - Standalone voice controller
+// ==================================================
+
+
+
+const JARVIS_VOICE = {
+
+
+status:"OFFLINE",
+
+listening:false,
+
+
+supported:false,
+
+
+recognition:null,
+
+
+settings:{
+
+
+voiceEnabled:true,
+
+language:"en-US",
+
+rate:1,
+
+pitch:1
+
+
+}
+
+
+};
+
+
+
+
+
+
+
+
+// ===============================
+// VOICE SUPPORT CHECK
+// ===============================
+
+
+function initializeVoice(){
+
+
+const SpeechRecognition =
+
+window.SpeechRecognition ||
+
+window.webkitSpeechRecognition;
+
+
+
+if(!SpeechRecognition){
+
+
+JARVIS_VOICE.status="UNSUPPORTED";
+
+
+console.log(
+
+"Voice recognition unavailable."
+
+);
+
+
+return false;
+
+
+}
+
+
+
+JARVIS_VOICE.supported=true;
+
+
+JARVIS_VOICE.status="READY";
+
+
+
+const recognition=new SpeechRecognition();
+
+
+
+recognition.continuous=false;
+
+recognition.interimResults=false;
+
+recognition.lang=
+
+JARVIS_VOICE.settings.language;
+
+
+
+
+
+recognition.onstart=function(){
+
+
+JARVIS_VOICE.listening=true;
+
+
+console.log(
+
+"JARVIS listening..."
+
+);
+
+
+};
+
+
+
+
+
+
+
+recognition.onend=function(){
+
+
+JARVIS_VOICE.listening=false;
+
+
+};
+
+
+
+
+
+
+
+recognition.onerror=function(error){
+
+
+console.error(
+
+"Voice Error:",
+
+error
+
+);
+
+
+};
+
+
+
+
+
+
+
+recognition.onresult=function(event){
+
+
+let speech=
+
+event.results[0][0].transcript;
+
+
+
+console.log(
+
+"Voice Input:",
+
+speech
+
+);
+
+
+
+if(typeof sendVoiceCommand==="function"){
+
+
+sendVoiceCommand(speech);
+
+
+}
+
+
+
+};
+
+
+
+
+
+
+JARVIS_VOICE.recognition=recognition;
+
+
+return true;
+
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// START LISTENING
+// ===============================
+
+
+function startListening(){
+
+
+
+if(!JARVIS_VOICE.supported){
+
+
+return "Voice recognition is not supported in this browser.";
+
+}
+
+
+
+JARVIS_VOICE.recognition.start();
+
+
+
+return "Listening activated.";
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// STOP LISTENING
+// ===============================
+
+
+function stopListening(){
+
+
+
+if(
+
+JARVIS_VOICE.recognition &&
+
+JARVIS_VOICE.listening
+
+){
+
+
+JARVIS_VOICE.recognition.stop();
+
+
+}
+
+
+
+return "Listening stopped.";
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// VOICE OUTPUT
+// ===============================
+
+
+function speak(text){
+
+
+
+if(!JARVIS_VOICE.settings.voiceEnabled){
+
+
+return;
+
+}
+
+
+
+
+
+if(!window.speechSynthesis){
+
+
+console.log(
+
+"Speech output unavailable."
+
+);
+
+
+return;
+
+}
+
+
+
+
+
+let speech=
+
+new SpeechSynthesisUtterance(text);
+
+
+
+speech.rate=
+
+JARVIS_VOICE.settings.rate;
+
+
+speech.pitch=
+
+JARVIS_VOICE.settings.pitch;
+
+
+speech.lang=
+
+JARVIS_VOICE.settings.language;
+
+
+
+window.speechSynthesis.speak(speech);
+
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// VOICE COMMAND HANDLER
+// ===============================
+
+
+function sendVoiceCommand(text){
+
+
+
+if(typeof addMessage==="function"){
+
+
+addMessage(
+
+text,
+
+"user"
+
+);
+
+}
+
+
+
+if(typeof jarvisReply==="function"){
+
+
+
+let response=
+
+jarvisReply(text);
+
+
+
+if(typeof addMessage==="function"){
+
+
+addMessage(
+
+response,
+
+"jarvis"
+
+);
+
+
+
+speak(response);
+
+
+}
+
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// VOICE STATUS
+// ===============================
+
+
+function getVoiceStatus(){
+
+
+
+return `
+
+VOICE SYSTEM
+
+
+Status:
+${JARVIS_VOICE.status}
+
+
+Listening:
+${JARVIS_VOICE.listening}
+
+
+Supported:
+${JARVIS_VOICE.supported}
+
+`;
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// START VOICE MODULE
+// ===============================
+
+
+initializeVoice();
+
+
+
+registerModule(
+
+"Voice",
+
+JARVIS_VOICE
+
+);
+
+
+
+// ==================================================
+// END JARVIS V4 MODULE 15
+// ==================================================
+
+
 
 </script>
 
