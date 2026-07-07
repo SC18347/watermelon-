@@ -263,8 +263,28 @@ const modePanel=document.getElementById("modePanel");
 let currentMode="chat";
 
 let memory=JSON.parse(
- localStorage.getItem("jarvisMemory") || "{}"
+ 
+ let memory={};
+
+try{
+
+memory=JSON.parse(
+ localStorage.getItem("jarvisMemory") ?? "{}"
 );
+
+}
+catch(error){
+
+memory={
+ notes:[]
+};
+
+localStorage.setItem(
+"jarvisMemory",
+JSON.stringify(memory)
+);
+
+}
 /* =========================
    JARVIS v1.2 CONVERSATION MEMORY
 ========================= */
@@ -813,12 +833,27 @@ let item=text
 .replace(/remember/i,"")
 .trim();
 
-memory.note=item;
+
+if(!memory.notes){
+ memory.notes=[];
+}
+
+
+memory.notes.push({
+
+text:item,
+
+date:new Date()
+.toLocaleString()
+
+});
+
 
 localStorage.setItem(
 "jarvisMemory",
 JSON.stringify(memory)
 );
+
 
 return "Memory stored successfully.";
 }
@@ -826,9 +861,25 @@ return "Memory stored successfully.";
 
 if(t.includes("memory")){
 
-return memory.note ?
-"Stored memory: "+memory.note :
-"No stored memories.";
+
+if(!memory.notes || memory.notes.length===0){
+
+return "No stored memories.";
+
+}
+
+
+return `
+Stored memories:
+
+${memory.notes
+.map((item,index)=>
+`${index+1}. ${item.text}
+Saved: ${item.date}`
+)
+.join("\n\n")}
+`;
+
 }
 
 
