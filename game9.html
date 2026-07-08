@@ -2075,57 +2075,6 @@ addMessage(
 
 
 bootJarvis();
-// =====================================
-// TOOL BUTTON SYSTEM
-// =====================================
-
-
-function connectToolButtons(){
-
-
-const buttons =
-
-document.querySelectorAll(".tool");
-
-
-
-buttons.forEach(button=>{
-
-
-button.addEventListener(
-
-"click",
-
-function(){
-
-
-
-buttons.forEach(btn=>{
-
-btn.classList.remove("active");
-
-});
-
-
-
-button.classList.add("active");
-
-
-
-}
-
-);
-
-
-});
-
-
-}
-
-
-
-
-
 
 
 // =====================================
@@ -2164,11 +2113,7 @@ panel.style.display="none";
 // Replace mode function with connected version
 
 
-const oldSetMode = setMode;
 
-
-
-setMode=function(mode,button){
 
 
 
@@ -2228,7 +2173,6 @@ mode+" mode activated.",
 // =====================================
 
 
-connectToolButtons();
 
 updatePanel();
 // =====================================
