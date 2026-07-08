@@ -10784,55 +10784,158 @@ function processWriting(){
 
 
 // =====================================
-// CHAT MESSAGE DISPLAY
+// JARVIS BUTTON FUNCTIONS
 // =====================================
 
-function addMessage(text, sender){
+function setMode(mode, button){
+
+    document
+    .querySelectorAll(".tool")
+    .forEach(btn => {
+        btn.classList.remove("active");
+    });
 
 
-    const chat =
-    document.getElementById(
-        "chatWindow"
+    if(button){
+        button.classList.add("active");
+    }
+
+
+    if(typeof ModeSystem !== "undefined"){
+
+        if(typeof ModeSystem.setMode === "function"){
+
+            ModeSystem.setMode(mode);
+
+        }
+
+    }
+
+
+    addMessage(
+        "Mode changed to: " + mode,
+        "jarvis"
     );
 
+}
 
 
-    if(!chat){
 
-        console.log(sender,text);
+function setExplanation(level){
+
+
+    if(typeof ExplanationEngine !== "undefined"){
+
+        if(typeof ExplanationEngine.setMode === "function"){
+
+            ExplanationEngine.setMode(level);
+
+        }
+
+    }
+
+
+    addMessage(
+        "Explanation level: " + level,
+        "jarvis"
+    );
+
+}
+
+
+
+function showCalendar(){
+
+
+    if(typeof CalendarSystem !== "undefined"){
+
+        if(typeof CalendarSystem.upcoming === "function"){
+
+            return CalendarSystem.upcoming();
+
+        }
+
+    }
+
+
+    return "Calendar unavailable.";
+
+}
+
+
+
+function processWriting(){
+
+
+    let input =
+    document.getElementById("writingInput");
+
+
+    if(!input || input.value.trim()===""){
+
+        addMessage(
+            "Enter text first.",
+            "jarvis"
+        );
 
         return;
 
     }
 
 
+    if(typeof IntelligenceCenter !== "undefined"){
+
+        let result =
+        IntelligenceCenter.process(
+            input.value
+        );
+
+
+        addMessage(
+            result,
+            "jarvis"
+        );
+
+    }
+
+}
+
+
+
+function addMessage(text, sender){
+
+
+let chat =
+document.getElementById("chat");
+
+
+    if(!chat){
+
+        console.log(sender + ":", text);
+
+        return;
+
+    }
+
 
     let message =
     document.createElement("div");
 
 
-
-    message.className =
-    sender;
+    message.className = sender;
 
 
-
-    message.innerText =
+    message.textContent =
     typeof text === "object"
-    ?
-    JSON.stringify(text)
-    :
-    text;
-
+    ? JSON.stringify(text)
+    : text;
 
 
     chat.appendChild(message);
 
 
-
     chat.scrollTop =
     chat.scrollHeight;
-
 
 }
 
