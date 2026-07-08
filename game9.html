@@ -10275,6 +10275,7 @@ const DiagnosticCenter = {
     }
 
 };
+
 // =====================================
 // JARVIS MESSAGE SYSTEM V2
 // =====================================
@@ -10290,14 +10291,11 @@ const MessageSystem = {
 
     settings:{
 
-        timestamps:true,
-
         saveHistory:true,
 
         maxHistory:100
 
     },
-
 
 
 // =====================================
@@ -10317,21 +10315,11 @@ const MessageSystem = {
 
         let userMessage={
 
+            sender:"user",
 
-            id:
-            Date.now(),
+            text:input,
 
-
-            sender:
-            "user",
-
-
-            text:
-            input,
-
-
-            time:
-            new Date()
+            time:new Date()
 
         };
 
@@ -10350,29 +10338,43 @@ const MessageSystem = {
         try{
 
 
-            response =
-            IntelligenceCenter.process(
-                input
-            );
+            if(typeof IntelligenceCenter !== "undefined"){
+
+
+                response =
+                IntelligenceCenter.process(
+                    input
+                );
+
+
+            }
+            else{
+
+
+                response =
+                "Intelligence Center unavailable.";
+
+            }
+
 
 
         }
-
         catch(error){
 
 
-            DiagnosticCenter.reportError(
-                error
-            );
+            if(typeof DiagnosticCenter !== "undefined"){
 
 
-            response={
+                DiagnosticCenter.reportError(
+                    error
+                );
 
-                message:
-                "JARVIS encountered an error."
 
-            };
+            }
 
+
+            response =
+            "JARVIS encountered an error.";
 
         }
 
@@ -10380,21 +10382,12 @@ const MessageSystem = {
 
         let jarvisMessage={
 
-
-            id:
-            Date.now()+1,
-
-
-            sender:
-            "jarvis",
-
+            sender:"jarvis",
 
             text:
-            this.extractResponse(response),
+            this.format(response),
 
-
-            time:
-            new Date()
+            time:new Date()
 
         };
 
@@ -10406,14 +10399,22 @@ const MessageSystem = {
 
 
 
+        displayMessage(
+            jarvisMessage.text,
+            "jarvis"
+        );
+
+
+
         return jarvisMessage;
+
 
     },
 
 
 
 // =====================================
-// MESSAGE STORAGE
+// STORE MESSAGE
 // =====================================
 
     addMessage(message){
@@ -10476,6 +10477,7 @@ const MessageSystem = {
             this.history =
             JSON.parse(saved);
 
+
         }
 
 
@@ -10484,64 +10486,41 @@ const MessageSystem = {
 
 
 // =====================================
-// RESPONSE CLEANER
+// FORMAT RESPONSE
 // =====================================
 
-    extractResponse(response){
+    format(response){
 
 
-        if(typeof response==="string"){
+        if(typeof response === "object"){
 
-            return response;
+
+            if(response.message){
+
+                return response.message;
+
+            }
+
+
+            if(response.response){
+
+                return response.response;
+
+            }
+
 
         }
 
 
 
-        if(response.message){
+        return String(response);
 
-            return response.message;
-
-        }
-
-
-
-        if(response.response){
-
-            return response.response;
-
-        }
-
-
-
-        if(response.answer){
-
-            return response.answer;
-
-        }
-
-
-
-        return JSON.stringify(response);
 
     },
 
 
-
 // =====================================
-// GET CHAT HISTORY
-// =====================================
-
-    getHistory(){
-
-        return this.history;
-
-    },
-
-
-
-// =====================================
-// CLEAR CHAT
+// CLEAR
 // =====================================
 
     clear(){
@@ -10555,10 +10534,7 @@ const MessageSystem = {
         );
 
 
-        return "Conversation cleared.";
-
     },
-
 
 
 // =====================================
@@ -10570,26 +10546,19 @@ const MessageSystem = {
 
         return {
 
+            name:"Message System",
 
-            name:
-            "Message System",
+            version:this.version,
 
+            status:this.status,
 
-            version:
-            this.version,
-
-
-            status:
-            this.status,
-
-
-            messages:
-            this.history.length
-
+            messages:this.history.length
 
         };
 
+
     }
+
 
 };
 
@@ -10597,9 +10566,83 @@ const MessageSystem = {
 
 MessageSystem.load();
 
+
+
 // =====================================
-// JARVIS BUTTON FUNCTIONS V3
-// Matches existing HTML buttons
+// GLOBAL MESSAGE DISPLAY
+// =====================================
+
+function displayMessage(text, sender){
+
+
+    let chat =
+    document.getElementById(
+        "chat"
+    );
+
+
+
+    if(!chat){
+
+        console.log(
+            sender + ":",
+            text
+        );
+
+        return;
+
+    }
+
+
+
+    let message =
+    document.createElement(
+        "div"
+    );
+
+
+
+    message.className =
+    sender;
+
+
+
+    message.textContent =
+    text;
+
+
+
+    chat.appendChild(
+        message
+    );
+
+
+
+    chat.scrollTop =
+    chat.scrollHeight;
+
+
+}
+
+
+
+// =====================================
+// HTML BUTTON COMPATIBILITY
+// =====================================
+
+function addMessage(text, sender){
+
+
+    displayMessage(
+        text,
+        sender
+    );
+
+
+}
+
+// =====================================
+// JARVIS BUTTON FUNCTIONS V2
 // =====================================
 
 
@@ -10630,19 +10673,33 @@ function setMode(mode, button){
 
     if(typeof ModeSystem !== "undefined"){
 
+
         if(typeof ModeSystem.setMode === "function"){
+
 
             ModeSystem.setMode(mode);
 
+
         }
+        else{
+
+
+            ModeSystem.currentMode = mode;
+
+
+        }
+
 
     }
 
 
 
     addMessage(
+
         "Mode changed to: " + mode,
+
         "jarvis"
+
     );
 
 
@@ -10659,19 +10716,33 @@ function setExplanation(level){
 
     if(typeof ExplanationEngine !== "undefined"){
 
+
         if(typeof ExplanationEngine.setMode === "function"){
+
 
             ExplanationEngine.setMode(level);
 
+
         }
+        else{
+
+
+            ExplanationEngine.currentMode = level;
+
+
+        }
+
 
     }
 
 
 
     addMessage(
-        "Explanation level: " + level,
+
+        "Explanation mode: " + level,
+
         "jarvis"
+
     );
 
 
@@ -10701,7 +10772,8 @@ function showCalendar(){
     }
 
 
-    return "Calendar system is offline.";
+
+    return "Calendar system unavailable.";
 
 }
 
@@ -10732,13 +10804,15 @@ function processWriting(){
 
 
         addMessage(
+
             "Enter text first.",
+
             "jarvis"
+
         );
 
 
         return;
-
 
     }
 
@@ -10749,8 +10823,14 @@ function processWriting(){
 
         type:"writing",
 
+
         mode:
-        mode ? mode.value : "normal",
+        mode
+        ?
+        mode.value
+        :
+        "normal",
+
 
         text:
         input.value
@@ -10765,177 +10845,34 @@ function processWriting(){
 
         let response =
         IntelligenceCenter.process(
-            JSON.stringify(request)
+            request
         );
 
 
         addMessage(
+
             response,
+
             "jarvis"
+
         );
 
 
     }
-
-
-
-}
-
-
-
-// =====================================
-// JARVIS BUTTON FUNCTIONS
-// =====================================
-
-function setMode(mode, button){
-
-    document
-    .querySelectorAll(".tool")
-    .forEach(btn => {
-        btn.classList.remove("active");
-    });
-
-
-    if(button){
-        button.classList.add("active");
-    }
-
-
-    if(typeof ModeSystem !== "undefined"){
-
-        if(typeof ModeSystem.setMode === "function"){
-
-            ModeSystem.setMode(mode);
-
-        }
-
-    }
-
-
-    addMessage(
-        "Mode changed to: " + mode,
-        "jarvis"
-    );
-
-}
-
-
-
-function setExplanation(level){
-
-
-    if(typeof ExplanationEngine !== "undefined"){
-
-        if(typeof ExplanationEngine.setMode === "function"){
-
-            ExplanationEngine.setMode(level);
-
-        }
-
-    }
-
-
-    addMessage(
-        "Explanation level: " + level,
-        "jarvis"
-    );
-
-}
-
-
-
-function showCalendar(){
-
-
-    if(typeof CalendarSystem !== "undefined"){
-
-        if(typeof CalendarSystem.upcoming === "function"){
-
-            return CalendarSystem.upcoming();
-
-        }
-
-    }
-
-
-    return "Calendar unavailable.";
-
-}
-
-
-
-function processWriting(){
-
-
-    let input =
-    document.getElementById("writingInput");
-
-
-    if(!input || input.value.trim()===""){
-
-        addMessage(
-            "Enter text first.",
-            "jarvis"
-        );
-
-        return;
-
-    }
-
-
-    if(typeof IntelligenceCenter !== "undefined"){
-
-        let result =
-        IntelligenceCenter.process(
-            input.value
-        );
+    else{
 
 
         addMessage(
-            result,
+
+            "Intelligence Center unavailable.",
+
             "jarvis"
+
         );
 
-    }
-
-}
-
-
-
-function addMessage(text, sender){
-
-
-let chat =
-document.getElementById("chat");
-
-
-    if(!chat){
-
-        console.log(sender + ":", text);
-
-        return;
 
     }
 
-
-    let message =
-    document.createElement("div");
-
-
-    message.className = sender;
-
-
-    message.textContent =
-    typeof text === "object"
-    ? JSON.stringify(text)
-    : text;
-
-
-    chat.appendChild(message);
-
-
-    chat.scrollTop =
-    chat.scrollHeight;
 
 }
 
