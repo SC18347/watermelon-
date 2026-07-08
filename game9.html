@@ -368,8 +368,7 @@ Improve
 
 <input id="input" placeholder="Ask JARVIS...">
 
-
-<button onclick="MessageSystem.send()">Send</button>
+<button onclick="MessageSystem.send(document.getElementById('input').value)">Send</button>
 
 </footer>
 
@@ -10642,237 +10641,26 @@ function addMessage(text, sender){
 }
 
 // =====================================
-// JARVIS BUTTON FUNCTIONS V2
-// =====================================
-
-
-// =====================================
-// MODE BUTTONS
-// =====================================
-
-function setMode(mode, button){
-
-
-    document
-    .querySelectorAll(".tool")
-    .forEach(btn=>{
-
-        btn.classList.remove("active");
-
-    });
-
-
-
-    if(button){
-
-        button.classList.add("active");
-
-    }
-
-
-
-    if(typeof ModeSystem !== "undefined"){
-
-
-        if(typeof ModeSystem.setMode === "function"){
-
-
-            ModeSystem.setMode(mode);
-
-
-        }
-        else{
-
-
-            ModeSystem.currentMode = mode;
-
-
-        }
-
-
-    }
-
-
-
-    addMessage(
-
-        "Mode changed to: " + mode,
-
-        "jarvis"
-
-    );
-
-
-}
-
-
-
-// =====================================
-// EXPLANATION BUTTONS
+// EXPLANATION BUTTON CONNECTOR
 // =====================================
 
 function setExplanation(level){
 
-
     if(typeof ExplanationEngine !== "undefined"){
-
 
         if(typeof ExplanationEngine.setMode === "function"){
 
-
             ExplanationEngine.setMode(level);
 
-
         }
-        else{
-
-
-            ExplanationEngine.currentMode = level;
-
-
-        }
-
 
     }
-
 
 
     addMessage(
-
         "Explanation mode: " + level,
-
         "jarvis"
-
     );
-
-
-}
-
-
-
-// =====================================
-// CALENDAR BUTTON
-// =====================================
-
-function showCalendar(){
-
-
-    if(typeof CalendarSystem !== "undefined"){
-
-
-        if(typeof CalendarSystem.upcoming === "function"){
-
-
-            return CalendarSystem.upcoming();
-
-
-        }
-
-
-    }
-
-
-
-    return "Calendar system unavailable.";
-
-}
-
-
-
-// =====================================
-// WRITING BUTTON
-// =====================================
-
-function processWriting(){
-
-
-    const input =
-    document.getElementById(
-        "writingInput"
-    );
-
-
-
-    const mode =
-    document.getElementById(
-        "writingMode"
-    );
-
-
-
-    if(!input || input.value.trim()===""){
-
-
-        addMessage(
-
-            "Enter text first.",
-
-            "jarvis"
-
-        );
-
-
-        return;
-
-    }
-
-
-
-    let request={
-
-
-        type:"writing",
-
-
-        mode:
-        mode
-        ?
-        mode.value
-        :
-        "normal",
-
-
-        text:
-        input.value
-
-
-    };
-
-
-
-    if(typeof IntelligenceCenter !== "undefined"){
-
-
-        let response =
-        IntelligenceCenter.process(
-            request
-        );
-
-
-        addMessage(
-
-            response,
-
-            "jarvis"
-
-        );
-
-
-    }
-    else{
-
-
-        addMessage(
-
-            "Intelligence Center unavailable.",
-
-            "jarvis"
-
-        );
-
-
-    }
-
 
 }
 
