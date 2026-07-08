@@ -10598,16 +10598,17 @@ const MessageSystem = {
 MessageSystem.load();
 
 // =====================================
-// JARVIS BUTTON FUNCTIONS V2
+// JARVIS BUTTON FUNCTIONS V3
+// Matches existing HTML buttons
 // =====================================
 
 
-// Mode Buttons
+// =====================================
+// MODE BUTTONS
+// =====================================
 
 function setMode(mode, button){
 
-
-    // Update active button
 
     document
     .querySelectorAll(".tool")
@@ -10629,40 +10630,19 @@ function setMode(mode, button){
 
     if(typeof ModeSystem !== "undefined"){
 
+        if(typeof ModeSystem.setMode === "function"){
 
-        ModeSystem.setMode(mode);
+            ModeSystem.setMode(mode);
 
-
-    }
-
-
-    return mode;
-
-}
-
-
-
-// Explanation Buttons
-
-function setExplanation(level){
-
-
-    if(typeof ExplanationEngine !== "undefined"){
-
-
-        ExplanationEngine.setMode(level);
-
+        }
 
     }
+
 
 
     addMessage(
-
-        "Explanation mode changed to: "
-        + level,
-
+        "Mode changed to: " + mode,
         "jarvis"
-
     );
 
 
@@ -10670,7 +10650,38 @@ function setExplanation(level){
 
 
 
-// Calendar Button
+// =====================================
+// EXPLANATION BUTTONS
+// =====================================
+
+function setExplanation(level){
+
+
+    if(typeof ExplanationEngine !== "undefined"){
+
+        if(typeof ExplanationEngine.setMode === "function"){
+
+            ExplanationEngine.setMode(level);
+
+        }
+
+    }
+
+
+
+    addMessage(
+        "Explanation level: " + level,
+        "jarvis"
+    );
+
+
+}
+
+
+
+// =====================================
+// CALENDAR BUTTON
+// =====================================
 
 function showCalendar(){
 
@@ -10678,39 +10689,56 @@ function showCalendar(){
     if(typeof CalendarSystem !== "undefined"){
 
 
-        return CalendarSystem.upcoming();
+        if(typeof CalendarSystem.upcoming === "function"){
+
+
+            return CalendarSystem.upcoming();
+
+
+        }
 
 
     }
 
 
-    return "Calendar unavailable.";
+    return "Calendar system is offline.";
 
 }
 
 
 
-// Writing Button
+// =====================================
+// WRITING BUTTON
+// =====================================
 
 function processWriting(){
 
 
-    let input =
+    const input =
     document.getElementById(
-    "writingInput"
+        "writingInput"
     );
 
 
-    let mode =
+
+    const mode =
     document.getElementById(
-    "writingMode"
-    ).value;
+        "writingMode"
+    );
 
 
 
-    if(!input.value.trim()){
+    if(!input || input.value.trim()===""){
+
+
+        addMessage(
+            "Enter text first.",
+            "jarvis"
+        );
+
 
         return;
+
 
     }
 
@@ -10721,9 +10749,11 @@ function processWriting(){
 
         type:"writing",
 
-        mode:mode,
+        mode:
+        mode ? mode.value : "normal",
 
-        text:input.value
+        text:
+        input.value
 
 
     };
@@ -10733,19 +10763,75 @@ function processWriting(){
     if(typeof IntelligenceCenter !== "undefined"){
 
 
-        let result =
+        let response =
         IntelligenceCenter.process(
             JSON.stringify(request)
         );
 
 
         addMessage(
-            result,
+            response,
             "jarvis"
         );
 
 
     }
+
+
+
+}
+
+
+
+// =====================================
+// CHAT MESSAGE DISPLAY
+// =====================================
+
+function addMessage(text, sender){
+
+
+    const chat =
+    document.getElementById(
+        "chatWindow"
+    );
+
+
+
+    if(!chat){
+
+        console.log(sender,text);
+
+        return;
+
+    }
+
+
+
+    let message =
+    document.createElement("div");
+
+
+
+    message.className =
+    sender;
+
+
+
+    message.innerText =
+    typeof text === "object"
+    ?
+    JSON.stringify(text)
+    :
+    text;
+
+
+
+    chat.appendChild(message);
+
+
+
+    chat.scrollTop =
+    chat.scrollHeight;
 
 
 }
