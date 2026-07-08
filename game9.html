@@ -954,6 +954,73 @@ return null;
 // MAIN INTELLIGENCE ROUTER
 // =====================================
 
+// =====================================
+// NATURAL CONVERSATION ENGINE
+// =====================================
+let conversation = conversationEngine(message);
+
+if(conversation){
+
+return conversation;
+
+}
+function conversationEngine(message){
+
+let text = message.toLowerCase();
+
+
+// Greetings
+
+if(
+text.includes("hello") ||
+text.includes("hi") ||
+text.includes("hey")
+){
+
+return "Hello. I'm ready. What would you like to work on?";
+
+}
+
+
+// Thanks
+
+if(
+text.includes("thank")
+){
+
+return "You're welcome. I'm happy to help.";
+
+}
+
+
+// Confusion
+
+if(
+text.includes("i don't know") ||
+text.includes("idk")
+){
+
+return "That's okay. Tell me what you're trying to figure out and we can work through it.";
+
+}
+
+
+// Short confirmations
+
+if(
+text==="ok" ||
+text==="okay" ||
+text==="alright"
+){
+
+return "Understood. What would you like to do next?";
+
+}
+
+
+return null;
+
+}
 
 function jarvisReply(message){
 
@@ -2215,4 +2282,5 @@ message
 
 
 </body>
+
 </html>
