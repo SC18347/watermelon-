@@ -10596,6 +10596,160 @@ const MessageSystem = {
 
 
 MessageSystem.load();
+
+// =====================================
+// JARVIS BUTTON FUNCTIONS V2
+// =====================================
+
+
+// Mode Buttons
+
+function setMode(mode, button){
+
+
+    // Update active button
+
+    document
+    .querySelectorAll(".tool")
+    .forEach(btn=>{
+
+        btn.classList.remove("active");
+
+    });
+
+
+
+    if(button){
+
+        button.classList.add("active");
+
+    }
+
+
+
+    if(typeof ModeSystem !== "undefined"){
+
+
+        ModeSystem.setMode(mode);
+
+
+    }
+
+
+    return mode;
+
+}
+
+
+
+// Explanation Buttons
+
+function setExplanation(level){
+
+
+    if(typeof ExplanationEngine !== "undefined"){
+
+
+        ExplanationEngine.setMode(level);
+
+
+    }
+
+
+    addMessage(
+
+        "Explanation mode changed to: "
+        + level,
+
+        "jarvis"
+
+    );
+
+
+}
+
+
+
+// Calendar Button
+
+function showCalendar(){
+
+
+    if(typeof CalendarSystem !== "undefined"){
+
+
+        return CalendarSystem.upcoming();
+
+
+    }
+
+
+    return "Calendar unavailable.";
+
+}
+
+
+
+// Writing Button
+
+function processWriting(){
+
+
+    let input =
+    document.getElementById(
+    "writingInput"
+    );
+
+
+    let mode =
+    document.getElementById(
+    "writingMode"
+    ).value;
+
+
+
+    if(!input.value.trim()){
+
+        return;
+
+    }
+
+
+
+    let request={
+
+
+        type:"writing",
+
+        mode:mode,
+
+        text:input.value
+
+
+    };
+
+
+
+    if(typeof IntelligenceCenter !== "undefined"){
+
+
+        let result =
+        IntelligenceCenter.process(
+            JSON.stringify(request)
+        );
+
+
+        addMessage(
+            result,
+            "jarvis"
+        );
+
+
+    }
+
+
+}
+
 // =====================================
 // JARVIS STARTUP FUNCTIONS V1
 // =====================================
