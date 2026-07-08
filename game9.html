@@ -283,41 +283,38 @@ V4 CORE ONLINE
 
 </header>
 
-
 <div id="tools">
 
-
 <button class="tool active" onclick="setMode('chat',this)">
-Chat
+💬 Chat
 </button>
-
 
 <button class="tool" onclick="setMode('math',this)">
-Math
+🧮 Math
 </button>
-
 
 <button class="tool" onclick="setMode('writing',this)">
-Writing
+✍️ Writing
 </button>
 
+<button class="tool" onclick="addMessage(showCalendar(),'jarvis')">
+📅 Calendar
+</button>
 
 <button class="tool" onclick="setExplanation('simple')">
 Simple
 </button>
 
-
 <button class="tool" onclick="setExplanation('detailed')">
 Detailed
 </button>
-
 
 <button class="tool" onclick="setExplanation('expert')">
 Expert
 </button>
 
-
 </div>
+
 <div id="panel">
 
 
@@ -372,9 +369,7 @@ Improve
 <input id="input" placeholder="Ask JARVIS...">
 
 
-<button onclick="sendMessage()">
-Send
-</button>
+<button onclick="MessageSystem.send()">Send</button>
 
 </footer>
 
@@ -387,147 +382,18 @@ Send
 
 
 // =====================================
-// JARVIS V1 CORE VARIABLES
+// JARVIS V4
+// CORE VARIABLES
 // =====================================
 
 
-const chat =
-document.getElementById("chat");
+// Current Modes
 
+let currentMode = "chat";
+let explanationMode = "normal";
 
-const input =
-document.getElementById("input");
 
-
-const panel =
-document.getElementById("panel");
-
-
-
-let currentMode="chat";
-
-
-let explanationMode="normal";
-
-
-
-// =====================================
-// MESSAGE SYSTEM
-// =====================================
-
-
-function addMessage(text,type){
-
-
-const div =
-document.createElement("div");
-
-
-div.className =
-"message " + type;
-
-
-div.textContent =
-text;
-
-
-chat.appendChild(div);
-
-
-chat.scrollTop =
-chat.scrollHeight;
-
-
-}
-
-
-
-
-
-// =====================================
-// MODE SYSTEM
-// =====================================
-
-
-function setMode(mode,button){
-
-
-currentMode=mode;
-
-
-
-document
-.querySelectorAll(".tool")
-.forEach(btn=>{
-
-btn.classList.remove("active");
-
-});
-
-
-
-if(button){
-
-button.classList.add("active");
-
-}
-
-
-
-if(mode==="writing"){
-
-panel.style.display="block";
-
-}
-
-else{
-
-panel.style.display="none";
-
-}
-
-
-
-addMessage(
-
-mode+" mode activated.",
-
-"jarvis"
-
-);
-
-
-}
-
-
-
-
-
-function setExplanation(mode){
-
-
-explanationMode=mode;
-
-
-addMessage(
-
-"Explanation mode: "+mode,
-
-"jarvis"
-
-);
-
-
-}
-
-
-
-
-
-// =====================================
-// V2 MEMORY SYSTEM
-// =====================================
-
+// Memory
 
 let memory = JSON.parse(
 
@@ -540,882 +406,22 @@ localStorage.getItem("jarvisMemory")
 );
 
 
+// Conversation Context
 
-
-function saveMemory(){
-
-
-localStorage.setItem(
-
-"jarvisMemory",
-
-JSON.stringify(memory)
-
-);
-
-
-}
-
-
-
-function remember(text){
-
-
-memory.notes.push({
-
-text:text,
-
-date:new Date().toLocaleString()
-
-});
-
-
-saveMemory();
-
-
-return "Memory saved.";
-
-}
-
-
-
-
-function readMemory(){
-
-
-if(memory.notes.length===0){
-
-return "No saved memories.";
-
-}
-
-
-
-return memory.notes.map(
-
-(item,index)=>
-
-(index+1)+". "+
-
-item.text+
-
-" ("+
-
-item.date+
-
-")"
-
-).join("\n\n");
-
-
-}
-
-
-
-
-
-// =====================================
-// V3 KNOWLEDGE DATABASE
-// =====================================
-
-
-const knowledge={
-
-
-ai:
-"Artificial intelligence allows computers to perform tasks that normally require human intelligence such as learning, reasoning, and recognizing patterns.",
-
-
-computer:
-"Computers use hardware and software to process information and perform tasks.",
-
-
-car:
-"Cars are machines designed for transportation using systems like engines, transmissions, brakes, and electronics.",
-
-
-space:
-"Space contains planets, stars, galaxies, and other objects beyond Earth's atmosphere.",
-
-
-engine:
-"An engine converts energy into mechanical motion.",
-
-
-money:
-"Money systems involve earning, saving, spending, and investing."
-
-};
-
-
-
-
-
-// =====================================
-// EXPLANATION ENGINE
-// =====================================
-
-
-function explain(text){
-
-
-if(explanationMode==="simple"){
-
-return "Simple explanation:\n\n"+text;
-
-}
-
-
-if(explanationMode==="detailed"){
-
-return "Detailed explanation:\n\n"+text+
-"\n\nAdditional examples can be provided.";
-
-}
-
-
-
-if(explanationMode==="expert"){
-
-return "Expert explanation:\n\n"+text+
-"\n\nThis focuses on deeper technical concepts.";
-
-}
-
-
-
-return text;
-
-
-}
- 
-// =====================================
-// V3 CONTEXT SYSTEM
-// =====================================
-
-
-let context={
+let context = {
 
 topic:null,
 
-lastAnswer:null
+lastAnswer:null,
+
+lastQuestion:null,
+
+conversationCount:0
 
 };
 
 
-
-
-function updateContext(topic,answer){
-
-
-context.topic=topic;
-
-context.lastAnswer=answer;
-
-
-}
-
-
-
-
-
-function resolveContext(message){
-
-
-if(!context.topic){
-
-return null;
-
-}
-
-
-
-const words=[
-
-"more",
-"why",
-"how",
-"explain",
-"continue",
-"that",
-"it"
-
-];
-
-
-
-let text=message.toLowerCase();
-
-
-
-if(words.some(word=>text.includes(word))){
-
-
-return context.lastAnswer;
-
-
-}
-
-
-
-return null;
-
-
-}
-
-
-
-
-
-// =====================================
-// V3 INTENT DETECTION
-// =====================================
-
-
-function detectIntent(message){
-
-
-let text=message.toLowerCase();
-
-
-
-if(
-
-text.includes("what is") ||
-
-text.includes("explain") ||
-
-text.includes("tell me")
-
-){
-
-return "knowledge";
-
-}
-
-
-
-
-if(
-
-text.includes("how do i") ||
-
-text.includes("how can i")
-
-){
-
-return "problem";
-
-}
-
-
-
-
-
-if(
-
-text.includes("remember")
-
-){
-
-return "memory";
-
-}
-
-
-
-
-if(
-
-text.includes("time")
-
-){
-
-return "time";
-
-}
-
-
-
-return "unknown";
-
-
-}
-
-
-
-
-
-// =====================================
-// V3 REASONING ENGINE
-// =====================================
-
-
-function reasoningEngine(message){
-
-
-let intent =
-detectIntent(message);
-
-
-
-if(intent==="problem"){
-
-
-return `
-
-I can help solve that.
-
-I need:
-
-• Your goal
-• The problem
-• Any limits or requirements
-
-`;
-
-}
-
-
-
-if(intent==="time"){
-
-
-return "Current time: "+
-new Date().toLocaleTimeString();
-
-
-}
-
-
-
-return null;
-
-
-}
-
-
-
-
-
-// =====================================
-// SMART KNOWLEDGE SEARCH
-// =====================================
-
-
-function searchKnowledge(message){
-
-
-let text =
-message.toLowerCase();
-
-
-
-for(let item in knowledge){
-
-
-if(text.includes(item)){
-
-
-updateContext(
-
-item,
-
-knowledge[item]
-
-);
-
-
-
-return explain(
-
-knowledge[item]
-
-);
-
-
-}
-
-
-}
-
-
-
-return null;
-
-
-}
-
-
-
-
-
-// =====================================
-// MAIN INTELLIGENCE ROUTER
-// =====================================
-
-// =====================================
-// NATURAL CONVERSATION ENGINE
-// =====================================
-let conversation = conversationEngine(message);
-
-if(conversation){
-
-return conversation;
-
-}
-function conversationEngine(message){
-
-let text = message.toLowerCase();
-
-
-// Greetings
-
-if(
-text.includes("hello") ||
-text.includes("hi") ||
-text.includes("hey")
-){
-
-return "Hello. I'm ready. What would you like to work on?";
-
-}
-
-
-// Thanks
-
-if(
-text.includes("thank")
-){
-
-return "You're welcome. I'm happy to help.";
-
-}
-
-
-// Confusion
-
-if(
-text.includes("i don't know") ||
-text.includes("idk")
-){
-
-return "That's okay. Tell me what you're trying to figure out and we can work through it.";
-
-}
-
-
-// Short confirmations
-
-if(
-text==="ok" ||
-text==="okay" ||
-text==="alright"
-){
-
-return "Understood. What would you like to do next?";
-
-}
-
-
-return null;
-
-}
-
-function jarvisReply(message){
-
-
-
-// Context check
-
-let contextAnswer =
-resolveContext(message);
-
-
-
-if(contextAnswer){
-
-
-return explain(contextAnswer);
-
-
-}
-
-
-
-
-// Reasoning
-
-let reasoning =
-reasoningEngine(message);
-
-
-
-if(reasoning){
-
-return reasoning;
-
-}
-
-
-
-
-
-// Memory commands
-
-let text =
-message.toLowerCase();
-
-
-
-if(text.startsWith("remember")){
-
-
-return remember(
-
-message.replace(
-
-/remember/i,
-
-""
-
-).trim()
-
-);
-
-
-}
-
-
-
-if(text.includes("memory")){
-
-
-return readMemory();
-
-}
-
-
-
-
-// Knowledge
-
-let answer =
-searchKnowledge(message);
-
-
-
-if(answer){
-
-return answer;
-
-}
-
-
-
-
-
-// Personality responses
-
-
-if(
-
-text.includes("hello") ||
-
-text.includes("hi") ||
-
-text.includes("hey")
-
-){
-
-return "Hello. JARVIS systems are online.";
-
-}
-
-
-
-
-
-if(text.includes("your name")){
-
-return "I am JARVIS, your personal intelligence assistant.";
-
-}
-
-
-
-
-
-return conversationalFallback(message);
-
-}
- // =====================================
-// NATURAL CONVERSATION FALLBACK
-// =====================================
-
-function conversationalFallback(message){
-
-let responses = [
-
-"I can help with that. Tell me a little more about what you mean.",
-
-"Interesting. Can you give me more details so I can answer better?",
-
-"I understand the question. Let me think through it with you.",
-
-"That is a good topic. What part would you like to explore?",
-
-"I can help you work through that. What are you trying to accomplish?"
-
-];
-
-
-let index = Math.floor(
-
-Math.random() * responses.length
-
-);
-
-
-return responses[index];
-
-}
-// =====================================
-// V4 MATH APPLICATION
-// =====================================
-
-
-function mathEngine(problem){
-
-
-let equation = problem
-
-.replace(/calculate|solve|what is/gi,"")
-
-.trim();
-
-
-
-if(
-
-/^[0-9+\-*/().\s]+$/.test(equation)
-
-){
-
-
-try{
-
-
-let result = Function(
-
-"return " + equation
-
-)();
-
-
-
-return `
-
-Math Solution:
-
-Problem:
-${equation}
-
-Answer:
-${result}
-
-`;
-
-
-
-}
-
-catch(error){
-
-
-return "I could not solve that equation.";
-
-}
-
-
-
-}
-
-
-
-return `
-
-Math mode active.
-
-I can solve:
-
-• Addition
-• Subtraction
-• Multiplication
-• Division
-• Basic equations
-
-`;
-
-}
-
-
-
-
-
-// =====================================
-// V4 WRITING APPLICATION
-// =====================================
-
-
-function processWriting(){
-
-
-
-let text =
-
-document.getElementById(
-
-"writingInput"
-
-).value;
-
-
-
-let mode =
-
-document.getElementById(
-
-"writingMode"
-
-).value;
-
-
-
-
-if(!text.trim()){
-
-return;
-
-}
-
-
-
-
-
-let result=text;
-
-
-
-
-if(mode==="grammar"){
-
-
-result = text.replace(
-
-/\bi\b/g,
-
-"I"
-
-);
-
-
-
-}
-
-
-
-if(mode==="professional"){
-
-
-result =
-
-"Professional version:\n\n"+text;
-
-
-}
-
-
-
-
-
-if(mode==="friendly"){
-
-
-result =
-
-"Friendly version:\n\n"+text;
-
-
-}
-
-
-
-
-
-if(mode==="shorter"){
-
-
-result =
-
-text
-
-.split(".")
-
-.slice(0,2)
-
-.join(".")+".";
-
-
-}
-
-
-
-
-
-addMessage(
-
-result,
-
-"jarvis"
-
-);
-
-
-}
-
-
-
-
-
-
-
-// =====================================
-// APPLICATION ROUTER
-// =====================================
-
-
-function applicationRouter(message){
-
-
-if(currentMode==="math"){
-
-
-return mathEngine(message);
-
-
-}
-
-
-
-return null;
-
-
-}
-// =====================================
-// V4 CALENDAR APPLICATION
-// =====================================
-
+// Calendar
 
 let calendar = JSON.parse(
 
@@ -1428,713 +434,559 @@ localStorage.getItem("jarvisCalendar")
 );
 
 
+// Core Status
 
-
-
-function saveCalendar(){
-
-
-localStorage.setItem(
-
-"jarvisCalendar",
-
-JSON.stringify(calendar)
-
-);
-
-
-}
-
-
-
-
-function addEvent(name){
-
-
-calendar.push({
-
-name:name,
-
-date:new Date().toLocaleString()
-
-});
-
-
-saveCalendar();
-
-
-
-return "Calendar event added: "+name;
-
-
-}
-
-
-
-
-
-function showCalendar(){
-
-
-if(calendar.length===0){
-
-return "Calendar is empty.";
-
-}
-
-
-
-return calendar.map(
-
-(event,index)=>
-
-(index+1)+". "+
-
-event.name+
-
-" - "+
-
-event.date
-
-).join("\n\n");
-
-
-}
-
-
-
-
-
-
-function calendarSystem(message){
-
-
-let text=
-
-message.toLowerCase();
-
-
-
-
-
-if(
-
-text.includes("add") &&
-
-text.includes("event")
-
-){
-
-
-
-let name =
-
-message
-
-.replace(/add|event/gi,"")
-
-.trim();
-
-
-
-return addEvent(name);
-
-
-}
-
-
-
-
-
-if(
-
-text.includes("calendar") ||
-
-text.includes("schedule")
-
-){
-
-
-return showCalendar();
-
-
-}
-
-
-
-return null;
-
-
-}
-
-
-
-
-
-// =====================================
-// V4 CORE ENGINE
-// =====================================
-
-
-const JARVIS_CORE={
-
+const JARVIS_CORE = {
 
 version:"V4.0",
 
 status:"ONLINE",
 
-
-modules:{},
-
-
-stats:{
-
+uptime:new Date(),
 
 commands:0,
 
 errors:0
 
+};
 
-}
 
+// User Preferences
+
+const userSettings = {
+
+theme:"dark",
+
+language:"en-US",
+
+voice:false
 
 };
 
 
-
-
-
-function registerModule(name,module){
-
-
-JARVIS_CORE.modules[name]={
-
-
-status:"ONLINE",
-
-module:module
-
-
-};
-
-
-
-}
-
-
-
-
 // =====================================
-// JARVIS SYSTEM UPDATE DIAGNOSTIC
+// JARVIS V4
+// MEMORY SYSTEM
 // =====================================
 
-function systemUpdate(){
+let memory = JSON.parse(
 
-let report = `
+localStorage.getItem("jarvisMemory")
 
-JARVIS SYSTEM UPDATE
+||
 
+'{"notes":[]}'
 
-CORE STATUS:
-`;
-
-
-// Core check
-if(typeof jarvisReply === "function"){
-    report += "✓ Intelligence Core: ONLINE\n";
-}else{
-    report += "✗ Intelligence Core: ERROR\n";
-}
+);
 
 
+// Save memory to browser
 
-// Memory check
-report += "\nMEMORY SYSTEM:\n";
+function saveMemory(){
 
-if(typeof memory !== "undefined"){
-    report += "✓ Memory Storage: ONLINE\n";
-}else{
-    report += "✗ Memory Storage: ERROR\n";
-}
+localStorage.setItem(
 
+"jarvisMemory",
 
+JSON.stringify(memory)
 
-// Math check
-report += "\nAPPLICATIONS:\n";
-
-if(typeof mathEngine === "function"){
-    report += "✓ Math Application: ONLINE\n";
-}else{
-    report += "✗ Math Application: ERROR\n";
-}
-
-
-
-// Writing check
-if(typeof processWriting === "function"){
-    report += "✓ Writing Application: ONLINE\n";
-}else{
-    report += "✗ Writing Application: ERROR\n";
-}
-
-
-
-// Calendar check
-if(typeof calendarSystem === "function"){
-    report += "✓ Calendar Application: ONLINE\n";
-}else{
-    report += "✗ Calendar Application: ERROR\n";
-}
-
-
-
-// Interface checks
-report += "\nINTERFACE:\n";
-
-
-if(document.getElementById("chat")){
-    report += "✓ Chat Window: ONLINE\n";
-}else{
-    report += "✗ Chat Window: ERROR\n";
-}
-
-
-
-if(document.getElementById("input")){
-    report += "✓ Input System: ONLINE\n";
-}else{
-    report += "✗ Input System: ERROR\n";
-}
-
-
-
-if(document.querySelectorAll(".tool").length > 0){
-    report += "✓ Tool Buttons: DETECTED\n";
-}else{
-    report += "✗ Tool Buttons: ERROR\n";
-}
-
-
-
-// Final message
-
-report += `
-
-OVERALL STATUS:
-
-JARVIS V4 CORE IS RUNNING.
-
-Diagnostic complete.
-
-`;
-
-return report;
+);
 
 }
 
-function getSystemStatus(){
+
+// Remember something
+
+function remember(text){
+
+if(!text.trim()){
+
+return "Tell me what you would like me to remember.";
+
+}
+
+memory.notes.push({
+
+text:text,
+
+time:new Date().toLocaleString()
+
+});
+
+saveMemory();
+
+return "I'll remember that.";
+
+}
 
 
+// Show memory
 
-let output=
+function readMemory(){
 
-`
+if(memory.notes.length===0){
 
-JARVIS SYSTEM STATUS
+return "I don't have any saved memories yet.";
 
+}
 
-Version:
-${JARVIS_CORE.version}
+let output="Saved Memories\n\n";
 
-
-Status:
-${JARVIS_CORE.status}
-
-
-Modules:
-
-`;
-
-
-
-
-
-for(let module in JARVIS_CORE.modules){
-
+memory.notes.forEach((note,index)=>{
 
 output +=
 
-module+
+`${index+1}. ${note.text}\n`;
 
-": ONLINE\n";
-
-
-}
-
-
-
-
-
-output +=`
-
-Commands:
-${JARVIS_CORE.stats.commands}
-
-
-Errors:
-${JARVIS_CORE.stats.errors}
-
-`;
-
-
+});
 
 return output;
 
+}
+
+
+// Forget everything
+
+function clearMemory(){
+
+memory.notes=[];
+
+saveMemory();
+
+return "All saved memories have been cleared.";
 
 }
 
 
+// Memory command handler
+
+function memoryRouter(message){
+
+let text=message.toLowerCase();
 
 
+if(text.startsWith("remember ")){
 
-// Register systems
+return remember(
 
-
-registerModule(
-
-"Knowledge",
-
-knowledge
-
-);
-
-
-
-registerModule(
-
-"Memory",
-
-memory
+message.substring(9).trim()
 
 );
-
-
-
-registerModule(
-
-"Calendar",
-
-calendar
-
-);
-
-
-
-registerModule(
-
-"Core",
-
-JARVIS_CORE
-
-);
-// =====================================
-// FINAL RESPONSE ROUTER
-// =====================================
-
-
-const baseJarvisReply = jarvisReply;
-
-
-
-jarvisReply=function(message){
-
-
-
-// Applications
-
-let appReply =
-
-applicationRouter(message);
-
-
-
-if(appReply){
-
-return appReply;
 
 }
-
-
-
-
-
-// Calendar
-
-let calendarReply =
-
-calendarSystem(message);
-
-
-
-if(calendarReply){
-
-return calendarReply;
-
-}
-
-
-
-
-
-// Status commands
-
-let text =
-
-message.toLowerCase();
-
-
 
 
 if(
 
-text==="status" ||
+text==="memory" ||
 
-text==="system status"
+text==="show memory"
 
 ){
 
+return readMemory();
 
-return getSystemStatus();
+}
 
+
+if(
+
+text==="clear memory" ||
+
+text==="forget everything"
+
+){
+
+return clearMemory();
+
+}
+
+
+return null;
 
 }
 
 
 
 
+// =====================================
+// JARVIS ADVANCED CALENDAR SYSTEM V2
+// =====================================
 
-return baseJarvisReply(message);
+const CalendarSystem = {
+
+    version:"2.0",
+
+    calendars:{
+        personal:[],
+        work:[],
+        school:[],
+        reminders:[]
+    },
 
 
+    init(){
+
+        let saved =
+        localStorage.getItem("jarvisCalendar");
+
+        if(saved){
+
+            this.calendars =
+            JSON.parse(saved);
+
+        }
+
+    },
+
+
+    save(){
+
+        localStorage.setItem(
+            "jarvisCalendar",
+            JSON.stringify(this.calendars)
+        );
+
+    },
+
+
+    createEvent({
+
+        calendar="personal",
+        title,
+        description="",
+        date,
+        startTime="",
+        endTime="",
+        location="",
+        category="general",
+        reminder=null,
+        repeat="none"
+
+    }){
+
+
+        let event={
+
+            id:Date.now(),
+
+            title,
+
+            description,
+
+            date,
+
+            startTime,
+
+            endTime,
+
+            location,
+
+            category,
+
+            reminder,
+
+            repeat,
+
+            created:
+            new Date().toISOString()
+
+        };
+
+
+        if(!this.calendars[calendar]){
+
+            this.calendars[calendar]=[];
+
+        }
+
+
+        this.calendars[calendar].push(event);
+
+
+        this.save();
+
+
+        return `Event created: ${title}`;
+
+    },
+
+
+
+// =====================================
+// GET ALL EVENTS
+// =====================================
+
+    getAllEvents(){
+
+
+        let events=[];
+
+
+        Object.values(this.calendars)
+        .forEach(calendar=>{
+
+            events.push(...calendar);
+
+        });
+
+
+        return events.sort(
+            (a,b)=>
+            new Date(a.date)-new Date(b.date)
+        );
+
+    },
+
+
+
+// =====================================
+// TODAY AGENDA
+// =====================================
+
+    today(){
+
+
+        let today =
+        new Date()
+        .toLocaleDateString();
+
+
+        let events =
+        this.getAllEvents()
+        .filter(e=>e.date===today);
+
+
+
+        if(events.length===0){
+
+            return "No events today.";
+
+        }
+
+
+        return this.format(events);
+
+    },
+
+
+
+// =====================================
+// UPCOMING EVENTS
+// =====================================
+
+    upcoming(days=7){
+
+
+        let now =
+        new Date();
+
+
+        let future =
+        new Date();
+
+
+        future.setDate(
+            now.getDate()+days
+        );
+
+
+        let events =
+        this.getAllEvents()
+        .filter(event=>{
+
+            let date =
+            new Date(event.date);
+
+            return date>=now &&
+                   date<=future;
+
+        });
+
+
+        if(events.length===0){
+
+            return "No upcoming events.";
+
+        }
+
+
+        return this.format(events);
+
+    },
+
+
+
+// =====================================
+// SEARCH
+// =====================================
+
+    search(query){
+
+
+        query=query.toLowerCase();
+
+
+        let results =
+        this.getAllEvents()
+        .filter(event=>
+
+            event.title
+            .toLowerCase()
+            .includes(query)
+
+            ||
+
+            event.description
+            .toLowerCase()
+            .includes(query)
+
+        );
+
+
+        return this.format(results);
+
+    },
+
+
+
+// =====================================
+// DELETE EVENT
+// =====================================
+
+    delete(id){
+
+
+        for(let calendar in this.calendars){
+
+
+            this.calendars[calendar] =
+
+            this.calendars[calendar]
+            .filter(event=>event.id!==id);
+
+
+        }
+
+
+        this.save();
+
+
+        return "Event deleted.";
+
+    },
+
+
+
+// =====================================
+// CLEAR CALENDAR
+// =====================================
+
+    clear(){
+
+
+        this.calendars={
+
+            personal:[],
+            work:[],
+            school:[],
+            reminders:[]
+
+        };
+
+
+        this.save();
+
+
+        return "Calendar cleared.";
+
+    },
+
+
+
+// =====================================
+// FORMAT OUTPUT
+// =====================================
+
+    format(events){
+
+
+        return events.map(event=>`
+
+📅 ${event.title}
+
+Date:
+${event.date}
+
+Time:
+${event.startTime}
+${event.endTime ? "- "+event.endTime:""}
+
+Location:
+${event.location || "None"}
+
+Category:
+${event.category}
+
+Reminder:
+${event.reminder || "None"}
+
+        `).join("\n----------------\n");
+
+    },
+
+
+
+// =====================================
+// SYSTEM CHECK
+// =====================================
+
+    status(){
+
+        let total =
+        this.getAllEvents().length;
+
+
+        return {
+
+            system:"Calendar",
+
+            status:"Online",
+
+            eventsStored:total,
+
+            calendars:
+            Object.keys(this.calendars)
+
+        };
+
+    }
 
 };
 
 
+CalendarSystem.init();
 
 
 
 
 // =====================================
-// SEND MESSAGE SYSTEM
+// JARVIS V4
+// MODE SYSTEM
 // =====================================
 
+function setMode(mode,button){
 
-function sendMessage(){
+currentMode = mode;
 
 
-const userInput =
+// Update active button
 
-document.getElementById(
-
-"input"
-
-);
-
-
-
-const text =
-
-userInput.value.trim();
-
-
-
-
-
-if(!text){
-
-return;
-
-}
-
-
-
-
-addMessage(
-
-text,
-
-"user"
-
-);
-
-
-
-userInput.value="";
-
-
-
-
-
-setTimeout(()=>{
-
-
-
-const response =
-
-jarvisReply(text);
-
-
-
-addMessage(
-
-response,
-
-"jarvis"
-
-);
-
-
-
-},300);
-
-
-
-}
-
-
-
-
-
-
-
-
-// =====================================
-// ENTER KEY SUPPORT
-// =====================================
-
-
-input.addEventListener(
-
-"keydown",
-
-function(event){
-
-
-
-if(event.key==="Enter"){
-
-
-sendMessage();
-
-
-}
-
-
-
-}
-
-);
-
-
-
-
-
-
-// =====================================
-// STARTUP MESSAGE
-// =====================================
-
-
-function bootJarvis(){
-
-
-
-addMessage(
-
-"JARVIS V4 initialized.",
-
-"jarvis"
-
-);
-
-
-
-addMessage(
-
-"Memory, intelligence, and applications online.",
-
-"jarvis"
-
-);
-
-
-
-}
-
-
-
-
-bootJarvis();
-
-
-// =====================================
-// WRITING PANEL CONTROL FIX
-// =====================================
-
-
-function updatePanel(){
-
-
-if(currentMode==="writing"){
-
-
-panel.style.display="block";
-
-
-}
-
-else{
-
-
-panel.style.display="none";
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-// Replace mode function with connected version
-
-
-
-
-
-
-currentMode=mode;
-
-
-
-document
-
-.querySelectorAll(".tool")
-
-.forEach(btn=>{
-
+document.querySelectorAll(".tool").forEach(btn=>{
 
 btn.classList.remove("active");
 
-
 });
-
-
-
 
 
 if(button){
@@ -2144,86 +996,9798 @@ button.classList.add("active");
 }
 
 
+// Show or hide writing panel
+
+if(mode==="writing"){
+
+panel.style.display="block";
+
+}else{
+
+panel.style.display="none";
+
+}
 
 
-updatePanel();
+// Notify user
 
+const names = {
+
+chat:"Chat",
+
+math:"Math",
+
+writing:"Writing"
+
+};
 
 
 addMessage(
 
-mode+" mode activated.",
+names[mode] + " mode activated.",
 
 "jarvis"
 
 );
 
+}
+
+
+
+
+
+// =====================================
+// JARVIS V4
+// EXPLANATION ENGINE
+// =====================================
+
+function explain(text){
+
+switch(explanationMode){
+
+case "simple":
+
+return `Simple
+
+${text}
+
+In short:
+Easy to understand and focused on the main idea.`;
+
+
+
+case "detailed":
+
+return `Detailed
+
+${text}
+
+More Information:
+• Explains the important parts
+• Includes additional context
+• Easier to understand how everything connects`;
+
+
+
+case "expert":
+
+return `Expert
+
+${text}
+
+Technical Analysis:
+• Uses more precise terminology
+• Focuses on systems and underlying concepts
+• Assumes prior knowledge of the subject`;
+
+
+
+default:
+
+return text;
+
+}
+
+}
+
+// =====================================
+// V3 KNOWLEDGE DATABASE
+// =====================================
+const STEM = {
+
+Mathematics:{
+
+// =====================================
+// NUMBERS
+// =====================================
+
+Numbers:{
+
+definition:"Numbers are mathematical objects used to count, measure, compare, and perform calculations.",
+
+topics:{
+
+Natural:{
+keywords:[
+"natural numbers",
+"counting numbers"
+],
+answer:"Natural numbers are the counting numbers: 1, 2, 3, 4, 5, and so on."
+},
+
+Whole:{
+keywords:[
+"whole numbers"
+],
+answer:"Whole numbers include 0 and all positive counting numbers."
+},
+
+Integers:{
+keywords:[
+"integers",
+"integer"
+],
+answer:"Integers include negative numbers, zero, and positive numbers."
+},
+
+Rational:{
+keywords:[
+"rational numbers"
+],
+answer:"A rational number can be written as a fraction of two integers where the denominator is not zero."
+},
+
+Irrational:{
+keywords:[
+"irrational numbers"
+],
+answer:"An irrational number cannot be written as a simple fraction. Examples include π and √2."
+},
+
+Real:{
+keywords:[
+"real numbers"
+],
+answer:"Real numbers include both rational and irrational numbers."
+},
+
+Complex:{
+keywords:[
+"complex numbers"
+],
+answer:"Complex numbers contain a real part and an imaginary part, such as 3 + 2i."
+}
+
+}
+
+},
+
+
+// =====================================
+// ARITHMETIC
+// =====================================
+
+Arithmetic:{
+
+definition:"Arithmetic is the branch of mathematics dealing with basic operations.",
+
+operations:{
+
+Addition:{
+keywords:[
+"addition",
+"add",
+"plus"
+],
+answer:"Addition combines two or more numbers into one total."
+},
+
+Subtraction:{
+keywords:[
+"subtract",
+"subtraction",
+"minus"
+],
+answer:"Subtraction finds the difference between numbers."
+},
+
+Multiplication:{
+keywords:[
+"multiply",
+"multiplication",
+"times"
+],
+answer:"Multiplication is repeated addition."
+},
+
+Division:{
+keywords:[
+"division",
+"divide"
+],
+answer:"Division splits a quantity into equal parts."
+}
+
+}
+
+},
+
+
+// =====================================
+// FRACTIONS
+// =====================================
+
+Fractions:{
+
+definition:"Fractions represent parts of a whole.",
+
+topics:{
+
+Numerator:{
+keywords:["numerator"],
+answer:"The numerator is the top number in a fraction."
+},
+
+Denominator:{
+keywords:["denominator"],
+answer:"The denominator is the bottom number in a fraction."
+},
+
+EquivalentFractions:{
+keywords:["equivalent fractions"],
+answer:"Equivalent fractions represent the same value even though they look different."
+}
+
+}
+
+},
+
+
+// =====================================
+// DECIMALS
+// =====================================
+
+Decimals:{
+
+definition:"Decimals represent numbers using place value to the right of a decimal point."
+
+},
+
+
+// =====================================
+// PERCENTAGES
+// =====================================
+
+Percentages:{
+
+definition:"A percentage represents a value out of one hundred."
+
+}
+
+},
+// =====================================
+// RATIOS & PROPORTIONS
+// =====================================
+
+Ratios:{
+
+definition:"A ratio compares two quantities.",
+
+topics:{
+
+Ratio:{
+keywords:[
+"ratio",
+"ratios"
+],
+answer:"A ratio compares two quantities, such as 2:3."
+},
+
+Proportion:{
+keywords:[
+"proportion",
+"proportions"
+],
+answer:"A proportion states that two ratios are equal."
+},
+
+Scale:{
+keywords:[
+"scale",
+"scale factor"
+],
+answer:"A scale factor describes how much a figure has been enlarged or reduced."
+}
+
+}
+
+},
+
+
+// =====================================
+// EXPONENTS
+// =====================================
+
+Exponents:{
+
+definition:"Exponents show how many times a number is multiplied by itself.",
+
+topics:{
+
+Power:{
+keywords:[
+"exponent",
+"power"
+],
+answer:"In 5², the exponent tells us to multiply 5 by itself two times."
+},
+
+Square:{
+keywords:[
+"square number"
+],
+answer:"A square number is the result of multiplying a number by itself."
+},
+
+Cube:{
+keywords:[
+"cube number"
+],
+answer:"A cube number is the result of multiplying a number by itself three times."
+}
+
+}
+
+},
+
+
+// =====================================
+// ROOTS
+// =====================================
+
+Roots:{
+
+definition:"Roots are the inverse operation of exponents.",
+
+topics:{
+
+SquareRoot:{
+keywords:[
+"square root"
+],
+answer:"The square root of a number is a value that multiplied by itself equals the original number."
+},
+
+CubeRoot:{
+keywords:[
+"cube root"
+],
+answer:"A cube root is a number that multiplied by itself three times equals the original number."
+}
+
+}
+
+},
+
+
+// =====================================
+// ALGEBRA
+// =====================================
+
+Algebra:{
+
+definition:"Algebra uses symbols and variables to represent numbers and relationships.",
+
+topics:{
+
+Variable:{
+keywords:[
+"variable",
+"variables"
+],
+answer:"A variable is a symbol, usually a letter, that represents an unknown or changing value."
+},
+
+Expression:{
+keywords:[
+"expression",
+"algebraic expression"
+],
+answer:"An expression is a mathematical phrase made of numbers, variables, and operations."
+},
+
+Equation:{
+keywords:[
+"equation",
+"equations"
+],
+answer:"An equation states that two mathematical expressions are equal."
+},
+
+Inequality:{
+keywords:[
+"inequality",
+"inequalities"
+],
+answer:"An inequality compares two values using symbols such as <, >, ≤, or ≥."
+},
+
+LinearEquation:{
+keywords:[
+"linear equation"
+],
+answer:"A linear equation forms a straight line when graphed."
+}
+
+}
+
+},
+// =====================================
+// GEOMETRY
+// =====================================
+
+Geometry:{
+
+definition:"Geometry is the branch of mathematics that studies shapes, sizes, positions, and properties of space.",
+
+topics:{
+
+Point:{
+keywords:[
+"point",
+"points"
+],
+answer:"A point represents an exact location in space and has no size."
+},
+
+Line:{
+keywords:[
+"line",
+"lines"
+],
+answer:"A line extends infinitely in both directions and has no thickness."
+},
+
+Angle:{
+keywords:[
+"angle",
+"angles"
+],
+answer:"An angle is formed when two rays meet at a common endpoint called a vertex."
+},
+
+Triangle:{
+keywords:[
+"triangle",
+"triangles"
+],
+answer:"A triangle is a three-sided polygon. The angles inside every triangle add up to 180 degrees."
+},
+
+Circle:{
+keywords:[
+"circle",
+"circles"
+],
+answer:"A circle is a shape where every point is the same distance from the center."
+},
+
+Area:{
+keywords:[
+"area"
+],
+answer:"Area measures the amount of space inside a two-dimensional shape."
+},
+
+Volume:{
+keywords:[
+"volume"
+],
+answer:"Volume measures the amount of three-dimensional space an object occupies."
+},
+
+PythagoreanTheorem:{
+keywords:[
+"pythagorean theorem",
+"right triangle"
+],
+answer:"The Pythagorean theorem states that in a right triangle, a² + b² = c²."
+}
+
+}
+
+},
+
+
+// =====================================
+// TRIGONOMETRY
+// =====================================
+
+Trigonometry:{
+
+definition:"Trigonometry studies relationships between angles and sides of triangles.",
+
+topics:{
+
+Sine:{
+keywords:[
+"sine",
+"sin"
+],
+answer:"Sine is a trigonometric function that relates the opposite side and hypotenuse of a right triangle."
+},
+
+Cosine:{
+keywords:[
+"cosine",
+"cos"
+],
+answer:"Cosine relates the adjacent side and hypotenuse of a right triangle."
+},
+
+Tangent:{
+keywords:[
+"tangent",
+"tan"
+],
+answer:"Tangent relates the opposite side and adjacent side of a right triangle."
+},
+
+UnitCircle:{
+keywords:[
+"unit circle"
+],
+answer:"The unit circle is a circle with radius 1 used to understand trigonometric relationships."
+}
+
+}
+
+},
+
+
+// =====================================
+// STATISTICS
+// =====================================
+
+Statistics:{
+
+definition:"Statistics collects, analyzes, interprets, and presents data.",
+
+topics:{
+
+Mean:{
+keywords:[
+"mean",
+"average"
+],
+answer:"The mean is calculated by adding all values and dividing by the number of values."
+},
+
+Median:{
+keywords:[
+"median"
+],
+answer:"The median is the middle value when data is arranged in order."
+},
+
+Mode:{
+keywords:[
+"mode"
+],
+answer:"The mode is the value that appears most frequently in a data set."
+},
+
+Range:{
+keywords:[
+"range"
+],
+answer:"The range is the difference between the largest and smallest values."
+},
+
+StandardDeviation:{
+keywords:[
+"standard deviation"
+],
+answer:"Standard deviation measures how spread out data values are from the average."
+
+}
+
+}
+
+},
+// =====================================
+// PROBABILITY
+// =====================================
+
+Probability:{
+
+definition:"Probability is the branch of mathematics that studies chance and the likelihood of events occurring.",
+
+topics:{
+
+BasicProbability:{
+keywords:[
+"probability",
+"chance",
+"likelihood"
+],
+answer:"Probability measures how likely an event is to happen. It ranges from 0 (impossible) to 1 (certain)."
+},
+
+SampleSpace:{
+keywords:[
+"sample space"
+],
+answer:"A sample space is the complete set of all possible outcomes of an experiment."
+},
+
+IndependentEvents:{
+keywords:[
+"independent events"
+],
+answer:"Independent events are events where the outcome of one does not affect the other."
+},
+
+DependentEvents:{
+keywords:[
+"dependent events"
+],
+answer:"Dependent events are events where one outcome affects the probability of another."
+},
+
+ConditionalProbability:{
+keywords:[
+"conditional probability"
+],
+answer:"Conditional probability measures the chance of an event occurring when another event is already known."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CALCULUS
+// =====================================
+
+Calculus:{
+
+definition:"Calculus is the branch of mathematics that studies change, motion, and accumulation.",
+
+topics:{
+
+Limit:{
+keywords:[
+"limit",
+"limits"
+],
+answer:"A limit describes the value a function approaches as an input approaches a certain point."
+},
+
+Derivative:{
+keywords:[
+"derivative",
+"derivatives"
+],
+answer:"A derivative measures the rate at which a quantity changes. It represents slope or instantaneous change."
+},
+
+Integral:{
+keywords:[
+"integral",
+"integrals"
+],
+answer:"An integral calculates accumulation, such as area under a curve."
+},
+
+Differentiation:{
+keywords:[
+"differentiation"
+],
+answer:"Differentiation is the process of finding derivatives."
+},
+
+Integration:{
+keywords:[
+"integration"
+],
+answer:"Integration is the process of finding integrals."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// LINEAR ALGEBRA
+// =====================================
+
+LinearAlgebra:{
+
+definition:"Linear algebra studies vectors, matrices, and linear relationships.",
+
+topics:{
+
+Vector:{
+keywords:[
+"vector",
+"vectors"
+],
+answer:"A vector is a quantity with both magnitude and direction."
+},
+
+Matrix:{
+keywords:[
+"matrix",
+"matrices"
+],
+answer:"A matrix is a rectangular arrangement of numbers used to represent data or transformations."
+},
+
+LinearEquationSystems:{
+keywords:[
+"linear systems",
+"systems of equations"
+],
+answer:"Systems of linear equations involve solving multiple equations with shared variables."
+},
+
+Eigenvalues:{
+keywords:[
+"eigenvalue",
+"eigenvalues"
+],
+answer:"Eigenvalues describe important properties of linear transformations."
+
+}
+
+}
+
+},
+// =====================================
+// DISCRETE MATHEMATICS
+// =====================================
+
+DiscreteMathematics:{
+
+definition:"Discrete mathematics studies mathematical structures that are separate and countable rather than continuous.",
+
+topics:{
+
+Logic:{
+keywords:[
+"logic",
+"mathematical logic"
+],
+answer:"Mathematical logic studies reasoning using statements, truth values, and logical operations."
+},
+
+Sets:{
+keywords:[
+"set",
+"sets"
+],
+answer:"A set is a collection of distinct objects called elements."
+},
+
+Graphs:{
+keywords:[
+"graph theory",
+"graphs"
+],
+answer:"Graph theory studies networks made of points called vertices connected by edges."
+},
+
+Algorithms:{
+keywords:[
+"algorithm",
+"algorithms"
+],
+answer:"An algorithm is a step-by-step procedure used to solve a problem."
+},
+
+Combinatorics:{
+keywords:[
+"combinatorics"
+],
+answer:"Combinatorics studies counting, arrangements, and combinations of objects."
+},
+
+Recursion:{
+keywords:[
+"recursion"
+],
+answer:"Recursion is a process where a function or process refers back to itself to solve a problem."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// NUMBER THEORY
+// =====================================
+
+NumberTheory:{
+
+definition:"Number theory studies the properties and relationships of whole numbers.",
+
+topics:{
+
+PrimeNumbers:{
+keywords:[
+"prime numbers",
+"prime number"
+],
+answer:"A prime number is a whole number greater than 1 that has exactly two factors: 1 and itself."
+},
+
+Factors:{
+keywords:[
+"factors",
+"factor"
+],
+answer:"Factors are numbers that divide evenly into another number."
+},
+
+Multiples:{
+keywords:[
+"multiples"
+],
+answer:"Multiples are numbers produced by multiplying a number by whole numbers."
+},
+
+GreatestCommonFactor:{
+keywords:[
+"greatest common factor",
+"gcf"
+],
+answer:"The greatest common factor is the largest number that divides evenly into two or more numbers."
+},
+
+LeastCommonMultiple:{
+keywords:[
+"least common multiple",
+"lcm"
+],
+answer:"The least common multiple is the smallest positive number shared by two or more numbers."
+},
+
+ModularArithmetic:{
+keywords:[
+"modular arithmetic",
+"mod"
+],
+answer:"Modular arithmetic studies numbers that wrap around after reaching a certain value."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MATHEMATICAL LOGIC
+// =====================================
+
+MathematicalLogic:{
+
+definition:"Mathematical logic studies formal systems of reasoning and proof.",
+
+topics:{
+
+Statements:{
+keywords:[
+"statement",
+"proposition"
+],
+answer:"A mathematical statement is a sentence that can be classified as true or false."
+},
+
+TruthTables:{
+keywords:[
+"truth table"
+],
+answer:"A truth table shows the possible truth values of logical statements."
+},
+
+Proofs:{
+keywords:[
+"proof",
+"mathematical proof"
+],
+answer:"A mathematical proof is a logical argument that demonstrates a statement is true."
+},
+
+Theorems:{
+keywords:[
+"theorem"
+],
+answer:"A theorem is a statement that has been proven using accepted mathematical reasoning."
+},
+
+Axioms:{
+keywords:[
+"axiom"
+],
+answer:"An axiom is a statement accepted as true without requiring proof."
+
+}
+
+}
+
+}
+
+
+Physics:{
+
+// =====================================
+// PHYSICS FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Physics is the science that studies matter, energy, motion, forces, and the laws that describe how the universe works.",
+
+topics:{
+
+Matter:{
+keywords:[
+"matter",
+"what is matter"
+],
+answer:"Matter is anything that has mass and takes up space. It exists as solids, liquids, gases, and plasma."
+},
+
+Energy:{
+keywords:[
+"energy",
+"types of energy"
+],
+answer:"Energy is the ability to do work. Common forms include kinetic, potential, thermal, chemical, electrical, and nuclear energy."
+},
+
+Mass:{
+keywords:[
+"mass"
+],
+answer:"Mass measures the amount of matter in an object. It is different from weight, which depends on gravity."
+},
+
+Weight:{
+keywords:[
+"weight"
+],
+answer:"Weight is the force of gravity acting on an object's mass."
+},
+
+Units:{
+keywords:[
+"physics units",
+"si units",
+"units"
+],
+answer:"Physics commonly uses the SI system. Examples include meters for length, kilograms for mass, seconds for time, and joules for energy."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MEASUREMENT
+// =====================================
+
+Measurement:{
+
+definition:"Measurement is the process of comparing a physical quantity with a standard unit.",
+
+topics:{
+
+Length:{
+keywords:[
+"length",
+"distance"
+],
+answer:"Length measures the distance between two points and is commonly measured in meters."
+},
+
+Time:{
+keywords:[
+"time",
+"seconds"
+],
+answer:"Time measures the duration between events and is commonly measured in seconds."
+},
+
+Accuracy:{
+keywords:[
+"accuracy"
+],
+answer:"Accuracy describes how close a measurement is to the true value."
+},
+
+Precision:{
+keywords:[
+"precision"
+],
+answer:"Precision describes how close repeated measurements are to each other."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MOTION
+// =====================================
+
+Motion:{
+
+definition:"Motion is the change in position of an object over time.",
+
+topics:{
+
+Speed:{
+keywords:[
+"speed"
+],
+answer:"Speed describes how fast an object moves. Formula: speed = distance ÷ time."
+},
+
+Velocity:{
+keywords:[
+"velocity"
+],
+answer:"Velocity is speed in a specific direction."
+},
+
+Acceleration:{
+keywords:[
+"acceleration"
+],
+answer:"Acceleration is the rate at which velocity changes."
+},
+
+Distance:{
+keywords:[
+"distance"
+],
+answer:"Distance is the total amount of space traveled by an object."
+
+}
+
+}
+
+}
+// =====================================
+// FORCES
+// =====================================
+
+Forces:{
+
+definition:"A force is a push or pull that can change an object's motion.",
+
+topics:{
+
+Force:{
+keywords:[
+"force",
+"forces"
+],
+answer:"Force is an interaction that can accelerate an object. Formula: F = mass × acceleration."
+},
+
+NewtonFirstLaw:{
+keywords:[
+"newton first law",
+"inertia"
+],
+answer:"Newton's First Law states that an object remains at rest or in constant motion unless acted on by an external force."
+},
+
+NewtonSecondLaw:{
+keywords:[
+"newton second law"
+],
+answer:"Newton's Second Law states that force equals mass multiplied by acceleration: F = ma."
+},
+
+NewtonThirdLaw:{
+keywords:[
+"newton third law"
+],
+answer:"Newton's Third Law states that every action has an equal and opposite reaction."
+},
+
+Friction:{
+keywords:[
+"friction"
+],
+answer:"Friction is a force that opposes motion between surfaces."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// GRAVITY
+// =====================================
+
+Gravity:{
+
+definition:"Gravity is the force that attracts objects with mass toward each other.",
+
+topics:{
+
+GravitationalForce:{
+keywords:[
+"gravity",
+"gravitational force"
+],
+answer:"Gravity is an attractive force between masses. On Earth it causes objects to fall toward the ground."
+},
+
+AccelerationGravity:{
+keywords:[
+"gravity acceleration",
+"9.8"
+],
+answer:"Near Earth's surface, objects accelerate downward at approximately 9.8 meters per second squared."
+},
+
+Orbit:{
+keywords:[
+"orbit",
+"orbital motion"
+],
+answer:"An orbit occurs when gravity and motion combine to keep an object moving around another object."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MOMENTUM
+// =====================================
+
+Momentum:{
+
+definition:"Momentum describes the quantity of motion an object has.",
+
+topics:{
+
+MomentumFormula:{
+keywords:[
+"momentum",
+"momentum formula"
+],
+answer:"Momentum equals mass multiplied by velocity: p = mv."
+},
+
+Impulse:{
+keywords:[
+"impulse"
+],
+answer:"Impulse is the change in momentum caused by a force acting over time."
+},
+
+ConservationMomentum:{
+keywords:[
+"conservation of momentum"
+],
+answer:"In a closed system, total momentum remains constant before and after interactions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// WORK AND POWER
+// =====================================
+
+WorkPower:{
+
+definition:"Work and power describe how energy is transferred and used.",
+
+topics:{
+
+Work:{
+keywords:[
+"work physics"
+],
+answer:"Work occurs when a force moves an object through a distance. Formula: W = force × distance."
+},
+
+Power:{
+keywords:[
+"power physics"
+],
+answer:"Power measures how quickly work is done. Formula: P = work ÷ time."
+},
+
+Efficiency:{
+keywords:[
+"efficiency"
+],
+answer:"Efficiency compares useful energy output to total energy input."
+
+}
+
+}
+
+},
+// =====================================
+// ENERGY
+// =====================================
+
+Energy:{
+
+definition:"Energy is the ability to perform work or cause change.",
+
+topics:{
+
+KineticEnergy:{
+keywords:[
+"kinetic energy",
+"energy of motion"
+],
+answer:"Kinetic energy is the energy an object has because of its motion. Formula: KE = 1/2 mv²."
+},
+
+PotentialEnergy:{
+keywords:[
+"potential energy"
+],
+answer:"Potential energy is stored energy due to an object's position or condition."
+},
+
+MechanicalEnergy:{
+keywords:[
+"mechanical energy"
+],
+answer:"Mechanical energy is the total of an object's kinetic and potential energy."
+},
+
+ConservationEnergy:{
+keywords:[
+"conservation of energy"
+],
+answer:"Energy cannot be created or destroyed; it can only be transferred or transformed."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// THERMODYNAMICS
+// =====================================
+
+Thermodynamics:{
+
+definition:"Thermodynamics studies heat, temperature, and energy transfer.",
+
+topics:{
+
+Temperature:{
+keywords:[
+"temperature"
+],
+answer:"Temperature measures the average kinetic energy of particles in a substance."
+},
+
+Heat:{
+keywords:[
+"heat"
+],
+answer:"Heat is energy transferred between objects because of a temperature difference."
+},
+
+FirstLaw:{
+keywords:[
+"first law of thermodynamics"
+],
+answer:"The First Law of Thermodynamics states that energy is conserved during energy transfers."
+},
+
+SecondLaw:{
+keywords:[
+"second law of thermodynamics"
+],
+answer:"The Second Law of Thermodynamics describes the tendency of energy to spread out and increase entropy."
+},
+
+Entropy:{
+keywords:[
+"entropy"
+],
+answer:"Entropy is a measure of disorder or energy distribution in a system."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// WAVES
+// =====================================
+
+Waves:{
+
+definition:"Waves are disturbances that transfer energy through space or matter.",
+
+topics:{
+
+WaveProperties:{
+keywords:[
+"wave",
+"waves"
+],
+answer:"Waves have properties including wavelength, frequency, amplitude, and speed."
+},
+
+Frequency:{
+keywords:[
+"frequency"
+],
+answer:"Frequency is the number of wave cycles that occur each second."
+},
+
+Wavelength:{
+keywords:[
+"wavelength"
+],
+answer:"Wavelength is the distance between matching points on consecutive waves."
+},
+
+Amplitude:{
+keywords:[
+"amplitude"
+],
+answer:"Amplitude describes the maximum displacement of a wave from its resting position."
+},
+
+Sound:{
+keywords:[
+"sound",
+"sound waves"
+],
+answer:"Sound is a mechanical wave that travels through matter by vibrating particles."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// LIGHT
+// =====================================
+
+Light:{
+
+definition:"Light is electromagnetic radiation that can travel through space.",
+
+topics:{
+
+ElectromagneticSpectrum:{
+keywords:[
+"electromagnetic spectrum",
+"em spectrum"
+],
+answer:"The electromagnetic spectrum includes radio waves, microwaves, infrared, visible light, ultraviolet, X-rays, and gamma rays."
+},
+
+Reflection:{
+keywords:[
+"reflection"
+],
+answer:"Reflection occurs when light bounces off a surface."
+},
+
+Refraction:{
+keywords:[
+"refraction"
+],
+answer:"Refraction occurs when light changes direction as it moves between different materials."
+},
+
+Photon:{
+keywords:[
+"photon"
+],
+answer:"A photon is a particle that represents a quantum of electromagnetic energy."
+
+}
+
+}
+
+},
+// =====================================
+// ELECTRICITY
+// =====================================
+
+Electricity:{
+
+definition:"Electricity is the study of electric charge, current, voltage, and circuits.",
+
+topics:{
+
+Charge:{
+keywords:[
+"electric charge",
+"charge"
+],
+answer:"Electric charge is a property of matter that causes electrical interactions. Charges can be positive or negative."
+},
+
+Current:{
+keywords:[
+"electric current",
+"current"
+],
+answer:"Electric current is the flow of electric charge through a conductor."
+},
+
+Voltage:{
+keywords:[
+"voltage",
+"electric potential"
+],
+answer:"Voltage is the difference in electric potential that pushes charges through a circuit."
+},
+
+Resistance:{
+keywords:[
+"resistance"
+],
+answer:"Resistance opposes the flow of electric current. Formula: V = IR."
+},
+
+OhmsLaw:{
+keywords:[
+"ohms law",
+"ohm's law"
+],
+answer:"Ohm's Law describes the relationship between voltage, current, and resistance: V = IR."
+
+},
+
+Circuits:{
+keywords:[
+"circuit",
+"electric circuit"
+],
+answer:"A circuit is a complete path that allows electric current to flow."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MAGNETISM
+// =====================================
+
+Magnetism:{
+
+definition:"Magnetism is a force caused by moving electric charges and magnetic fields.",
+
+topics:{
+
+MagneticField:{
+keywords:[
+"magnetic field"
+],
+answer:"A magnetic field is the region around a magnet where magnetic forces act."
+},
+
+Poles:{
+keywords:[
+"magnetic poles"
+],
+answer:"Magnets have north and south poles. Like poles repel and opposite poles attract."
+},
+
+Electromagnetism:{
+keywords:[
+"electromagnetism"
+],
+answer:"Electromagnetism describes the connection between electricity and magnetism."
+},
+
+Motor:{
+keywords:[
+"electric motor"
+],
+answer:"An electric motor converts electrical energy into mechanical motion using magnetic forces."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MODERN PHYSICS
+// =====================================
+
+ModernPhysics:{
+
+definition:"Modern physics studies physics beyond classical mechanics, including relativity and quantum theory.",
+
+topics:{
+
+Relativity:{
+keywords:[
+"relativity",
+"einstein relativity"
+],
+answer:"Relativity describes how space, time, and energy behave at high speeds and strong gravitational fields."
+},
+
+QuantumPhysics:{
+keywords:[
+"quantum physics",
+"quantum mechanics"
+],
+answer:"Quantum physics studies matter and energy at very small scales, such as atoms and particles."
+},
+
+ParticlePhysics:{
+keywords:[
+"particle physics"
+],
+answer:"Particle physics studies the smallest known building blocks of matter."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// QUANTUM PHYSICS
+// =====================================
+
+QuantumPhysics:{
+
+definition:"Quantum physics describes the behavior of matter and energy at atomic and subatomic scales.",
+
+topics:{
+
+Quantum:{
+keywords:[
+"quantum"
+],
+answer:"A quantum is a discrete packet of energy or another physical quantity."
+},
+
+Superposition:{
+keywords:[
+"superposition"
+],
+answer:"Superposition describes how quantum systems can exist in multiple possible states before measurement."
+},
+
+UncertaintyPrinciple:{
+keywords:[
+"uncertainty principle"
+],
+answer:"The uncertainty principle states that certain pairs of physical properties cannot both be known with unlimited precision."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// NUCLEAR PHYSICS
+// =====================================
+
+NuclearPhysics:{
+
+definition:"Nuclear physics studies atomic nuclei, nuclear forces, and nuclear reactions.",
+
+topics:{
+
+Atom:{
+keywords:[
+"atom",
+"atomic structure"
+],
+answer:"An atom is the basic unit of matter consisting of a nucleus and surrounding electrons."
+},
+
+Radioactivity:{
+keywords:[
+"radioactivity"
+],
+answer:"Radioactivity is the process where unstable atomic nuclei release energy or particles."
+},
+
+NuclearFission:{
+keywords:[
+"nuclear fission"
+],
+answer:"Nuclear fission occurs when a large nucleus splits into smaller nuclei and releases energy."
+},
+
+NuclearFusion:{
+keywords:[
+"nuclear fusion"
+],
+answer:"Nuclear fusion occurs when small nuclei combine and release energy."
+
+}
+
+}
+
+}
+
+
+Chemistry:{
+
+// =====================================
+// CHEMISTRY FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Chemistry is the science that studies matter, its properties, structure, composition, and how substances change.",
+
+topics:{
+
+Matter:{
+keywords:[
+"matter",
+"chemistry matter"
+],
+answer:"Matter is anything that has mass and occupies space. Chemistry studies how matter is organized and changed."
+},
+
+Substance:{
+keywords:[
+"substance",
+"pure substance"
+],
+answer:"A substance is a form of matter with a specific composition and consistent properties."
+},
+
+Mixture:{
+keywords:[
+"mixture",
+"mixtures"
+],
+answer:"A mixture is a combination of two or more substances that are physically combined but not chemically bonded."
+},
+
+Element:{
+keywords:[
+"element",
+"elements"
+],
+answer:"An element is a pure substance made of only one type of atom."
+},
+
+Compound:{
+keywords:[
+"compound",
+"compounds"
+],
+answer:"A compound is a substance made from two or more different elements chemically bonded together."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ATOMIC STRUCTURE
+// =====================================
+
+Atoms:{
+
+definition:"Atoms are the basic units of matter that retain the properties of an element.",
+
+topics:{
+
+Atom:{
+keywords:[
+"atom",
+"atoms"
+],
+answer:"An atom consists of a nucleus containing protons and neutrons, surrounded by electrons."
+},
+
+Proton:{
+keywords:[
+"proton",
+"protons"
+],
+answer:"A proton is a positively charged particle located in the nucleus of an atom."
+},
+
+Neutron:{
+keywords:[
+"neutron",
+"neutrons"
+],
+answer:"A neutron is a particle with no electrical charge located in the nucleus."
+},
+
+Electron:{
+keywords:[
+"electron",
+"electrons"
+],
+answer:"An electron is a negatively charged particle found around the nucleus."
+},
+
+AtomicNumber:{
+keywords:[
+"atomic number"
+],
+answer:"The atomic number is the number of protons in an atom and identifies the element."
+},
+
+MassNumber:{
+keywords:[
+"mass number"
+],
+answer:"The mass number is the total number of protons and neutrons in an atom."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ELEMENTS
+// =====================================
+
+Elements:{
+
+definition:"Elements are pure substances made from atoms with the same number of protons.",
+
+topics:{
+
+PeriodicTable:{
+keywords:[
+"periodic table"
+],
+answer:"The periodic table organizes elements by atomic number and repeating chemical properties."
+},
+
+Metal:{
+keywords:[
+"metals",
+"metal"
+],
+answer:"Metals are elements that are usually conductive, shiny, and able to be shaped."
+},
+
+Nonmetal:{
+keywords:[
+"nonmetal",
+"nonmetals"
+],
+answer:"Nonmetals are elements that generally lack metallic properties."
+},
+
+NobleGas:{
+keywords:[
+"noble gases"
+],
+answer:"Noble gases are highly stable elements with full outer electron shells."
+
+}
+
+}
+
+}
+// =====================================
+// ELECTRON STRUCTURE
+// =====================================
+
+ElectronStructure:{
+
+definition:"Electron structure describes how electrons are arranged around an atom's nucleus.",
+
+topics:{
+
+ElectronShells:{
+keywords:[
+"electron shells",
+"shells"
+],
+answer:"Electrons exist in energy levels called shells around the nucleus."
+},
+
+ValenceElectrons:{
+keywords:[
+"valence electrons"
+],
+answer:"Valence electrons are electrons in the outermost shell that determine how an atom reacts chemically."
+},
+
+Orbital:{
+keywords:[
+"orbital",
+"orbitals"
+],
+answer:"An orbital is a region of space where an electron is likely to be found."
+},
+
+Ion:{
+keywords:[
+"ion",
+"ions"
+],
+answer:"An ion is an atom or molecule that has gained or lost electrons and has an electrical charge."
+},
+
+Cation:{
+keywords:[
+"cation"
+],
+answer:"A cation is a positively charged ion formed when an atom loses electrons."
+},
+
+Anion:{
+keywords:[
+"anion"
+],
+answer:"An anion is a negatively charged ion formed when an atom gains electrons."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CHEMICAL BONDS
+// =====================================
+
+ChemicalBonds:{
+
+definition:"Chemical bonds are forces that hold atoms together in molecules and compounds.",
+
+topics:{
+
+IonicBond:{
+keywords:[
+"ionic bond",
+"ionic bonding"
+],
+answer:"An ionic bond forms when electrons are transferred between atoms, usually creating positive and negative ions."
+},
+
+CovalentBond:{
+keywords:[
+"covalent bond",
+"covalent bonding"
+],
+answer:"A covalent bond forms when atoms share electrons."
+},
+
+MetallicBond:{
+keywords:[
+"metallic bond"
+],
+answer:"A metallic bond occurs between metal atoms where electrons move freely through the structure."
+},
+
+Molecule:{
+keywords:[
+"molecule",
+"molecules"
+],
+answer:"A molecule is a group of atoms connected by chemical bonds."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CHEMICAL REACTIONS
+// =====================================
+
+ChemicalReactions:{
+
+definition:"Chemical reactions occur when substances transform into new substances by rearranging atoms.",
+
+topics:{
+
+Reactant:{
+keywords:[
+"reactant",
+"reactants"
+],
+answer:"Reactants are substances that undergo change during a chemical reaction."
+},
+
+Product:{
+keywords:[
+"product",
+"products"
+],
+answer:"Products are the new substances formed during a chemical reaction."
+},
+
+BalanceEquation:{
+keywords:[
+"balance chemical equation",
+"balanced equation"
+],
+answer:"A balanced chemical equation has the same number of each type of atom on both sides of the reaction."
+},
+
+Synthesis:{
+keywords:[
+"synthesis reaction"
+],
+answer:"A synthesis reaction combines simpler substances to create a more complex substance."
+},
+
+Decomposition:{
+keywords:[
+"decomposition reaction"
+],
+answer:"A decomposition reaction breaks a compound into simpler substances."
+},
+
+Combustion:{
+keywords:[
+"combustion reaction"
+],
+answer:"A combustion reaction occurs when a substance reacts with oxygen and releases energy."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MOLES AND STOICHIOMETRY
+// =====================================
+
+Stoichiometry:{
+
+definition:"Stoichiometry studies the relationships between amounts of substances in chemical reactions.",
+
+topics:{
+
+Mole:{
+keywords:[
+"mole chemistry",
+"moles"
+],
+answer:"A mole is a unit used to count extremely large numbers of particles. One mole contains approximately 6.022 × 10²³ particles."
+},
+
+MolarMass:{
+keywords:[
+"molar mass"
+],
+answer:"Molar mass is the mass of one mole of a substance, usually measured in grams per mole."
+},
+
+ConservationMass:{
+keywords:[
+"conservation of mass"
+],
+answer:"The conservation of mass states that matter is not created or destroyed during chemical reactions."
+
+}
+
+}
+
+},
+// =====================================
+// ACIDS AND BASES
+// =====================================
+
+AcidsBases:{
+
+definition:"Acids and bases are substances that affect hydrogen ions and hydroxide ions in chemical solutions.",
+
+topics:{
+
+Acid:{
+keywords:[
+"acid",
+"acids"
+],
+answer:"An acid is a substance that produces hydrogen ions (H+) when dissolved in water."
+},
+
+Base:{
+keywords:[
+"base",
+"bases",
+"alkaline"
+],
+answer:"A base is a substance that produces hydroxide ions (OH-) or accepts hydrogen ions."
+},
+
+PH:{
+keywords:[
+"ph",
+"pH scale"
+],
+answer:"The pH scale measures how acidic or basic a substance is. Values below 7 are acidic, 7 is neutral, and above 7 is basic."
+},
+
+Neutralization:{
+keywords:[
+"neutralization",
+"acid base reaction"
+],
+answer:"Neutralization occurs when an acid reacts with a base to form salt and water."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// SOLUTIONS
+// =====================================
+
+Solutions:{
+
+definition:"Solutions are mixtures where one substance dissolves evenly into another.",
+
+topics:{
+
+Solute:{
+keywords:[
+"solute"
+],
+answer:"A solute is the substance that is dissolved in a solution."
+},
+
+Solvent:{
+keywords:[
+"solvent"
+],
+answer:"A solvent is the substance that dissolves the solute."
+},
+
+Concentration:{
+keywords:[
+"concentration"
+],
+answer:"Concentration describes the amount of solute present in a given amount of solution."
+},
+
+Solubility:{
+keywords:[
+"solubility"
+],
+answer:"Solubility describes how much of a substance can dissolve in a solvent under certain conditions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// THERMOCHEMISTRY
+// =====================================
+
+Thermochemistry:{
+
+definition:"Thermochemistry studies the relationship between chemical reactions and heat energy.",
+
+topics:{
+
+Exothermic:{
+keywords:[
+"exothermic reaction"
+],
+answer:"An exothermic reaction releases heat energy into the surroundings."
+},
+
+Endothermic:{
+keywords:[
+"endothermic reaction"
+],
+answer:"An endothermic reaction absorbs heat energy from the surroundings."
+},
+
+Enthalpy:{
+keywords:[
+"enthalpy"
+],
+answer:"Enthalpy represents the total heat energy of a chemical system."
+},
+
+ActivationEnergy:{
+keywords:[
+"activation energy"
+],
+answer:"Activation energy is the minimum energy required for a chemical reaction to begin."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ORGANIC CHEMISTRY
+// =====================================
+
+OrganicChemistry:{
+
+definition:"Organic chemistry studies carbon-containing compounds.",
+
+topics:{
+
+Carbon:{
+keywords:[
+"carbon",
+"carbon chemistry"
+],
+answer:"Carbon is an element that can form many different compounds because it can bond in many ways."
+},
+
+Hydrocarbon:{
+keywords:[
+"hydrocarbon"
+],
+answer:"Hydrocarbons are compounds made only of carbon and hydrogen."
+},
+
+FunctionalGroups:{
+keywords:[
+"functional groups"
+],
+answer:"Functional groups are specific groups of atoms that determine the properties and reactions of organic molecules."
+},
+
+Polymer:{
+keywords:[
+"polymer",
+"polymers"
+],
+answer:"Polymers are large molecules made from repeating smaller units called monomers."
+
+}
+
+}
+
+},
+// =====================================
+// BIOCHEMISTRY
+// =====================================
+
+Biochemistry:{
+
+definition:"Biochemistry studies the chemical processes and molecules that make up living organisms.",
+
+topics:{
+
+Carbohydrates:{
+keywords:[
+"carbohydrates",
+"carbs"
+],
+answer:"Carbohydrates are organic molecules that provide energy and are made mainly of carbon, hydrogen, and oxygen."
+},
+
+Proteins:{
+keywords:[
+"protein",
+"proteins"
+],
+answer:"Proteins are large molecules made of amino acids that perform many functions in living organisms."
+},
+
+Lipids:{
+keywords:[
+"lipids",
+"fats"
+],
+answer:"Lipids are molecules that store energy and form important parts of cell membranes."
+},
+
+NucleicAcids:{
+keywords:[
+"nucleic acids",
+"dna",
+"rna"
+],
+answer:"Nucleic acids such as DNA and RNA store and transmit genetic information."
+},
+
+Enzymes:{
+keywords:[
+"enzyme",
+"enzymes"
+],
+answer:"Enzymes are biological catalysts that speed up chemical reactions in living organisms."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MATERIALS CHEMISTRY
+// =====================================
+
+MaterialsChemistry:{
+
+definition:"Materials chemistry studies the properties, structure, and creation of materials.",
+
+topics:{
+
+Metals:{
+keywords:[
+"metals chemistry",
+"metal properties"
+],
+answer:"Metals are materials with properties such as electrical conductivity, strength, and flexibility."
+},
+
+Ceramics:{
+keywords:[
+"ceramics"
+],
+answer:"Ceramics are materials made from inorganic compounds that are often hard and heat resistant."
+},
+
+Polymers:{
+keywords:[
+"polymers",
+"plastic"
+],
+answer:"Polymers are long chains of repeating molecules used in many materials such as plastics."
+},
+
+Nanomaterials:{
+keywords:[
+"nanomaterials",
+"nanotechnology"
+],
+answer:"Nanomaterials are materials engineered at extremely small scales with unique properties."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// NUCLEAR CHEMISTRY
+// =====================================
+
+NuclearChemistry:{
+
+definition:"Nuclear chemistry studies changes in atomic nuclei and radioactive processes.",
+
+topics:{
+
+Isotope:{
+keywords:[
+"isotope",
+"isotopes"
+],
+answer:"Isotopes are atoms of the same element with different numbers of neutrons."
+},
+
+RadioactiveDecay:{
+keywords:[
+"radioactive decay"
+],
+answer:"Radioactive decay occurs when an unstable nucleus releases energy or particles."
+},
+
+HalfLife:{
+keywords:[
+"half life",
+"half-life"
+],
+answer:"Half-life is the time required for half of a radioactive sample to decay."
+},
+
+Radiation:{
+keywords:[
+"radiation"
+],
+answer:"Radiation is energy emitted as particles or electromagnetic waves from a source."
+},
+
+NuclearEnergy:{
+keywords:[
+"nuclear energy"
+],
+answer:"Nuclear energy is energy released from changes in atomic nuclei."
+
+}
+
+}
+
+}
+
+
+Biology:{
+
+// =====================================
+// BIOLOGY FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Biology is the science that studies living organisms, their structures, functions, origins, and interactions.",
+
+topics:{
+
+Life:{
+keywords:[
+"life",
+"what is life"
+],
+answer:"Life is characterized by processes such as growth, reproduction, response to stimuli, energy use, and adaptation."
+},
+
+Organism:{
+keywords:[
+"organism",
+"organisms"
+],
+answer:"An organism is an individual living thing capable of carrying out life processes."
+},
+
+Cells:{
+keywords:[
+"cell",
+"cells"
+],
+answer:"Cells are the basic structural and functional units of all living organisms."
+},
+
+Homeostasis:{
+keywords:[
+"homeostasis"
+],
+answer:"Homeostasis is an organism's ability to maintain stable internal conditions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CELL BIOLOGY
+// =====================================
+
+CellBiology:{
+
+definition:"Cell biology studies the structure, function, and processes of cells.",
+
+topics:{
+
+CellTheory:{
+keywords:[
+"cell theory"
+],
+answer:"Cell theory states that all living things are made of cells, cells are the basic unit of life, and cells come from existing cells."
+},
+
+CellMembrane:{
+keywords:[
+"cell membrane",
+"membrane"
+],
+answer:"The cell membrane controls what enters and leaves a cell."
+},
+
+Nucleus:{
+keywords:[
+"nucleus"
+],
+answer:"The nucleus contains genetic information and controls many activities of eukaryotic cells."
+},
+
+Cytoplasm:{
+keywords:[
+"cytoplasm"
+],
+answer:"Cytoplasm is the material inside a cell where many chemical reactions occur."
+},
+
+Organelles:{
+keywords:[
+"organelles"
+],
+answer:"Organelles are specialized structures inside cells that perform specific functions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// TYPES OF CELLS
+// =====================================
+
+CellTypes:{
+
+definition:"Cells are generally classified as prokaryotic or eukaryotic.",
+
+topics:{
+
+Prokaryotic:{
+keywords:[
+"prokaryotic cell",
+"prokaryotes"
+],
+answer:"Prokaryotic cells do not have a nucleus and include organisms such as bacteria."
+},
+
+Eukaryotic:{
+keywords:[
+"eukaryotic cell",
+"eukaryotes"
+],
+answer:"Eukaryotic cells contain a nucleus and membrane-bound organelles."
+},
+
+AnimalCell:{
+keywords:[
+"animal cell"
+],
+answer:"Animal cells are eukaryotic cells that make up animals."
+},
+
+PlantCell:{
+keywords:[
+"plant cell"
+],
+answer:"Plant cells contain structures such as cell walls and chloroplasts that support plant life."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CELL PROCESSES
+// =====================================
+
+CellProcesses:{
+
+definition:"Cell processes describe how cells obtain energy, grow, and reproduce.",
+
+topics:{
+
+Metabolism:{
+keywords:[
+"metabolism"
+],
+answer:"Metabolism is the collection of chemical reactions that keep an organism alive."
+},
+
+Photosynthesis:{
+keywords:[
+"photosynthesis"
+],
+answer:"Photosynthesis allows plants to convert light energy into chemical energy using carbon dioxide and water."
+},
+
+CellularRespiration:{
+keywords:[
+"cellular respiration"
+],
+answer:"Cellular respiration converts nutrients into usable energy in the form of ATP."
+},
+
+CellDivision:{
+keywords:[
+"cell division"
+],
+answer:"Cell division allows cells to grow, repair, and reproduce."
+
+}
+
+}
+
+}
+// =====================================
+// GENETICS
+// =====================================
+
+Genetics:{
+
+definition:"Genetics is the study of heredity, genes, and how traits are passed between generations.",
+
+topics:{
+
+Gene:{
+keywords:[
+"gene",
+"genes"
+],
+answer:"A gene is a segment of DNA that contains instructions for making a functional product, such as a protein."
+},
+
+Trait:{
+keywords:[
+"trait",
+"traits"
+],
+answer:"A trait is a characteristic of an organism that can be influenced by genetics and environment."
+},
+
+Heredity:{
+keywords:[
+"heredity"
+],
+answer:"Heredity is the passing of genetic information from parents to offspring."
+},
+
+Allele:{
+keywords:[
+"allele",
+"alleles"
+],
+answer:"An allele is a different version of a gene."
+
+},
+
+Dominant:{
+keywords:[
+"dominant trait"
+],
+answer:"A dominant allele can determine a trait when only one copy is present."
+},
+
+Recessive:{
+keywords:[
+"recessive trait"
+],
+answer:"A recessive allele usually affects a trait only when two copies are present."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DNA AND RNA
+// =====================================
+
+DNA_RNA:{
+
+definition:"DNA and RNA are nucleic acids that store and use genetic information.",
+
+topics:{
+
+DNA:{
+keywords:[
+"dna"
+],
+answer:"DNA stores the genetic instructions used by living organisms."
+},
+
+RNA:{
+keywords:[
+"rna"
+],
+answer:"RNA helps use genetic information to produce proteins."
+},
+
+Nucleotide:{
+keywords:[
+"nucleotide"
+],
+answer:"A nucleotide is the basic building block of DNA and RNA."
+},
+
+Replication:{
+keywords:[
+"dna replication",
+"replication"
+],
+answer:"DNA replication is the process of copying DNA before cell division."
+},
+
+ProteinSynthesis:{
+keywords:[
+"protein synthesis"
+],
+answer:"Protein synthesis is the process of using genetic information to create proteins."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// EVOLUTION
+// =====================================
+
+Evolution:{
+
+definition:"Evolution is the change in populations over generations.",
+
+topics:{
+
+NaturalSelection:{
+keywords:[
+"natural selection"
+],
+answer:"Natural selection is the process where traits that improve survival and reproduction become more common."
+},
+
+Adaptation:{
+keywords:[
+"adaptation",
+"adaptations"
+],
+answer:"An adaptation is a trait that helps an organism survive and reproduce in its environment."
+},
+
+Mutation:{
+keywords:[
+"mutation",
+"mutations"
+],
+answer:"A mutation is a change in DNA that can introduce new genetic variation."
+},
+
+CommonAncestor:{
+keywords:[
+"common ancestor"
+],
+answer:"A common ancestor is an earlier organism from which different species evolved."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CLASSIFICATION
+// =====================================
+
+Classification:{
+
+definition:"Classification organizes living organisms into groups based on shared characteristics.",
+
+topics:{
+
+Taxonomy:{
+keywords:[
+"taxonomy"
+],
+answer:"Taxonomy is the science of naming and classifying organisms."
+},
+
+Species:{
+keywords:[
+"species"
+],
+answer:"A species is a group of organisms that can reproduce and produce fertile offspring."
+},
+
+Kingdoms:{
+keywords:[
+"kingdom classification"
+],
+answer:"The traditional classification system groups organisms into major categories called kingdoms."
+
+}
+
+}
+
+},
+// =====================================
+// HUMAN BIOLOGY
+// =====================================
+
+HumanBiology:{
+
+definition:"Human biology studies the structure, function, and processes of the human body.",
+
+topics:{
+
+BodySystems:{
+keywords:[
+"body systems",
+"organ systems"
+],
+answer:"The human body is organized into systems that work together to maintain life."
+},
+
+Tissue:{
+keywords:[
+"tissue",
+"tissues"
+],
+answer:"Tissues are groups of similar cells that work together to perform specific functions."
+},
+
+Organ:{
+keywords:[
+"organ",
+"organs"
+],
+answer:"An organ is a structure made of different tissues that performs a specific function."
+},
+
+OrganismLevel:{
+keywords:[
+"organism level"
+],
+answer:"The organism level is the complete living individual made of connected body systems."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ANATOMY AND PHYSIOLOGY
+// =====================================
+
+AnatomyPhysiology:{
+
+definition:"Anatomy studies body structures, while physiology studies how those structures function.",
+
+topics:{
+
+SkeletalSystem:{
+keywords:[
+"skeleton",
+"skeletal system"
+],
+answer:"The skeletal system provides support, protection, movement, and produces blood cells."
+},
+
+MuscularSystem:{
+keywords:[
+"muscular system",
+"muscles"
+],
+answer:"The muscular system allows movement through muscle contraction."
+},
+
+NervousSystem:{
+keywords:[
+"nervous system",
+"brain",
+"neurons"
+],
+answer:"The nervous system controls communication, sensation, and responses using electrical signals."
+},
+
+CirculatorySystem:{
+keywords:[
+"circulatory system",
+"heart",
+"blood"
+],
+answer:"The circulatory system transports oxygen, nutrients, hormones, and waste throughout the body."
+},
+
+RespiratorySystem:{
+keywords:[
+"respiratory system",
+"lungs"
+],
+answer:"The respiratory system exchanges oxygen and carbon dioxide between the body and environment."
+},
+
+DigestiveSystem:{
+keywords:[
+"digestive system",
+"digestion"
+],
+answer:"The digestive system breaks down food into nutrients the body can absorb."
+},
+
+EndocrineSystem:{
+keywords:[
+"endocrine system",
+"hormones"
+],
+answer:"The endocrine system uses hormones to regulate body functions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// IMMUNE SYSTEM
+// =====================================
+
+ImmuneSystem:{
+
+definition:"The immune system protects organisms from harmful pathogens and foreign substances.",
+
+topics:{
+
+ImmuneResponse:{
+keywords:[
+"immune response"
+],
+answer:"The immune response is the body's defense reaction against threats."
+},
+
+Antibodies:{
+keywords:[
+"antibodies"
+],
+answer:"Antibodies are proteins made by immune cells that recognize specific foreign substances."
+},
+
+WhiteBloodCells:{
+keywords:[
+"white blood cells",
+"immune cells"
+],
+answer:"White blood cells help identify and destroy harmful organisms."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MICROBIOLOGY
+// =====================================
+
+Microbiology:{
+
+definition:"Microbiology studies microscopic organisms and biological agents.",
+
+topics:{
+
+Bacteria:{
+keywords:[
+"bacteria",
+"bacterium"
+],
+answer:"Bacteria are single-celled organisms that can be beneficial or harmful."
+},
+
+Virus:{
+keywords:[
+"virus",
+"viruses"
+],
+answer:"Viruses are microscopic agents that require host cells to reproduce."
+},
+
+Fungi:{
+keywords:[
+"fungi",
+"fungus"
+],
+answer:"Fungi are organisms that include mushrooms, molds, and yeasts."
+
+}
+
+}
+
+},
+// =====================================
+// PLANT BIOLOGY
+// =====================================
+
+PlantBiology:{
+
+definition:"Plant biology studies the structure, function, growth, and reproduction of plants.",
+
+topics:{
+
+PlantCells:{
+keywords:[
+"plant cell",
+"plant cells"
+],
+answer:"Plant cells contain structures such as cell walls and chloroplasts that support plant life."
+},
+
+Chloroplast:{
+keywords:[
+"chloroplast",
+"chloroplasts"
+],
+answer:"Chloroplasts are organelles where photosynthesis occurs."
+},
+
+Photosynthesis:{
+keywords:[
+"photosynthesis"
+],
+answer:"Photosynthesis converts light energy into chemical energy using carbon dioxide and water."
+},
+
+Roots:{
+keywords:[
+"roots",
+"plant roots"
+],
+answer:"Roots anchor plants and absorb water and minerals from soil."
+},
+
+Stems:{
+keywords:[
+"stem",
+"stems"
+],
+answer:"Stems support plants and transport materials between roots and leaves."
+},
+
+Leaves:{
+keywords:[
+"leaves",
+"leaf"
+],
+answer:"Leaves are specialized structures that capture light and perform photosynthesis."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ECOLOGY
+// =====================================
+
+Ecology:{
+
+definition:"Ecology studies relationships between organisms and their environments.",
+
+topics:{
+
+Ecosystem:{
+keywords:[
+"ecosystem",
+"ecosystems"
+],
+answer:"An ecosystem includes living organisms and their physical environment interacting together."
+},
+
+Population:{
+keywords:[
+"population biology",
+"population"
+],
+answer:"A population is a group of organisms of the same species living in an area."
+},
+
+Community:{
+keywords:[
+"community biology"
+],
+answer:"A community is all populations of different species living together in an area."
+},
+
+FoodChain:{
+keywords:[
+"food chain",
+"food web"
+],
+answer:"A food chain shows how energy moves between organisms through feeding relationships."
+},
+
+Biodiversity:{
+keywords:[
+"biodiversity"
+],
+answer:"Biodiversity describes the variety of living organisms in an environment."
+},
+
+Biomes:{
+keywords:[
+"biome",
+"biomes"
+],
+answer:"Biomes are large regions with similar climates, plants, and animals."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// BIOTECHNOLOGY
+// =====================================
+
+Biotechnology:{
+
+definition:"Biotechnology uses biological systems and organisms to create useful products and technologies.",
+
+topics:{
+
+GeneticEngineering:{
+keywords:[
+"genetic engineering"
+],
+answer:"Genetic engineering modifies an organism's DNA to produce desired traits."
+},
+
+CRISPR:{
+keywords:[
+"crispr"
+],
+answer:"CRISPR is a technology used to make targeted changes to DNA."
+},
+
+Cloning:{
+keywords:[
+"cloning"
+],
+answer:"Cloning creates genetically similar copies of biological material."
+},
+
+BiotechnologyApplications:{
+keywords:[
+"biotechnology applications"
+],
+answer:"Biotechnology is used in medicine, agriculture, research, and industry."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// NEUROSCIENCE
+// =====================================
+
+Neuroscience:{
+
+definition:"Neuroscience studies the nervous system, brain, and how organisms process information.",
+
+topics:{
+
+Neuron:{
+keywords:[
+"neuron",
+"neurons"
+],
+answer:"Neurons are specialized cells that transmit electrical and chemical signals."
+},
+
+Brain:{
+keywords:[
+"brain"
+],
+answer:"The brain is the main control center of the nervous system."
+},
+
+Memory:{
+keywords:[
+"memory biology"
+],
+answer:"Memory involves processes that store and retrieve information in the nervous system."
+},
+
+Senses:{
+keywords:[
+"senses",
+"sensory system"
+],
+answer:"Sensory systems detect information from the environment and send signals to the brain."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DEVELOPMENTAL BIOLOGY
+// =====================================
+
+DevelopmentalBiology:{
+
+definition:"Developmental biology studies how organisms grow and develop from early stages to maturity.",
+
+topics:{
+
+Growth:{
+keywords:[
+"growth biology"
+],
+answer:"Growth is the increase in size and development of an organism."
+},
+
+Differentiation:{
+keywords:[
+"cell differentiation"
+],
+answer:"Cell differentiation is the process where cells become specialized for different functions."
+},
+
+Embryology:{
+keywords:[
+"embryology"
+],
+answer:"Embryology studies early development of organisms."
+
+}
+
+}
+
+}
+
+
+EarthScience:{
+
+// =====================================
+// EARTH SCIENCE FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Earth science studies Earth's structure, processes, history, and interactions with the environment and space.",
+
+topics:{
+
+Earth:{
+keywords:[
+"earth",
+"planet earth"
+],
+answer:"Earth is a rocky planet with a layered structure, a dynamic surface, and systems that support life."
+},
+
+Geosphere:{
+keywords:[
+"geosphere"
+],
+answer:"The geosphere includes Earth's rocks, minerals, landforms, and interior layers."
+},
+
+Hydrosphere:{
+keywords:[
+"hydrosphere"
+],
+answer:"The hydrosphere includes all water on Earth, including oceans, rivers, lakes, glaciers, and groundwater."
+},
+
+Atmosphere:{
+keywords:[
+"atmosphere"
+],
+answer:"The atmosphere is the layer of gases surrounding Earth."
+},
+
+Biosphere:{
+keywords:[
+"biosphere"
+],
+answer:"The biosphere includes all living organisms and the regions where life exists."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// EARTH STRUCTURE
+// =====================================
+
+EarthStructure:{
+
+definition:"Earth's interior is organized into layers with different compositions and properties.",
+
+topics:{
+
+Crust:{
+keywords:[
+"earth crust",
+"crust"
+],
+answer:"The crust is Earth's thin outer layer where continents and oceans exist."
+},
+
+Mantle:{
+keywords:[
+"mantle"
+],
+answer:"The mantle is a thick layer of hot rock beneath the crust where slow movements help drive plate tectonics."
+},
+
+OuterCore:{
+keywords:[
+"outer core"
+],
+answer:"The outer core is a liquid layer made mostly of iron and nickel that helps create Earth's magnetic field."
+},
+
+InnerCore:{
+keywords:[
+"inner core"
+],
+answer:"The inner core is a solid metal layer at Earth's center due to extreme pressure."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// GEOLOGY
+// =====================================
+
+Geology:{
+
+definition:"Geology studies Earth's rocks, minerals, structure, and history.",
+
+topics:{
+
+Mineral:{
+keywords:[
+"mineral",
+"minerals"
+],
+answer:"A mineral is a naturally occurring inorganic solid with a specific chemical composition and crystal structure."
+},
+
+Rock:{
+keywords:[
+"rock",
+"rocks"
+],
+answer:"Rocks are solid materials made of one or more minerals."
+},
+
+IgneousRock:{
+keywords:[
+"igneous rock"
+],
+answer:"Igneous rocks form when molten material cools and solidifies."
+},
+
+SedimentaryRock:{
+keywords:[
+"sedimentary rock"
+],
+answer:"Sedimentary rocks form from deposited sediments that become compacted and cemented."
+},
+
+MetamorphicRock:{
+keywords:[
+"metamorphic rock"
+],
+answer:"Metamorphic rocks form when existing rocks are changed by heat and pressure."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// PLATE TECTONICS
+// =====================================
+
+PlateTectonics:{
+
+definition:"Plate tectonics describes the movement of Earth's large crustal plates.",
+
+topics:{
+
+TectonicPlates:{
+keywords:[
+"tectonic plates",
+"plates"
+],
+answer:"Tectonic plates are large sections of Earth's crust that move slowly over the mantle."
+},
+
+ContinentalDrift:{
+keywords:[
+"continental drift"
+],
+answer:"Continental drift is the movement of continents over geological time."
+},
+
+Earthquakes:{
+keywords:[
+"earthquake",
+"earthquakes"
+],
+answer:"Earthquakes occur when energy is suddenly released from movement in Earth's crust."
+},
+
+Volcanoes:{
+keywords:[
+"volcano",
+"volcanoes"
+],
+answer:"Volcanoes form when magma reaches Earth's surface and releases lava, gases, and ash."
+
+}
+
+}
+
+}
+// =====================================
+// WEATHER AND ATMOSPHERE
+// =====================================
+
+WeatherAtmosphere:{
+
+definition:"Weather science studies atmospheric conditions and short-term changes in the atmosphere.",
+
+topics:{
+
+Weather:{
+keywords:[
+"weather"
+],
+answer:"Weather describes atmospheric conditions such as temperature, humidity, wind, and precipitation at a specific time and place."
+},
+
+Climate:{
+keywords:[
+"climate"
+],
+answer:"Climate describes long-term patterns of weather in a region."
+},
+
+AtmosphericLayers:{
+keywords:[
+"layers of atmosphere",
+"atmosphere layers"
+],
+answer:"Earth's atmosphere has layers including the troposphere, stratosphere, mesosphere, thermosphere, and exosphere."
+},
+
+Temperature:{
+keywords:[
+"temperature weather"
+],
+answer:"Temperature measures how hot or cold the air is."
+},
+
+Pressure:{
+keywords:[
+"air pressure",
+"atmospheric pressure"
+],
+answer:"Atmospheric pressure is the force created by the weight of air above Earth's surface."
+},
+
+Wind:{
+keywords:[
+"wind"
+],
+answer:"Wind is the movement of air caused by differences in atmospheric pressure."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// WATER CYCLE
+// =====================================
+
+WaterCycle:{
+
+definition:"The water cycle describes the continuous movement of water through Earth's systems.",
+
+topics:{
+
+Evaporation:{
+keywords:[
+"evaporation"
+],
+answer:"Evaporation occurs when liquid water changes into water vapor."
+},
+
+Condensation:{
+keywords:[
+"condensation"
+],
+answer:"Condensation occurs when water vapor cools and becomes liquid water."
+},
+
+Precipitation:{
+keywords:[
+"precipitation"
+],
+answer:"Precipitation occurs when water falls from clouds as rain, snow, sleet, or hail."
+},
+
+Groundwater:{
+keywords:[
+"groundwater"
+],
+answer:"Groundwater is water stored beneath Earth's surface in soil and rock."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// OCEAN SCIENCE
+// =====================================
+
+OceanScience:{
+
+definition:"Ocean science studies Earth's oceans, their movement, chemistry, and ecosystems.",
+
+topics:{
+
+OceanCurrents:{
+keywords:[
+"ocean currents"
+],
+answer:"Ocean currents are large movements of seawater that distribute heat around the planet."
+},
+
+Tides:{
+keywords:[
+"tides"
+],
+answer:"Tides are changes in sea level caused mainly by the gravitational effects of the Moon and Sun."
+},
+
+Salinity:{
+keywords:[
+"salinity"
+],
+answer:"Salinity measures the amount of dissolved salts in seawater."
+},
+
+MarineEcosystems:{
+keywords:[
+"marine ecosystem"
+],
+answer:"Marine ecosystems include organisms and environments found in oceans."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// FOSSILS AND EARTH HISTORY
+// =====================================
+
+EarthHistory:{
+
+definition:"Earth history studies how Earth has changed over billions of years.",
+
+topics:{
+
+Fossil:{
+keywords:[
+"fossil",
+"fossils"
+],
+answer:"Fossils are preserved remains or traces of ancient organisms."
+},
+
+GeologicTime:{
+keywords:[
+"geologic time",
+"geological time"
+],
+answer:"The geologic time scale organizes Earth's history into major periods based on geological and biological events."
+},
+
+EvolutionEvidence:{
+keywords:[
+"fossil evidence"
+],
+answer:"Fossils provide evidence of past life and evolutionary changes over time."
+},
+
+Extinction:{
+keywords:[
+"extinction"
+],
+answer:"Extinction occurs when a species no longer exists."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ENVIRONMENTAL SCIENCE
+// =====================================
+
+EnvironmentalScience:{
+
+definition:"Environmental science studies interactions between humans, organisms, and Earth's systems.",
+
+topics:{
+
+Resources:{
+keywords:[
+"natural resources"
+],
+answer:"Natural resources are materials from Earth used by living things and humans."
+},
+
+Pollution:{
+keywords:[
+"pollution"
+],
+answer:"Pollution is the introduction of harmful substances or changes into the environment."
+},
+
+Conservation:{
+keywords:[
+"conservation"
+],
+answer:"Conservation involves protecting and managing natural resources and ecosystems."
+},
+
+Sustainability:{
+keywords:[
+"sustainability"
+],
+answer:"Sustainability focuses on meeting current needs while protecting resources for the future."
+
+}
+
+}
+
+}
+// =====================================
+// NATURAL HAZARDS
+// =====================================
+
+NaturalHazards:{
+
+definition:"Natural hazards are Earth processes that can create risks for living things and human structures.",
+
+topics:{
+
+Earthquakes:{
+keywords:[
+"earthquake safety",
+"seismic activity"
+],
+answer:"Earthquakes are caused by sudden movements along faults in Earth's crust that release stored energy."
+},
+
+Tsunami:{
+keywords:[
+"tsunami",
+"tsunamis"
+],
+answer:"A tsunami is a series of large ocean waves usually caused by underwater earthquakes or volcanic activity."
+},
+
+VolcanicActivity:{
+keywords:[
+"volcanic eruption",
+"volcano activity"
+],
+answer:"Volcanic activity occurs when magma, gases, and ash escape from Earth's interior."
+},
+
+Hurricanes:{
+keywords:[
+"hurricane",
+"tropical cyclone"
+],
+answer:"Hurricanes are powerful storms that form over warm ocean water with strong rotating winds."
+},
+
+Tornadoes:{
+keywords:[
+"tornado",
+"tornadoes"
+],
+answer:"Tornadoes are rapidly rotating columns of air extending from thunderstorms to the ground."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CLIMATE SCIENCE
+// =====================================
+
+ClimateScience:{
+
+definition:"Climate science studies Earth's long-term climate patterns and the factors that influence them.",
+
+topics:{
+
+GreenhouseEffect:{
+keywords:[
+"greenhouse effect"
+],
+answer:"The greenhouse effect is the warming of Earth caused by gases that trap heat in the atmosphere."
+},
+
+ClimateChange:{
+keywords:[
+"climate change"
+],
+answer:"Climate change refers to long-term changes in Earth's climate patterns."
+},
+
+CarbonCycle:{
+keywords:[
+"carbon cycle"
+],
+answer:"The carbon cycle describes how carbon moves between the atmosphere, oceans, land, and living organisms."
+},
+
+GlobalTemperature:{
+keywords:[
+"global temperature"
+],
+answer:"Global temperature describes the average temperature of Earth's surface over time."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ADVANCED GEOLOGY
+// =====================================
+
+AdvancedGeology:{
+
+definition:"Advanced geology studies Earth's processes, materials, and history in greater detail.",
+
+topics:{
+
+PlateBoundaries:{
+keywords:[
+"plate boundaries"
+],
+answer:"Plate boundaries are regions where tectonic plates interact. They can be convergent, divergent, or transform boundaries."
+},
+
+Faults:{
+keywords:[
+"fault",
+"faults"
+],
+answer:"A fault is a fracture in Earth's crust where movement can occur."
+},
+
+Magma:{
+keywords:[
+"magma"
+],
+answer:"Magma is molten rock beneath Earth's surface."
+},
+
+Lava:{
+keywords:[
+"lava"
+],
+answer:"Lava is molten rock that reaches Earth's surface."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// NATURAL RESOURCES AND ENERGY
+// =====================================
+
+ResourcesEnergy:{
+
+definition:"Resource science studies Earth's materials and how humans use energy sources.",
+
+topics:{
+
+FossilFuels:{
+keywords:[
+"fossil fuels"
+],
+answer:"Fossil fuels such as coal, oil, and natural gas form from ancient organic material over geological time."
+},
+
+RenewableEnergy:{
+keywords:[
+"renewable energy"
+],
+answer:"Renewable energy comes from sources that naturally replenish, such as sunlight, wind, and water."
+},
+
+MineralResources:{
+keywords:[
+"mineral resources"
+],
+answer:"Mineral resources are valuable materials extracted from Earth for human use."
+},
+
+EnergyConservation:{
+keywords:[
+"energy conservation"
+],
+answer:"Energy conservation involves reducing unnecessary energy use and improving efficiency."
+
+}
+
+}
+
+}
+
+
+Astronomy:{
+
+// =====================================
+// ASTRONOMY FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Astronomy is the science that studies objects, systems, and events beyond Earth's atmosphere.",
+
+topics:{
+
+Universe:{
+keywords:[
+"universe",
+"cosmos"
+],
+answer:"The universe contains all space, time, matter, energy, galaxies, stars, planets, and everything that exists."
+},
+
+Galaxy:{
+keywords:[
+"galaxy",
+"galaxies"
+],
+answer:"A galaxy is a massive collection of stars, gas, dust, and dark matter held together by gravity."
+},
+
+Star:{
+keywords:[
+"star",
+"stars"
+],
+answer:"A star is a massive object that produces energy through nuclear fusion."
+},
+
+Planet:{
+keywords:[
+"planet",
+"planets"
+],
+answer:"A planet is a large object that orbits a star and has enough gravity to become nearly round."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// SOLAR SYSTEM
+// =====================================
+
+SolarSystem:{
+
+definition:"The Solar System consists of the Sun and objects that orbit it.",
+
+topics:{
+
+Sun:{
+keywords:[
+"sun"
+],
+answer:"The Sun is a star at the center of our Solar System that provides energy through nuclear fusion."
+},
+
+Mercury:{
+keywords:[
+"mercury planet"
+],
+answer:"Mercury is the closest planet to the Sun and has the shortest year."
+},
+
+Venus:{
+keywords:[
+"venus planet"
+],
+answer:"Venus is a rocky planet with a thick atmosphere and extreme surface temperatures."
+},
+
+Earth:{
+keywords:[
+"earth planet"
+],
+answer:"Earth is a rocky planet with liquid water and a biosphere that supports life."
+},
+
+Mars:{
+keywords:[
+"mars planet"
+],
+answer:"Mars is a rocky planet known for its red surface and evidence of ancient water."
+
+},
+
+Jupiter:{
+keywords:[
+"jupiter"
+],
+answer:"Jupiter is the largest planet in the Solar System and is a gas giant."
+},
+
+Saturn:{
+keywords:[
+"saturn"
+],
+answer:"Saturn is a gas giant known for its large ring system."
+},
+
+Uranus:{
+keywords:[
+"uranus"
+],
+answer:"Uranus is an ice giant with a tilted rotation axis."
+},
+
+Neptune:{
+keywords:[
+"neptune"
+],
+answer:"Neptune is the farthest major planet from the Sun and has powerful winds."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// STARS
+// =====================================
+
+Stars:{
+
+definition:"Stars are massive spheres of plasma powered by nuclear fusion.",
+
+topics:{
+
+Fusion:{
+keywords:[
+"nuclear fusion stars"
+],
+answer:"Stars produce energy by fusing hydrogen into helium in their cores."
+},
+
+StarLifeCycle:{
+keywords:[
+"star life cycle"
+],
+answer:"Stars form from clouds of gas and dust, evolve, and eventually end as objects such as white dwarfs, neutron stars, or black holes."
+},
+
+Supernova:{
+keywords:[
+"supernova"
+],
+answer:"A supernova is a powerful explosion that occurs during certain stages of a star's life."
+},
+
+BlackHole:{
+keywords:[
+"black hole"
+],
+answer:"A black hole is an object with gravity so strong that light cannot escape beyond its event horizon."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// GALAXIES
+// =====================================
+
+Galaxies:{
+
+definition:"Galaxies are large gravitational systems containing stars, gas, dust, and dark matter.",
+
+topics:{
+
+MilkyWay:{
+keywords:[
+"milky way"
+],
+answer:"The Milky Way is the spiral galaxy that contains our Solar System."
+},
+
+SpiralGalaxy:{
+keywords:[
+"spiral galaxy"
+],
+answer:"A spiral galaxy has curved arms extending from a central region."
+},
+
+EllipticalGalaxy:{
+keywords:[
+"elliptical galaxy"
+],
+answer:"An elliptical galaxy has a rounded shape and contains mostly older stars."
+},
+
+GalaxyCluster:{
+keywords:[
+"galaxy cluster"
+],
+answer:"A galaxy cluster is a group of galaxies held together by gravity."
+
+}
+
+}
+
+}
+// =====================================
+// COSMOLOGY
+// =====================================
+
+Cosmology:{
+
+definition:"Cosmology studies the origin, structure, evolution, and future of the universe.",
+
+topics:{
+
+BigBang:{
+keywords:[
+"big bang",
+"big bang theory"
+],
+answer:"The Big Bang theory explains that the universe began from an extremely hot and dense state and has been expanding over time."
+},
+
+Expansion:{
+keywords:[
+"expanding universe",
+"universe expansion"
+],
+answer:"The universe is expanding, meaning galaxies are moving farther apart over time."
+},
+
+CosmicBackground:{
+keywords:[
+"cosmic microwave background",
+"cmb"
+],
+answer:"The cosmic microwave background is leftover radiation from the early universe."
+},
+
+AgeUniverse:{
+keywords:[
+"age of universe"
+],
+answer:"Scientists estimate the universe is about 13.8 billion years old."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DARK MATTER AND DARK ENERGY
+// =====================================
+
+DarkUniverse:{
+
+definition:"Dark matter and dark energy describe major components of the universe that are not directly visible.",
+
+topics:{
+
+DarkMatter:{
+keywords:[
+"dark matter"
+],
+answer:"Dark matter is invisible matter detected through its gravitational effects on visible objects."
+},
+
+DarkEnergy:{
+keywords:[
+"dark energy"
+],
+answer:"Dark energy is a proposed form of energy responsible for the accelerating expansion of the universe."
+},
+
+CosmicStructure:{
+keywords:[
+"cosmic structure"
+],
+answer:"Dark matter helps explain the formation and arrangement of galaxies throughout the universe."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// EXOPLANETS
+// =====================================
+
+Exoplanets:{
+
+definition:"Exoplanet science studies planets that orbit stars outside our Solar System.",
+
+topics:{
+
+Exoplanet:{
+keywords:[
+"exoplanet",
+"exoplanets"
+],
+answer:"An exoplanet is a planet that orbits a star outside our Solar System."
+},
+
+HabitableZone:{
+keywords:[
+"habitable zone"
+],
+answer:"The habitable zone is the region around a star where conditions may allow liquid water to exist."
+},
+
+DetectionMethods:{
+keywords:[
+"finding exoplanets",
+"exoplanet detection"
+],
+answer:"Scientists detect exoplanets using methods such as observing changes in starlight or gravitational effects."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// SPACE EXPLORATION
+// =====================================
+
+SpaceExploration:{
+
+definition:"Space exploration uses technology to study space and celestial objects.",
+
+topics:{
+
+Rocket:{
+keywords:[
+"rocket",
+"rockets"
+],
+answer:"A rocket uses propulsion to produce thrust and travel through space."
+},
+
+Satellite:{
+keywords:[
+"satellite",
+"satellites"
+],
+answer:"A satellite is an object placed into orbit around a planet or other celestial body."
+},
+
+SpaceStation:{
+keywords:[
+"space station"
+],
+answer:"A space station is a spacecraft designed for humans to live and conduct research in orbit."
+},
+
+SpaceProbe:{
+keywords:[
+"space probe",
+"probe"
+],
+answer:"A space probe is an unmanned spacecraft sent to collect information about space objects."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ASTROBIOLOGY
+// =====================================
+
+Astrobiology:{
+
+definition:"Astrobiology studies the possibility, origin, and characteristics of life beyond Earth.",
+
+topics:{
+
+LifeUniverse:{
+keywords:[
+"life beyond earth",
+"alien life"
+],
+answer:"Astrobiology investigates whether life exists or could exist elsewhere in the universe."
+},
+
+OriginsLife:{
+keywords:[
+"origin of life"
+],
+answer:"Scientists study how the first life forms may have developed on Earth."
+},
+
+Biosignatures:{
+keywords:[
+"biosignatures"
+],
+answer:"Biosignatures are possible signs of life detected through scientific observations."
+
+}
+
+}
+
+}
+
+
+ComputerScience:{
+
+// =====================================
+// COMPUTER SCIENCE FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Computer science is the study of computation, algorithms, data, software, hardware, and information systems.",
+
+topics:{
+
+Computer:{
+keywords:[
+"computer",
+"computers"
+],
+answer:"A computer is an electronic device that processes data using hardware and software."
+},
+
+Hardware:{
+keywords:[
+"hardware"
+],
+answer:"Hardware is the physical components of a computer, such as the processor, memory, storage, and input devices."
+},
+
+Software:{
+keywords:[
+"software"
+],
+answer:"Software is the collection of programs and instructions that tell hardware what to do."
+},
+
+Algorithm:{
+keywords:[
+"algorithm",
+"algorithms"
+],
+answer:"An algorithm is a step-by-step set of instructions used to solve a problem."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// PROGRAMMING
+// =====================================
+
+Programming:{
+
+definition:"Programming is the process of creating instructions that computers can execute.",
+
+topics:{
+
+Code:{
+keywords:[
+"code",
+"coding"
+],
+answer:"Code is a set of instructions written in a programming language that a computer can understand."
+},
+
+ProgrammingLanguage:{
+keywords:[
+"programming language",
+"languages"
+],
+answer:"A programming language is a system used to write software instructions."
+},
+
+Variable:{
+keywords:[
+"variable",
+"variables"
+],
+answer:"A variable is a named storage location used to hold information that can change."
+},
+
+Function:{
+keywords:[
+"function",
+"functions"
+],
+answer:"A function is a reusable block of code designed to perform a specific task."
+},
+
+Loop:{
+keywords:[
+"loop",
+"loops"
+],
+answer:"A loop repeats instructions until a condition is met."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DATA STRUCTURES
+// =====================================
+
+DataStructures:{
+
+definition:"Data structures organize and store information efficiently.",
+
+topics:{
+
+Array:{
+keywords:[
+"array",
+"arrays"
+],
+answer:"An array stores multiple values in an ordered collection."
+},
+
+List:{
+keywords:[
+"list",
+"lists"
+],
+answer:"A list is a collection of items that can be stored and processed."
+},
+
+Stack:{
+keywords:[
+"stack"
+],
+answer:"A stack is a data structure where the last item added is the first item removed."
+},
+
+Queue:{
+keywords:[
+"queue"
+],
+answer:"A queue is a data structure where the first item added is the first item removed."
+},
+
+Tree:{
+keywords:[
+"tree data structure"
+],
+answer:"A tree is a hierarchical data structure made of connected nodes."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// COMPUTER SYSTEMS
+// =====================================
+
+ComputerSystems:{
+
+definition:"Computer systems combine hardware and software to perform tasks.",
+
+topics:{
+
+CPU:{
+keywords:[
+"cpu",
+"processor"
+],
+answer:"The CPU is the central processing unit that executes instructions and performs calculations."
+},
+
+Memory:{
+keywords:[
+"ram",
+"memory"
+],
+answer:"Memory stores data and instructions that the computer needs while operating."
+},
+
+Storage:{
+keywords:[
+"storage",
+"hard drive",
+"ssd"
+],
+answer:"Storage holds data permanently even when the computer is turned off."
+},
+
+OperatingSystem:{
+keywords:[
+"operating system",
+"os"
+],
+answer:"An operating system manages computer hardware and provides a platform for applications."
+
+}
+
+}
+
+}
+// =====================================
+// ALGORITHMS
+// =====================================
+
+Algorithms:{
+
+definition:"Algorithms are structured methods for solving problems and processing information.",
+
+topics:{
+
+Searching:{
+keywords:[
+"search algorithm",
+"searching"
+],
+answer:"Searching algorithms find specific information within a collection of data."
+},
+
+Sorting:{
+keywords:[
+"sorting algorithm",
+"sorting"
+],
+answer:"Sorting algorithms arrange data into a specific order."
+},
+
+BinarySearch:{
+keywords:[
+"binary search"
+],
+answer:"Binary search efficiently finds values in sorted data by repeatedly dividing the search area."
+},
+
+Efficiency:{
+keywords:[
+"algorithm efficiency",
+"big o"
+],
+answer:"Algorithm efficiency measures how much time and memory an algorithm requires."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DATABASES
+// =====================================
+
+Databases:{
+
+definition:"Databases store, organize, and manage large amounts of information.",
+
+topics:{
+
+Database:{
+keywords:[
+"database",
+"databases"
+],
+answer:"A database is an organized collection of information that can be searched and updated."
+},
+
+SQL:{
+keywords:[
+"sql"
+],
+answer:"SQL is a language used to create, manage, and retrieve information from relational databases."
+},
+
+Table:{
+keywords:[
+"database table"
+],
+answer:"A database table organizes information into rows and columns."
+},
+
+Data:{
+keywords:[
+"data"
+],
+answer:"Data is information collected, stored, and processed by computer systems."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// COMPUTER NETWORKING
+// =====================================
+
+Networking:{
+
+definition:"Computer networking studies how computers communicate and exchange information.",
+
+topics:{
+
+Network:{
+keywords:[
+"network",
+"computer network"
+],
+answer:"A network connects computers and devices so they can communicate and share resources."
+},
+
+Internet:{
+keywords:[
+"internet"
+],
+answer:"The internet is a global network connecting billions of devices."
+},
+
+IPAddress:{
+keywords:[
+"ip address",
+"ip"
+],
+answer:"An IP address identifies a device on a network."
+},
+
+Protocol:{
+keywords:[
+"protocol",
+"network protocol"
+],
+answer:"A protocol is a set of rules that allows devices to communicate."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CYBERSECURITY
+// =====================================
+
+Cybersecurity:{
+
+definition:"Cybersecurity protects computers, networks, and data from unauthorized access or damage.",
+
+topics:{
+
+Security:{
+keywords:[
+"cybersecurity",
+"computer security"
+],
+answer:"Cybersecurity involves protecting digital systems and information."
+},
+
+Encryption:{
+keywords:[
+"encryption"
+],
+answer:"Encryption converts information into a protected format to prevent unauthorized access."
+},
+
+Authentication:{
+keywords:[
+"authentication"
+],
+answer:"Authentication verifies the identity of a user or system."
+},
+
+Firewall:{
+keywords:[
+"firewall"
+],
+answer:"A firewall monitors and controls network traffic to improve security."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ARTIFICIAL INTELLIGENCE
+// =====================================
+
+ArtificialIntelligence:{
+
+definition:"Artificial intelligence studies systems that can perform tasks requiring human-like intelligence.",
+
+topics:{
+
+AI:{
+keywords:[
+"ai",
+"artificial intelligence"
+],
+answer:"Artificial intelligence allows computers to perform tasks such as reasoning, learning, and problem solving."
+},
+
+MachineLearning:{
+keywords:[
+"machine learning"
+],
+answer:"Machine learning allows computers to learn patterns from data."
+},
+
+NeuralNetwork:{
+keywords:[
+"neural network"
+],
+answer:"Neural networks are computing systems inspired by the structure of biological brains."
+},
+
+DeepLearning:{
+keywords:[
+"deep learning"
+],
+answer:"Deep learning uses large neural networks to process complex patterns."
+
+}
+
+}
+
+},
+// =====================================
+// SOFTWARE ENGINEERING
+// =====================================
+
+SoftwareEngineering:{
+
+definition:"Software engineering applies engineering principles to designing, building, testing, and maintaining software.",
+
+topics:{
+
+SoftwareDevelopment:{
+keywords:[
+"software development",
+"developing software"
+],
+answer:"Software development is the process of designing, creating, testing, and improving computer programs."
+},
+
+Debugging:{
+keywords:[
+"debugging",
+"debug"
+],
+answer:"Debugging is the process of finding and fixing errors in software."
+},
+
+Testing:{
+keywords:[
+"software testing",
+"testing"
+],
+answer:"Software testing checks whether programs work correctly and meet requirements."
+},
+
+VersionControl:{
+keywords:[
+"version control",
+"github"
+],
+answer:"Version control tracks changes to code and helps developers collaborate."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// OPERATING SYSTEMS
+// =====================================
+
+OperatingSystems:{
+
+definition:"Operating systems manage computer hardware, software resources, and user interaction.",
+
+topics:{
+
+Kernel:{
+keywords:[
+"kernel"
+],
+answer:"The kernel is the core part of an operating system that manages hardware and system resources."
+},
+
+Process:{
+keywords:[
+"process",
+"processes"
+],
+answer:"A process is a program currently being executed by a computer."
+},
+
+Multitasking:{
+keywords:[
+"multitasking"
+],
+answer:"Multitasking allows an operating system to manage multiple tasks at the same time."
+},
+
+FileSystem:{
+keywords:[
+"file system"
+],
+answer:"A file system organizes how data is stored and accessed on storage devices."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// COMPUTER GRAPHICS
+// =====================================
+
+ComputerGraphics:{
+
+definition:"Computer graphics studies the creation and manipulation of visual images using computers.",
+
+topics:{
+
+Pixel:{
+keywords:[
+"pixel",
+"pixels"
+],
+answer:"A pixel is the smallest individual unit of a digital image."
+},
+
+Rendering:{
+keywords:[
+"rendering"
+],
+answer:"Rendering is the process of generating images from data, models, or instructions."
+},
+
+3DGraphics:{
+keywords:[
+"3d graphics",
+"3d modeling"
+],
+answer:"3D graphics create digital objects and environments with height, width, and depth."
+},
+
+Animation:{
+keywords:[
+"computer animation",
+"animation"
+],
+answer:"Computer animation creates the appearance of movement by displaying changing images."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ROBOTICS
+// =====================================
+
+Robotics:{
+
+definition:"Robotics combines computer science, engineering, and artificial intelligence to create machines that perform tasks.",
+
+topics:{
+
+Robot:{
+keywords:[
+"robot",
+"robots"
+],
+answer:"A robot is a programmable machine capable of sensing, processing information, and performing actions."
+},
+
+Sensors:{
+keywords:[
+"sensors"
+],
+answer:"Sensors allow robots to collect information about their environment."
+},
+
+Automation:{
+keywords:[
+"automation"
+],
+answer:"Automation uses technology to perform tasks with reduced human input."
+},
+
+RobotControl:{
+keywords:[
+"robot control"
+],
+answer:"Robot control systems use software and hardware to direct robot actions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ADVANCED AI
+// =====================================
+
+AdvancedAI:{
+
+definition:"Advanced AI studies methods that allow machines to reason, learn, and make decisions.",
+
+topics:{
+
+NaturalLanguageProcessing:{
+keywords:[
+"natural language processing",
+"nlp"
+],
+answer:"Natural language processing allows computers to understand and generate human language."
+},
+
+ComputerVision:{
+keywords:[
+"computer vision"
+],
+answer:"Computer vision allows computers to interpret and analyze images and video."
+},
+
+ReinforcementLearning:{
+keywords:[
+"reinforcement learning"
+],
+answer:"Reinforcement learning allows systems to learn through rewards and consequences."
+},
+
+ArtificialGeneralIntelligence:{
+keywords:[
+"agi",
+"artificial general intelligence"
+],
+answer:"Artificial general intelligence refers to hypothetical AI systems with broad human-like abilities."
+
+}
+
+}
+
+}
+
+
+Engineering:{
+
+// =====================================
+// ENGINEERING FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Engineering applies science, mathematics, and technology to design, build, and improve systems and solutions.",
+
+topics:{
+
+Engineering:{
+keywords:[
+"engineering",
+"engineer"
+],
+answer:"Engineering is the process of using scientific knowledge and mathematics to solve practical problems."
+},
+
+DesignProcess:{
+keywords:[
+"engineering design",
+"design process"
+],
+answer:"The engineering design process involves identifying problems, creating solutions, testing, and improving designs."
+},
+
+Prototype:{
+keywords:[
+"prototype",
+"prototyping"
+],
+answer:"A prototype is an early model used to test and improve a design."
+},
+
+Innovation:{
+keywords:[
+"innovation"
+],
+answer:"Innovation is the creation of new ideas, technologies, or methods that improve solutions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MECHANICAL ENGINEERING
+// =====================================
+
+MechanicalEngineering:{
+
+definition:"Mechanical engineering studies machines, motion, forces, energy, and mechanical systems.",
+
+topics:{
+
+Machine:{
+keywords:[
+"machine",
+"machines"
+],
+answer:"A machine uses mechanical components to transfer or transform energy to perform tasks."
+},
+
+Mechanics:{
+keywords:[
+"mechanics"
+],
+answer:"Mechanics studies forces, motion, and how objects interact."
+},
+
+Gears:{
+keywords:[
+"gear",
+"gears"
+],
+answer:"Gears transfer motion and force between rotating parts."
+},
+
+Engines:{
+keywords:[
+"engine",
+"engines"
+],
+answer:"Engines convert energy into mechanical motion."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ELECTRICAL ENGINEERING
+// =====================================
+
+ElectricalEngineering:{
+
+definition:"Electrical engineering studies electricity, electronics, circuits, and electrical systems.",
+
+topics:{
+
+Circuit:{
+keywords:[
+"electrical circuit"
+],
+answer:"Electrical circuits provide paths for electric current to flow."
+},
+
+Voltage:{
+keywords:[
+"electrical voltage"
+],
+answer:"Voltage is the electrical potential difference that pushes current through a circuit."
+},
+
+Current:{
+keywords:[
+"electrical current"
+],
+answer:"Electric current is the movement of charged particles through a conductor."
+},
+
+Electronics:{
+keywords:[
+"electronics"
+],
+answer:"Electronics studies systems that control electrical signals using components such as transistors."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CIVIL ENGINEERING
+// =====================================
+
+CivilEngineering:{
+
+definition:"Civil engineering designs and builds infrastructure such as buildings, roads, and bridges.",
+
+topics:{
+
+Structures:{
+keywords:[
+"structures",
+"structural engineering"
+],
+answer:"Structural engineering studies how buildings and structures support forces safely."
+},
+
+Bridge:{
+keywords:[
+"bridge engineering",
+"bridges"
+],
+answer:"Bridge engineering focuses on designing structures that safely carry loads across spaces."
+},
+
+Construction:{
+keywords:[
+"construction"
+],
+answer:"Construction is the process of building structures and infrastructure."
+},
+
+Materials:{
+keywords:[
+"construction materials"
+],
+answer:"Engineering materials are selected based on properties such as strength, durability, and cost."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// AEROSPACE ENGINEERING
+// =====================================
+
+AerospaceEngineering:{
+
+definition:"Aerospace engineering studies aircraft, spacecraft, propulsion, and flight systems.",
+
+topics:{
+
+Aircraft:{
+keywords:[
+"aircraft",
+"airplane engineering"
+],
+answer:"Aircraft engineering focuses on designing machines that fly through Earth's atmosphere."
+},
+
+Aerodynamics:{
+keywords:[
+"aerodynamics"
+],
+answer:"Aerodynamics studies how air interacts with moving objects."
+},
+
+RocketEngineering:{
+keywords:[
+"rocket engineering"
+],
+answer:"Rocket engineering focuses on propulsion and spacecraft launch systems."
+},
+
+Spacecraft:{
+keywords:[
+"spacecraft"
+],
+answer:"Spacecraft are vehicles designed to operate beyond Earth's atmosphere."
+
+}
+
+}
+
+}
+// =====================================
+// CHEMICAL ENGINEERING
+// =====================================
+
+ChemicalEngineering:{
+
+definition:"Chemical engineering applies chemistry, physics, and mathematics to design processes that transform materials.",
+
+topics:{
+
+ProcessEngineering:{
+keywords:[
+"process engineering"
+],
+answer:"Process engineering designs and manages systems that convert raw materials into useful products."
+},
+
+Reactor:{
+keywords:[
+"chemical reactor",
+"reactor"
+],
+answer:"A chemical reactor is a system where chemical reactions are controlled and optimized."
+},
+
+IndustrialChemistry:{
+keywords:[
+"industrial chemistry"
+],
+answer:"Industrial chemistry applies chemical principles to large-scale manufacturing."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// BIOMEDICAL ENGINEERING
+// =====================================
+
+BiomedicalEngineering:{
+
+definition:"Biomedical engineering combines engineering with biology and medicine to improve healthcare.",
+
+topics:{
+
+MedicalDevices:{
+keywords:[
+"medical devices"
+],
+answer:"Biomedical engineers design tools and devices used in healthcare."
+},
+
+Prosthetics:{
+keywords:[
+"prosthetics",
+"prosthetic"
+],
+answer:"Prosthetics are artificial devices designed to replace or support body parts."
+},
+
+Biotechnology:{
+keywords:[
+"biomedical biotechnology"
+],
+answer:"Biomedical biotechnology uses biological systems to develop medical solutions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// COMPUTER ENGINEERING
+// =====================================
+
+ComputerEngineering:{
+
+definition:"Computer engineering combines electrical engineering and computer science to design computer systems.",
+
+topics:{
+
+Microprocessor:{
+keywords:[
+"microprocessor"
+],
+answer:"A microprocessor is an integrated circuit that performs processing operations."
+},
+
+EmbeddedSystems:{
+keywords:[
+"embedded system",
+"embedded systems"
+],
+answer:"Embedded systems are specialized computers built into devices and machines."
+},
+
+HardwareDesign:{
+keywords:[
+"computer hardware design"
+],
+answer:"Hardware design creates and improves the physical components of computer systems."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ROBOTICS ENGINEERING
+// =====================================
+
+RoboticsEngineering:{
+
+definition:"Robotics engineering designs, builds, and programs robots and automated systems.",
+
+topics:{
+
+RobotDesign:{
+keywords:[
+"robot design"
+],
+answer:"Robot design combines mechanical parts, electronics, sensors, and software."
+},
+
+Actuators:{
+keywords:[
+"actuator",
+"actuators"
+],
+answer:"Actuators convert energy into movement in robotic systems."
+},
+
+ControlSystems:{
+keywords:[
+"control system",
+"robot control systems"
+],
+answer:"Control systems allow machines to respond to inputs and perform tasks accurately."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MATERIALS ENGINEERING
+// =====================================
+
+MaterialsEngineering:{
+
+definition:"Materials engineering studies the creation, selection, and improvement of materials.",
+
+topics:{
+
+Metals:{
+keywords:[
+"engineering metals"
+],
+answer:"Engineering metals are selected for properties such as strength, conductivity, and durability."
+},
+
+Composites:{
+keywords:[
+"composite materials",
+"composites"
+],
+answer:"Composite materials combine different materials to achieve improved properties."
+},
+
+Nanotechnology:{
+keywords:[
+"engineering nanotechnology"
+],
+answer:"Nanotechnology engineers materials at extremely small scales to create advanced properties."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ENVIRONMENTAL ENGINEERING
+// =====================================
+
+EnvironmentalEngineering:{
+
+definition:"Environmental engineering applies engineering methods to protect human health and the environment.",
+
+topics:{
+
+WaterTreatment:{
+keywords:[
+"water treatment"
+],
+answer:"Water treatment removes contaminants to make water safer for use."
+},
+
+WasteManagement:{
+keywords:[
+"waste management"
+],
+answer:"Waste management involves collecting, processing, and reducing waste."
+},
+
+RenewableEnergyEngineering:{
+keywords:[
+"renewable energy engineering"
+],
+answer:"Renewable energy engineering develops systems using sustainable energy sources."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// INDUSTRIAL ENGINEERING
+// =====================================
+
+IndustrialEngineering:{
+
+definition:"Industrial engineering improves systems, efficiency, productivity, and processes.",
+
+topics:{
+
+Optimization:{
+keywords:[
+"optimization"
+],
+answer:"Optimization improves a system by finding the most effective solution."
+},
+
+Manufacturing:{
+keywords:[
+"manufacturing engineering"
+],
+answer:"Manufacturing engineering designs processes for producing products efficiently."
+},
+
+QualityControl:{
+keywords:[
+"quality control"
+],
+answer:"Quality control ensures products and processes meet required standards."
+
+}
+
+}
+
+}
+SocialSciences:{
+
+// =====================================
+// SOCIAL SCIENCE FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Social sciences study human society, behavior, relationships, institutions, and cultures.",
+
+topics:{
+
+Society:{
+keywords:[
+"society",
+"societies"
+],
+answer:"A society is a group of people who share systems, relationships, and cultural patterns."
+},
+
+Culture:{
+keywords:[
+"culture",
+"cultures"
+],
+answer:"Culture includes shared beliefs, values, traditions, language, and behaviors of a group."
+},
+
+HumanBehavior:{
+keywords:[
+"human behavior"
+],
+answer:"Human behavior studies how people think, act, interact, and respond to environments."
+},
+
+SocialStructure:{
+keywords:[
+"social structure"
+],
+answer:"Social structure describes the organized patterns and relationships within a society."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// PSYCHOLOGY
+// =====================================
+
+Psychology:{
+
+definition:"Psychology studies the mind, behavior, emotions, and mental processes.",
+
+topics:{
+
+Mind:{
+keywords:[
+"mind",
+"human mind"
+],
+answer:"The mind includes thoughts, emotions, memories, and processes involved in awareness and decision-making."
+},
+
+Learning:{
+keywords:[
+"learning psychology",
+"learning"
+],
+answer:"Learning is the process of gaining knowledge or changing behavior through experience."
+},
+
+Memory:{
+keywords:[
+"psychology memory"
+],
+answer:"Memory is the process of storing and recalling information."
+},
+
+Personality:{
+keywords:[
+"personality"
+],
+answer:"Personality describes patterns of thoughts, feelings, and behaviors that make individuals unique."
+},
+
+Motivation:{
+keywords:[
+"motivation"
+],
+answer:"Motivation influences the actions and goals people pursue."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// SOCIOLOGY
+// =====================================
+
+Sociology:{
+
+definition:"Sociology studies groups, social relationships, institutions, and patterns of human interaction.",
+
+topics:{
+
+SocialGroups:{
+keywords:[
+"social groups"
+],
+answer:"Social groups are collections of people who interact and share connections."
+},
+
+Institutions:{
+keywords:[
+"social institutions"
+],
+answer:"Social institutions are organized systems such as family, education, government, and economy."
+},
+
+Socialization:{
+keywords:[
+"socialization"
+],
+answer:"Socialization is the process through which people learn social norms and behaviors."
+},
+
+SocialChange:{
+keywords:[
+"social change"
+],
+answer:"Social change describes transformations in societies over time."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ECONOMICS
+// =====================================
+
+Economics:{
+
+definition:"Economics studies how people and societies produce, distribute, and use resources.",
+
+topics:{
+
+SupplyDemand:{
+keywords:[
+"supply and demand",
+"supply demand"
+],
+answer:"Supply and demand describe how availability and desire influence prices."
+},
+
+Markets:{
+keywords:[
+"market",
+"markets"
+],
+answer:"Markets are systems where buyers and sellers exchange goods and services."
+},
+
+Money:{
+keywords:[
+"money",
+"currency"
+],
+answer:"Money is a system used to exchange value and measure economic activity."
+},
+
+Inflation:{
+keywords:[
+"inflation"
+],
+answer:"Inflation is the increase in average prices of goods and services over time."
+
+}
+
+}
+
+}
+// =====================================
+// POLITICAL SCIENCE
+// =====================================
+
+PoliticalScience:{
+
+definition:"Political science studies governments, political systems, power, and public decision-making.",
+
+topics:{
+
+Government:{
+keywords:[
+"government",
+"governments"
+],
+answer:"Government is the system through which societies create rules, provide services, and organize authority."
+},
+
+Democracy:{
+keywords:[
+"democracy"
+],
+answer:"Democracy is a system where citizens participate in political decisions, often through voting."
+},
+
+Power:{
+keywords:[
+"political power"
+],
+answer:"Political power is the ability to influence decisions and control resources within a society."
+},
+
+Citizenship:{
+keywords:[
+"citizenship"
+],
+answer:"Citizenship describes the relationship between individuals and a political community."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ANTHROPOLOGY
+// =====================================
+
+Anthropology:{
+
+definition:"Anthropology studies humans, cultures, societies, and human development across time.",
+
+topics:{
+
+HumanEvolution:{
+keywords:[
+"human evolution"
+],
+answer:"Human evolution studies how humans developed and changed over millions of years."
+},
+
+CultureAnthropology:{
+keywords:[
+"cultural anthropology"
+],
+answer:"Cultural anthropology studies the beliefs, practices, and traditions of human groups."
+},
+
+Archaeology:{
+keywords:[
+"archaeology"
+],
+answer:"Archaeology studies past human societies through physical evidence such as artifacts."
+},
+
+Language:{
+keywords:[
+"anthropology language"
+],
+answer:"Anthropologists study language as an important part of human culture and communication."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// HUMAN GEOGRAPHY
+// =====================================
+
+HumanGeography:{
+
+definition:"Human geography studies how people interact with places, environments, and spatial patterns.",
+
+topics:{
+
+Population:{
+keywords:[
+"population geography"
+],
+answer:"Population geography studies where people live, population changes, and movement."
+},
+
+Urbanization:{
+keywords:[
+"urbanization"
+],
+answer:"Urbanization is the growth of cities as populations move and develop urban areas."
+},
+
+Migration:{
+keywords:[
+"migration"
+],
+answer:"Migration is the movement of people from one location to another."
+},
+
+Globalization:{
+keywords:[
+"globalization"
+],
+answer:"Globalization describes increasing connections between societies, economies, and cultures."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// HISTORY
+// =====================================
+
+History:{
+
+definition:"History studies past events, people, civilizations, and changes over time.",
+
+topics:{
+
+HistoricalEvidence:{
+keywords:[
+"historical evidence"
+],
+answer:"Historical evidence includes documents, artifacts, and records used to understand the past."
+},
+
+Civilization:{
+keywords:[
+"civilization",
+"civilizations"
+],
+answer:"Civilizations are complex societies with organized systems, cultures, and institutions."
+},
+
+Timeline:{
+keywords:[
+"timeline history"
+],
+answer:"A timeline organizes events in chronological order."
+},
+
+HistoricalAnalysis:{
+keywords:[
+"historical analysis"
+],
+answer:"Historical analysis examines causes, effects, and meanings of past events."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// COMMUNICATION STUDIES
+// =====================================
+
+CommunicationStudies:{
+
+definition:"Communication studies examines how information is created, shared, and understood.",
+
+topics:{
+
+Communication:{
+keywords:[
+"communication"
+],
+answer:"Communication is the process of exchanging information, ideas, and meaning."
+},
+
+Media:{
+keywords:[
+"media studies",
+"media"
+],
+answer:"Media studies examines how information is created and distributed through communication channels."
+},
+
+Persuasion:{
+keywords:[
+"persuasion"
+],
+answer:"Persuasion is the process of influencing beliefs, attitudes, or actions through communication."
+
+}
+
+}
+
+}
+// =====================================
+// LAW AND LEGAL STUDIES
+// =====================================
+
+Law:{
+
+definition:"Law studies systems of rules, rights, responsibilities, and justice within societies.",
+
+topics:{
+
+LegalSystem:{
+keywords:[
+"legal system",
+"law system"
+],
+answer:"A legal system is the structure used by a society to create, interpret, and enforce laws."
+},
+
+Rights:{
+keywords:[
+"rights",
+"human rights"
+],
+answer:"Rights are protections and freedoms recognized by legal or social systems."
+},
+
+Justice:{
+keywords:[
+"justice"
+],
+answer:"Justice involves fairness, accountability, and the application of laws."
+},
+
+Constitution:{
+keywords:[
+"constitution"
+],
+answer:"A constitution is a framework that defines government structure and fundamental principles."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// EDUCATION STUDIES
+// =====================================
+
+Education:{
+
+definition:"Education studies how people learn, teach, and develop knowledge and skills.",
+
+topics:{
+
+LearningTheory:{
+keywords:[
+"learning theory"
+],
+answer:"Learning theories explain how people acquire knowledge, skills, and behaviors."
+},
+
+Teaching:{
+keywords:[
+"teaching"
+],
+answer:"Teaching is the process of helping others gain understanding and abilities."
+},
+
+EducationSystems:{
+keywords:[
+"education system"
+],
+answer:"Education systems organize how societies provide learning opportunities."
+},
+
+CriticalThinking:{
+keywords:[
+"critical thinking"
+],
+answer:"Critical thinking involves analyzing information, evaluating evidence, and forming reasoned conclusions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CRIMINOLOGY
+// =====================================
+
+Criminology:{
+
+definition:"Criminology studies crime, criminal behavior, causes of crime, and responses to crime.",
+
+topics:{
+
+Crime:{
+keywords:[
+"crime",
+"crimes"
+],
+answer:"Crime is behavior that violates established laws within a society."
+},
+
+CriminalBehavior:{
+keywords:[
+"criminal behavior"
+],
+answer:"Criminal behavior studies why individuals or groups engage in illegal activities."
+},
+
+CrimePrevention:{
+keywords:[
+"crime prevention"
+],
+answer:"Crime prevention focuses on reducing factors that contribute to criminal activity."
+},
+
+JusticeSystem:{
+keywords:[
+"criminal justice"
+],
+answer:"The criminal justice system includes institutions involved in law enforcement, courts, and corrections."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// HUMAN DEVELOPMENT
+// =====================================
+
+HumanDevelopment:{
+
+definition:"Human development studies physical, cognitive, emotional, and social changes throughout life.",
+
+topics:{
+
+ChildDevelopment:{
+keywords:[
+"child development"
+],
+answer:"Child development studies how children grow, learn, and develop abilities."
+},
+
+Adolescence:{
+keywords:[
+"adolescence"
+],
+answer:"Adolescence is a stage of development involving major physical, cognitive, and social changes."
+},
+
+Adulthood:{
+keywords:[
+"adult development"
+],
+answer:"Adult development studies changes in abilities, roles, and experiences throughout adulthood."
+},
+
+Aging:{
+keywords:[
+"aging",
+"elderly development"
+],
+answer:"Aging studies biological, psychological, and social changes across later life."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// INTERNATIONAL RELATIONS
+// =====================================
+
+InternationalRelations:{
+
+definition:"International relations studies interactions between countries, organizations, and global systems.",
+
+topics:{
+
+Diplomacy:{
+keywords:[
+"diplomacy"
+],
+answer:"Diplomacy is the practice of managing relationships between nations through communication and negotiation."
+},
+
+GlobalOrganizations:{
+keywords:[
+"international organizations"
+],
+answer:"International organizations coordinate cooperation between countries on shared issues."
+},
+
+Conflict:{
+keywords:[
+"international conflict"
+],
+answer:"International conflict involves disagreements or struggles between nations or groups."
+},
+
+GlobalCooperation:{
+keywords:[
+"global cooperation"
+],
+answer:"Global cooperation involves countries working together to address shared challenges."
+
+}
+
+}
+
+}
+Humanities:{
+
+// =====================================
+// HUMANITIES FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Humanities study human culture, ideas, values, creativity, history, and meaning.",
+
+topics:{
+
+HumanCulture:{
+keywords:[
+"humanities",
+"culture"
+],
+answer:"The humanities explore how humans understand themselves through ideas, art, language, history, and philosophy."
+},
+
+Meaning:{
+keywords:[
+"meaning",
+"human meaning"
+],
+answer:"Humanities examine how people create meaning through beliefs, experiences, and cultural expression."
+},
+
+HumanExpression:{
+keywords:[
+"human expression"
+],
+answer:"Human expression includes communication through language, art, writing, music, and philosophy."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// PHILOSOPHY
+// =====================================
+
+Philosophy:{
+
+definition:"Philosophy studies fundamental questions about existence, knowledge, reasoning, ethics, and reality.",
+
+topics:{
+
+Metaphysics:{
+keywords:[
+"metaphysics"
+],
+answer:"Metaphysics studies the nature of reality, existence, and what things fundamentally are."
+},
+
+Epistemology:{
+keywords:[
+"epistemology"
+],
+answer:"Epistemology studies knowledge, belief, and how we determine what is true."
+},
+
+Ethics:{
+keywords:[
+"ethics",
+"morality"
+],
+answer:"Ethics studies principles of right and wrong behavior."
+},
+
+Logic:{
+keywords:[
+"logic"
+],
+answer:"Logic studies valid reasoning and how conclusions follow from evidence."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// WORLD HISTORY
+// =====================================
+
+WorldHistory:{
+
+definition:"World history studies major events, civilizations, cultures, and changes across human history.",
+
+topics:{
+
+AncientCivilizations:{
+keywords:[
+"ancient civilizations"
+],
+answer:"Ancient civilizations developed complex societies, governments, technologies, and cultures."
+},
+
+Empires:{
+keywords:[
+"empires"
+],
+answer:"Empires are large political systems that control territories and populations."
+},
+
+IndustrialRevolution:{
+keywords:[
+"industrial revolution"
+],
+answer:"The Industrial Revolution transformed societies through machines, factories, and new technologies."
+},
+
+ModernHistory:{
+keywords:[
+"modern history"
+],
+answer:"Modern history studies major events, conflicts, movements, and developments from recent centuries."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// LITERATURE
+// =====================================
+
+Literature:{
+
+definition:"Literature studies written works, storytelling, language, and human experiences expressed through text.",
+
+topics:{
+
+Story:{
+keywords:[
+"story",
+"stories"
+],
+answer:"Stories communicate ideas, experiences, and emotions through narrative structures."
+},
+
+Poetry:{
+keywords:[
+"poetry",
+"poem"
+],
+answer:"Poetry uses language, rhythm, and imagery to express ideas and emotions."
+},
+
+Novel:{
+keywords:[
+"novel",
+"novels"
+],
+answer:"A novel is a long fictional narrative that explores characters, events, and themes."
+},
+
+LiteraryAnalysis:{
+keywords:[
+"literary analysis"
+],
+answer:"Literary analysis examines themes, symbols, structure, and meaning in written works."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// LANGUAGES
+// =====================================
+
+Languages:{
+
+definition:"Language studies examine communication systems, structure, meaning, and evolution.",
+
+topics:{
+
+Grammar:{
+keywords:[
+"grammar"
+],
+answer:"Grammar describes the rules and structures that organize language."
+},
+
+Linguistics:{
+keywords:[
+"linguistics"
+],
+answer:"Linguistics is the scientific study of language."
+},
+
+Translation:{
+keywords:[
+"translation"
+],
+answer:"Translation converts meaning from one language into another."
+},
+
+Communication:{
+keywords:[
+"language communication"
+],
+answer:"Language allows humans to exchange information, ideas, and culture."
+
+}
+
+}
+
+}
+// =====================================
+// RELIGION AND BELIEF STUDIES
+// =====================================
+
+ReligionStudies:{
+
+definition:"Religion studies examine belief systems, traditions, practices, and their influence on societies.",
+
+topics:{
+
+BeliefSystems:{
+keywords:[
+"religion",
+"belief systems"
+],
+answer:"Belief systems are frameworks people use to understand existence, values, and the world."
+},
+
+Mythology:{
+keywords:[
+"mythology",
+"myths"
+],
+answer:"Mythology studies traditional stories that explain origins, values, heroes, and cultural ideas."
+},
+
+Rituals:{
+keywords:[
+"ritual",
+"rituals"
+],
+answer:"Rituals are repeated practices that hold cultural or symbolic meaning."
+},
+
+ReligiousHistory:{
+keywords:[
+"religious history"
+],
+answer:"Religious history studies the development and influence of religions throughout time."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CULTURAL STUDIES
+// =====================================
+
+CulturalStudies:{
+
+definition:"Cultural studies examine how beliefs, media, traditions, and social practices shape human experiences.",
+
+topics:{
+
+PopularCulture:{
+keywords:[
+"popular culture",
+"pop culture"
+],
+answer:"Popular culture includes widely shared ideas, entertainment, and trends within societies."
+},
+
+Identity:{
+keywords:[
+"identity"
+],
+answer:"Identity describes how individuals and groups understand themselves and their place in society."
+},
+
+Tradition:{
+keywords:[
+"tradition",
+"traditions"
+],
+answer:"Traditions are cultural practices and beliefs passed between generations."
+},
+
+MediaCulture:{
+keywords:[
+"media culture"
+],
+answer:"Media culture studies how communication technologies influence ideas and behaviors."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// CLASSICAL STUDIES
+// =====================================
+
+ClassicalStudies:{
+
+definition:"Classical studies examine ancient Greek and Roman civilizations, languages, literature, and ideas.",
+
+topics:{
+
+AncientGreece:{
+keywords:[
+"ancient greece",
+"greek civilization"
+],
+answer:"Ancient Greece contributed major developments in philosophy, politics, science, and art."
+},
+
+AncientRome:{
+keywords:[
+"ancient rome",
+"roman civilization"
+],
+answer:"Ancient Rome influenced law, engineering, government, language, and culture."
+},
+
+MythologyClassical:{
+keywords:[
+"greek mythology",
+"roman mythology"
+],
+answer:"Classical mythology includes traditional stories about gods, heroes, and cultural beliefs."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// POLITICAL PHILOSOPHY
+// =====================================
+
+PoliticalPhilosophy:{
+
+definition:"Political philosophy studies ideas about government, justice, rights, and society.",
+
+topics:{
+
+Authority:{
+keywords:[
+"authority"
+],
+answer:"Authority is the recognized right to make decisions and create rules."
+},
+
+Freedom:{
+keywords:[
+"freedom",
+"liberty"
+],
+answer:"Freedom refers to the ability to act, think, and make choices within social limits."
+},
+
+JusticeTheory:{
+keywords:[
+"theories of justice"
+],
+answer:"Justice theories explore fairness, equality, rights, and distribution of resources."
+},
+
+SocialContract:{
+keywords:[
+"social contract"
+],
+answer:"Social contract theory examines agreements between individuals and governments."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ADVANCED ETHICS
+// =====================================
+
+AdvancedEthics:{
+
+definition:"Advanced ethics explores complex questions about choices, responsibilities, and values.",
+
+topics:{
+
+Consequentialism:{
+keywords:[
+"consequentialism"
+],
+answer:"Consequentialism evaluates actions based on their outcomes."
+},
+
+Deontology:{
+keywords:[
+"deontology"
+],
+answer:"Deontology focuses on duties, rules, and principles when evaluating actions."
+},
+
+VirtueEthics:{
+keywords:[
+"virtue ethics"
+],
+answer:"Virtue ethics focuses on character traits and becoming a morally good person."
+},
+
+AppliedEthics:{
+keywords:[
+"applied ethics"
+],
+answer:"Applied ethics examines moral questions in areas such as technology, medicine, and society."
+
+}
+
+}
+
+}
+FineArts:{
+
+// =====================================
+// FINE ARTS FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Fine arts study creative expression through visual arts, music, performance, and design.",
+
+topics:{
+
+Art:{
+keywords:[
+"art",
+"fine art"
+],
+answer:"Art is the creation of works that communicate ideas, emotions, experiences, or perspectives."
+},
+
+Creativity:{
+keywords:[
+"creativity"
+],
+answer:"Creativity is the ability to generate new ideas, concepts, or artistic expressions."
+},
+
+Aesthetics:{
+keywords:[
+"aesthetics"
+],
+answer:"Aesthetics is the study of beauty, artistic value, and perception."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// VISUAL ARTS
+// =====================================
+
+VisualArts:{
+
+definition:"Visual arts use images, objects, and visual elements to communicate ideas.",
+
+topics:{
+
+Drawing:{
+keywords:[
+"drawing"
+],
+answer:"Drawing creates images using marks, lines, shapes, and shading."
+},
+
+Painting:{
+keywords:[
+"painting"
+],
+answer:"Painting uses pigments applied to surfaces to create visual compositions."
+},
+
+Sculpture:{
+keywords:[
+"sculpture"
+],
+answer:"Sculpture creates three-dimensional artwork using materials such as stone, metal, wood, or clay."
+},
+
+Photography:{
+keywords:[
+"photography"
+],
+answer:"Photography captures images using light and technology."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ART THEORY
+// =====================================
+
+ArtTheory:{
+
+definition:"Art theory studies principles used to understand and analyze artwork.",
+
+topics:{
+
+Composition:{
+keywords:[
+"composition"
+],
+answer:"Composition is the arrangement of elements within an artwork."
+},
+
+ColorTheory:{
+keywords:[
+"color theory"
+],
+answer:"Color theory studies how colors interact and influence perception."
+},
+
+Perspective:{
+keywords:[
+"perspective art"
+],
+answer:"Perspective is a technique used to represent depth and space."
+},
+
+Symbolism:{
+keywords:[
+"symbolism"
+],
+answer:"Symbolism uses images, objects, or ideas to represent deeper meanings."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MUSIC
+// =====================================
+
+Music:{
+
+definition:"Music studies organized sound, rhythm, melody, harmony, and expression.",
+
+topics:{
+
+Rhythm:{
+keywords:[
+"rhythm"
+],
+answer:"Rhythm is the pattern of beats and timing in music."
+},
+
+Melody:{
+keywords:[
+"melody"
+],
+answer:"Melody is a sequence of musical notes that forms a recognizable tune."
+},
+
+Harmony:{
+keywords:[
+"harmony"
+],
+answer:"Harmony occurs when multiple musical notes or sounds combine together."
+},
+
+MusicalTheory:{
+keywords:[
+"music theory"
+],
+answer:"Music theory studies the structures and principles behind musical composition."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// THEATER AND PERFORMANCE
+// =====================================
+
+PerformanceArts:{
+
+definition:"Performance arts use live presentation to communicate stories, ideas, and emotions.",
+
+topics:{
+
+Theater:{
+keywords:[
+"theater",
+"theatre"
+],
+answer:"Theater combines acting, scripts, staging, and performance to tell stories."
+},
+
+Acting:{
+keywords:[
+"acting"
+],
+answer:"Acting is the practice of portraying characters and emotions through performance."
+},
+
+Dance:{
+keywords:[
+"dance"
+],
+answer:"Dance uses movement and expression to communicate ideas and emotions."
+},
+
+StageDesign:{
+keywords:[
+"stage design"
+],
+answer:"Stage design creates visual environments for performances."
+
+}
+
+}
+
+}
+// =====================================
+// FILM STUDIES
+// =====================================
+
+FilmStudies:{
+
+definition:"Film studies examines movies as artistic, cultural, and storytelling forms.",
+
+topics:{
+
+Cinema:{
+keywords:[
+"film",
+"cinema",
+"movies"
+],
+answer:"Film combines visuals, sound, acting, writing, and editing to communicate stories and ideas."
+},
+
+Directing:{
+keywords:[
+"film directing",
+"director"
+],
+answer:"Directing guides the creative vision and production of a film."
+},
+
+Screenwriting:{
+keywords:[
+"screenwriting",
+"script writing"
+],
+answer:"Screenwriting creates the written structure, dialogue, and scenes for films."
+},
+
+Editing:{
+keywords:[
+"film editing",
+"editing"
+],
+answer:"Film editing arranges recorded material to create the final story and experience."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ARCHITECTURE
+// =====================================
+
+Architecture:{
+
+definition:"Architecture combines art, engineering, and design to create functional spaces and structures.",
+
+topics:{
+
+BuildingDesign:{
+keywords:[
+"architecture design",
+"building design"
+],
+answer:"Building design considers appearance, function, safety, and human needs."
+},
+
+ArchitecturalStyles:{
+keywords:[
+"architectural styles"
+],
+answer:"Architectural styles are distinctive approaches to designing buildings."
+},
+
+SpacePlanning:{
+keywords:[
+"space planning"
+],
+answer:"Space planning organizes physical areas for efficient and effective use."
+},
+
+SustainableArchitecture:{
+keywords:[
+"sustainable architecture"
+],
+answer:"Sustainable architecture focuses on reducing environmental impact through design."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// DIGITAL ART
+// =====================================
+
+DigitalArt:{
+
+definition:"Digital art uses computers and technology as tools for artistic creation.",
+
+topics:{
+
+DigitalPainting:{
+keywords:[
+"digital painting"
+],
+answer:"Digital painting creates artwork using electronic tools and software."
+},
+
+GraphicDesign:{
+keywords:[
+"graphic design"
+],
+answer:"Graphic design combines images, text, and layout to communicate messages."
+},
+
+3DArt:{
+keywords:[
+"3d art",
+"3d modeling art"
+],
+answer:"3D art creates digital objects and environments with depth and form."
+},
+
+GenerativeArt:{
+keywords:[
+"generative art"
+],
+answer:"Generative art uses systems, algorithms, or rules to create artwork."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ANIMATION
+// =====================================
+
+Animation:{
+
+definition:"Animation creates the illusion of movement by displaying images in sequence.",
+
+topics:{
+
+FrameAnimation:{
+keywords:[
+"frame animation",
+"frames"
+],
+answer:"Frame animation creates movement by showing individual images rapidly in sequence."
+},
+
+CharacterAnimation:{
+keywords:[
+"character animation"
+],
+answer:"Character animation brings fictional or real characters to life through movement and expression."
+},
+
+VisualEffects:{
+keywords:[
+"visual effects",
+"vfx"
+],
+answer:"Visual effects create or enhance imagery using digital techniques."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ART HISTORY
+// =====================================
+
+ArtHistory:{
+
+definition:"Art history studies artworks, artists, movements, and cultural influences throughout time.",
+
+topics:{
+
+ArtMovements:{
+keywords:[
+"art movements"
+],
+answer:"Art movements are groups of artists who share styles, ideas, or approaches."
+},
+
+Renaissance:{
+keywords:[
+"renaissance art"
+],
+answer:"The Renaissance was a period of renewed interest in art, science, and human-centered ideas."
+},
+
+ModernArt:{
+keywords:[
+"modern art"
+],
+answer:"Modern art includes movements that explored new materials, ideas, and forms of expression."
+},
+
+ContemporaryArt:{
+keywords:[
+"contemporary art"
+],
+answer:"Contemporary art refers to art created in the present era and often explores current issues."
+
+}
+
+}
+
+}
+BusinessProfessional:{
+
+// =====================================
+// BUSINESS FOUNDATIONS
+// =====================================
+
+Foundations:{
+
+definition:"Business studies organizations, markets, management, finance, entrepreneurship, and professional practices.",
+
+topics:{
+
+Business:{
+keywords:[
+"business",
+"businesses"
+],
+answer:"Business involves creating, providing, and exchanging goods or services to meet needs and create value."
+},
+
+Organization:{
+keywords:[
+"organization",
+"company structure"
+],
+answer:"Organizations are structured groups of people working toward shared goals."
+},
+
+Entrepreneurship:{
+keywords:[
+"entrepreneurship",
+"entrepreneur"
+],
+answer:"Entrepreneurship involves creating and developing new business ideas, products, or services."
+},
+
+Strategy:{
+keywords:[
+"business strategy"
+],
+answer:"Business strategy is planning how an organization will achieve long-term goals."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MANAGEMENT
+// =====================================
+
+Management:{
+
+definition:"Management focuses on planning, organizing, leading, and controlling resources.",
+
+topics:{
+
+Leadership:{
+keywords:[
+"leadership",
+"leader"
+],
+answer:"Leadership involves guiding people, making decisions, and helping teams achieve goals."
+},
+
+Planning:{
+keywords:[
+"business planning",
+"planning"
+],
+answer:"Planning involves setting goals and deciding how to achieve them."
+},
+
+Teamwork:{
+keywords:[
+"teamwork",
+"team management"
+],
+answer:"Teamwork involves people cooperating and combining skills to complete objectives."
+},
+
+DecisionMaking:{
+keywords:[
+"decision making"
+],
+answer:"Decision-making is the process of evaluating options and choosing actions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// FINANCE
+// =====================================
+
+Finance:{
+
+definition:"Finance studies money management, investments, budgeting, and financial decisions.",
+
+topics:{
+
+Budgeting:{
+keywords:[
+"budget",
+"budgeting"
+],
+answer:"Budgeting is planning how money will be earned, spent, and saved."
+},
+
+Investment:{
+keywords:[
+"investment",
+"investing"
+],
+answer:"Investment involves using money or resources with the goal of gaining future value."
+},
+
+Revenue:{
+keywords:[
+"revenue"
+],
+answer:"Revenue is income generated from selling goods or services."
+},
+
+Profit:{
+keywords:[
+"profit"
+],
+answer:"Profit is the amount remaining after expenses are subtracted from revenue."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// MARKETING
+// =====================================
+
+Marketing:{
+
+definition:"Marketing studies how organizations promote products, understand customers, and create value.",
+
+topics:{
+
+Branding:{
+keywords:[
+"branding",
+"brand"
+],
+answer:"Branding creates a recognizable identity and reputation for a product or organization."
+},
+
+Advertising:{
+keywords:[
+"advertising"
+],
+answer:"Advertising communicates messages designed to inform or influence customers."
+},
+
+CustomerResearch:{
+keywords:[
+"market research"
+],
+answer:"Market research studies customer needs, behaviors, and preferences."
+},
+
+Sales:{
+keywords:[
+"sales"
+],
+answer:"Sales involves exchanging products or services with customers."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// ECONOMICS IN BUSINESS
+// =====================================
+
+BusinessEconomics:{
+
+definition:"Business economics applies economic principles to organizational decisions.",
+
+topics:{
+
+Competition:{
+keywords:[
+"business competition"
+],
+answer:"Competition occurs when organizations compete for customers, resources, or market share."
+},
+
+Pricing:{
+keywords:[
+"pricing strategy"
+],
+answer:"Pricing determines how much customers pay for products or services."
+},
+
+SupplyChain:{
+keywords:[
+"supply chain"
+],
+answer:"A supply chain manages the movement of materials, products, and information."
+
+}
+
+}
+
+}
+// =====================================
+// ACCOUNTING
+// =====================================
+
+Accounting:{
+
+definition:"Accounting studies recording, organizing, analyzing, and reporting financial information.",
+
+topics:{
+
+FinancialStatements:{
+keywords:[
+"financial statements"
+],
+answer:"Financial statements summarize an organization's financial activity and condition."
+},
+
+Assets:{
+keywords:[
+"assets"
+],
+answer:"Assets are resources owned by an organization that have value."
+},
+
+Liabilities:{
+keywords:[
+"liabilities"
+],
+answer:"Liabilities are financial obligations or debts an organization must pay."
+},
+
+CashFlow:{
+keywords:[
+"cash flow"
+],
+answer:"Cash flow tracks money entering and leaving an organization."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// HUMAN RESOURCES
+// =====================================
+
+HumanResources:{
+
+definition:"Human resources focuses on managing people, workplace policies, and employee development.",
+
+topics:{
+
+Hiring:{
+keywords:[
+"hiring",
+"recruitment"
+],
+answer:"Hiring is the process of finding and selecting people for jobs."
+},
+
+Training:{
+keywords:[
+"employee training"
+],
+answer:"Training develops employee skills and knowledge."
+},
+
+WorkplaceCulture:{
+keywords:[
+"workplace culture"
+],
+answer:"Workplace culture describes shared values, behaviors, and expectations within an organization."
+},
+
+PerformanceManagement:{
+keywords:[
+"performance management"
+],
+answer:"Performance management evaluates and improves employee contributions."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// OPERATIONS MANAGEMENT
+// =====================================
+
+OperationsManagement:{
+
+definition:"Operations management improves the processes used to create products and deliver services.",
+
+topics:{
+
+Efficiency:{
+keywords:[
+"business efficiency"
+],
+answer:"Efficiency focuses on achieving results while minimizing wasted time, money, or resources."
+},
+
+Production:{
+keywords:[
+"production"
+],
+answer:"Production is the process of creating goods or delivering services."
+},
+
+QualityManagement:{
+keywords:[
+"quality management"
+],
+answer:"Quality management ensures products and services meet standards and customer expectations."
+},
+
+Logistics:{
+keywords:[
+"logistics"
+],
+answer:"Logistics manages the movement, storage, and delivery of resources and products."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// PROFESSIONAL COMMUNICATION
+// =====================================
+
+ProfessionalCommunication:{
+
+definition:"Professional communication studies effective communication in workplaces and organizations.",
+
+topics:{
+
+Writing:{
+keywords:[
+"business writing"
+],
+answer:"Business writing communicates information clearly and professionally."
+},
+
+Presentation:{
+keywords:[
+"presentation skills"
+],
+answer:"Presentation skills involve organizing and delivering information effectively."
+},
+
+Negotiation:{
+keywords:[
+"negotiation"
+],
+answer:"Negotiation is the process of reaching agreements through discussion and compromise."
+},
+
+Networking:{
+keywords:[
+"professional networking"
+],
+answer:"Professional networking builds relationships that support career and business opportunities."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// BUSINESS LAW AND ETHICS
+// =====================================
+
+BusinessLawEthics:{
+
+definition:"Business law and ethics examine rules, responsibilities, and moral decisions in organizations.",
+
+topics:{
+
+BusinessLaw:{
+keywords:[
+"business law"
+],
+answer:"Business law covers legal rules that affect organizations and commercial activities."
+},
+
+EthicalBusiness:{
+keywords:[
+"business ethics"
+],
+answer:"Business ethics studies responsible and fair decision-making in business."
+},
+
+CorporateResponsibility:{
+keywords:[
+"corporate responsibility"
+],
+answer:"Corporate responsibility involves organizations considering their impact on society and the environment."
+},
+
+Compliance:{
+keywords:[
+"business compliance"
+],
+answer:"Compliance ensures organizations follow laws, regulations, and standards."
+
+}
+
+}
+
+},
+
+
+// =====================================
+// TECHNOLOGY MANAGEMENT
+// =====================================
+
+TechnologyManagement:{
+
+definition:"Technology management studies using technology to improve organizations and solve business problems.",
+
+topics:{
+
+DigitalTransformation:{
+keywords:[
+"digital transformation"
+],
+answer:"Digital transformation uses technology to improve business processes and services."
+},
+
+InnovationManagement:{
+keywords:[
+"innovation management"
+],
+answer:"Innovation management organizes the development and implementation of new ideas."
+},
+
+InformationSystems:{
+keywords:[
+"business information systems"
+],
+answer:"Information systems help organizations collect, process, and use information for decisions."
+
+}
+
+}
+
+}
+
+
+
+
+
+};
+
+// =====================================
+// JARVIS KNOWLEDGE ENGINE V2
+// =====================================
+
+const KnowledgeEngine = {
+
+    status:"online",
+
+    version:"2.0",
+
+    searchHistory:[],
+
+    lastResult:null,
+
+    confidence:0,
+
+
+// =====================================
+// MAIN REQUEST
+// =====================================
+
+    ask(question){
+
+        let result =
+        this.search(question);
+
+
+        if(!result){
+
+            return null;
+
+        }
+
+
+        return this.buildResponse(result);
+
+    },
+
+
+
+// =====================================
+// SEARCH ENGINE
+// =====================================
+
+    search(question){
+
+
+        let query =
+        question.toLowerCase();
+
+
+        this.searchHistory.push(query);
+
+
+        let databases=[
+
+            Mathematics,
+            Physics,
+            Chemistry,
+            Biology,
+            EarthScience,
+            Astronomy,
+            ComputerScience,
+            Engineering,
+            SocialSciences,
+            Humanities,
+            FineArts,
+            BusinessProfessional
+
+        ];
+
+
+        let matches=[];
+
+
+        databases.forEach(database=>{
+
+
+            this.scan(
+
+                database,
+
+                query,
+
+                matches
+
+            );
+
+
+        });
+
+
+
+        if(matches.length===0){
+
+            this.confidence=0;
+
+            return null;
+
+        }
+
+
+
+        matches.sort(
+
+            (a,b)=>
+
+            b.score-a.score
+
+        );
+
+
+
+        this.lastResult =
+        matches[0];
+
+
+        this.confidence =
+        Math.min(
+            matches[0].score,
+            100
+        );
+
+
+        return matches[0];
+
+    },
+
+
+
+// =====================================
+// DATABASE SCANNER
+// =====================================
+
+    scan(object,query,matches){
+
+
+        for(let key in object){
+
+
+            let item =
+            object[key];
+
+
+            if(typeof item==="object"){
+
+
+
+                if(item.topics){
+
+
+                    for(let topic in item.topics){
+
+
+                        let data =
+                        item.topics[topic];
+
+
+                        if(data.keywords){
+
+
+                            let score=0;
+
+
+                            data.keywords.forEach(word=>{
+
+
+                                if(
+                                    query.includes(
+                                    word.toLowerCase()
+                                    )
+                                ){
+
+                                    score +=20;
+
+                                }
+
+
+                            });
+
+
+
+                            if(score>0){
+
+
+                                matches.push({
+
+
+                                    topic:topic,
+
+                                    category:key,
+
+                                    answer:
+                                    data.answer,
+
+                                    score:score,
+
+                                    related:
+                                    data.related || []
+
+
+                                });
+
+
+                            }
+
+
+                        }
+
+
+                    }
+
+
+                }
+
+
+
+                this.scan(
+
+                    item,
+
+                    query,
+
+                    matches
+
+                );
+
+            }
+
+        }
+
+    },
+
+
+
+// =====================================
+// RESPONSE BUILDER
+// =====================================
+
+    buildResponse(result){
+
+
+        let response = {
+
+
+            answer:
+            result.answer,
+
+
+            information:{
+
+                topic:
+                result.topic,
+
+
+                category:
+                result.category,
+
+
+                confidence:
+                this.confidence+"%"
+
+            },
+
+
+            relatedTopics:
+            result.related
+
+
+        };
+
+
+        return response;
+
+    },
+
+
+
+// =====================================
+// SEARCH SUGGESTIONS
+// =====================================
+
+    suggestions(){
+
+
+        if(!this.lastResult){
+
+            return [];
+
+        }
+
+
+        return this.lastResult.related || [];
+
+    },
+
+
+
+// =====================================
+// DIAGNOSTICS
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+
+            name:
+            "Knowledge Engine",
+
+
+            version:
+            this.version,
+
+
+            status:
+            this.status,
+
+
+            searches:
+            this.searchHistory.length,
+
+
+            confidence:
+            this.confidence+"%"
+
+
+        };
+
+    }
+
+};
+// =====================================
+// JARVIS REASONING ENGINE V2
+// =====================================
+
+const ReasoningEngine = {
+
+    status:"online",
+
+    version:"2.0",
+
+    context:[],
+
+    lastAnalysis:null,
+
+
+
+// =====================================
+// MAIN REASONING PROCESS
+// =====================================
+
+    think(question, knowledge=null){
+
+
+        let analysis={
+
+
+            input:question,
+
+
+            intent:
+            this.detectIntent(question),
+
+
+            context:
+            this.getContext(),
+
+
+            knowledge:
+
+
+            knowledge,
+
+
+            reasoningSteps:[],
+
+
+            confidence:0,
+
+
+            answer:null
+
+
+        };
+
+
+
+        analysis.reasoningSteps.push(
+            "Question received and analyzed"
+        );
+
+
+
+        if(knowledge){
+
+
+            analysis.reasoningSteps.push(
+                "Relevant knowledge connected"
+            );
+
+
+            analysis.confidence +=50;
+
+
+        }
+
+
+
+        analysis.reasoningSteps.push(
+
+            "Intent classified as: "
+            + analysis.intent
+
+        );
+
+
+
+        analysis.answer =
+
+        this.generateAnswer(
+
+            analysis
+
+        );
+
+
+
+        analysis.confidence +=
+
+        this.evaluateConfidence(
+
+            analysis
+
+        );
+
+
+
+        this.lastAnalysis=analysis;
+
+
+
+        this.context.push({
+
+            question:question,
+
+            answer:analysis.answer
+
+        });
+
+
+
+        return analysis.answer;
+
+    },
+
+
+
+// =====================================
+// INTENT DETECTION
+// =====================================
+
+    detectIntent(question){
+
+
+        let text =
+        question.toLowerCase();
+
+
+
+        if(
+            text.includes("why")
+        ){
+
+            return "explanation";
+
+        }
+
+
+
+        if(
+            text.includes("how")
+        ){
+
+            return "instruction";
+
+        }
+
+
+
+        if(
+            text.includes("difference")
+            ||
+            text.includes("compare")
+        ){
+
+            return "comparison";
+
+        }
+
+
+
+        if(
+            text.includes("solve")
+            ||
+            text.includes("calculate")
+        ){
+
+            return "problem solving";
+
+        }
+
+
+
+        if(
+            text.includes("what")
+            ||
+            text.includes("define")
+        ){
+
+            return "definition";
+
+        }
+
+
+
+        return "conversation";
+
+    },
+
+
+
+// =====================================
+// ANSWER GENERATOR
+// =====================================
+
+    generateAnswer(data){
+
+
+
+        let knowledge=data.knowledge;
+
+
+
+        if(!knowledge){
+
+
+            return {
+
+                message:
+                "I need more information to answer accurately.",
+
+
+                reasoning:
+                "No matching knowledge source was found."
+
+            };
+
+        }
+
+
+
+        let answer={
+
+
+            response:
+            knowledge.answer,
+
+
+            explanation:
+            this.expandExplanation(
+
+                knowledge.answer,
+
+                data.intent
+
+            ),
+
+
+            reasoning:
+            data.reasoningSteps,
+
+
+            confidence:
+            data.confidence+"%"
+
+
+        };
+
+
+
+        return answer;
+
+    },
+
+
+
+// =====================================
+// EXPLANATION EXPANDER
+// =====================================
+
+    expandExplanation(answer,intent){
+
+
+        if(intent==="explanation"){
+
+            return "JARVIS will explain the causes and principles behind: "
+            + answer;
+
+        }
+
+
+
+        if(intent==="instruction"){
+
+            return "JARVIS will organize this into a step-by-step process.";
+
+        }
+
+
+
+        if(intent==="comparison"){
+
+            return "JARVIS will analyze similarities and differences.";
+
+        }
+
+
+
+        return "JARVIS organized the information into a clear response.";
+
+    },
+
+
+
+// =====================================
+// CONFIDENCE ANALYSIS
+// =====================================
+
+    evaluateConfidence(data){
+
+
+        let score=0;
+
+
+
+        if(data.knowledge){
+
+            score+=30;
+
+        }
+
+
+
+        if(data.context.length>0){
+
+            score+=10;
+
+        }
+
+
+
+        return score;
+
+    },
+
+
+
+// =====================================
+// CONTEXT MEMORY
+// =====================================
+
+    getContext(){
+
+
+        return this.context.slice(-5);
+
+    },
+
+
+
+// =====================================
+// SOLUTION PLANNER
+// =====================================
+
+    solve(problem){
+
+
+        return {
+
+
+            problem:problem,
+
+
+            plan:[
+
+                "Analyze the problem",
+
+                "Identify known information",
+
+                "Determine possible methods",
+
+                "Apply solution",
+
+                "Verify result"
+
+            ]
+
+        };
+
+    },
+
+
+
+// =====================================
+// COMPARISON TOOL
+// =====================================
+
+    compare(first,second){
+
+
+        return {
+
+
+            compared:[
+
+                first,
+
+                second
+
+            ],
+
+
+            method:
+
+            [
+
+                "Find similarities",
+
+                "Find differences",
+
+                "Evaluate importance"
+
+            ]
+
+        };
+
+    },
+
+
+
+// =====================================
+// SYSTEM CHECK
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+            name:
+            "Reasoning Engine",
+
+            version:
+            this.version,
+
+            status:
+            this.status,
+
+            contextSize:
+            this.context.length,
+
+            lastAnalysis:
+            this.lastAnalysis
+
+        };
+
+    }
+
+};
+// =====================================
+// JARVIS PERSONALITY ENGINE V2
+// =====================================
+
+const PersonalityEngine = {
+
+    status:"online",
+
+    version:"2.0",
+
+    currentStyle:"natural",
+
+    responseLength:"balanced",
+
+    context:"normal",
+
+
+    traits:{
+
+        helpful:true,
+
+        respectful:true,
+
+        clear:true,
+
+        adaptive:true,
+
+        conversational:true,
+
+        patient:true
+
+    },
+
+
+
+// =====================================
+// MAIN RESPONSE BUILDER
+// =====================================
+
+    respond(inputData){
+
+
+        if(!inputData){
+
+            return "I need more information to respond.";
+
+        }
+
+
+        let response = {
+
+
+            message:
+            this.createMessage(inputData),
+
+
+            style:
+            this.currentStyle,
+
+
+            length:
+            this.responseLength,
+
+
+            generatedBy:
+            "Personality Engine"
+
+        };
+
+
+        return response;
+
+    },
+
+
+
+// =====================================
+// MESSAGE CREATION
+// =====================================
+
+    createMessage(data){
+
+
+        let content="";
+
+
+        if(typeof data==="string"){
+
+            content=data;
+
+        }
+
+        else if(data.response){
+
+            content=data.response;
+
+        }
+
+        else if(data.answer){
+
+            content=data.answer;
+
+        }
+
+        else if(data.message){
+
+            content=data.message;
+
+        }
+
+        else{
+
+            content=
+            JSON.stringify(data);
+
+        }
+
+
+
+        return this.applyStyle(content);
+
+    },
+
+
+
+// =====================================
+// STYLE PROCESSING
+// =====================================
+
+    applyStyle(message){
+
+
+        switch(this.currentStyle){
+
+
+            case "professional":
+
+                return message;
+
+
+            case "teacher":
+
+                return (
+
+                "Explanation:\n\n"
+                + message
+
+                );
+
+
+            case "technical":
+
+                return (
+
+                "Technical Analysis:\n\n"
+                + message
+
+                );
+
+
+            case "casual":
+
+                return message;
+
+
+            default:
+
+                return message;
+
+
+        }
+
+    },
+
+
+
+// =====================================
+// STYLE CONTROL
+// =====================================
+
+    setStyle(style){
+
+
+        const styles=[
+
+            "natural",
+
+            "professional",
+
+            "teacher",
+
+            "technical",
+
+            "casual"
+
+        ];
+
+
+
+        if(styles.includes(style)){
+
+
+            this.currentStyle=style;
+
+
+            return "Style set to "
+            + style;
+
+        }
+
+
+        return "Unknown style.";
+
+    },
+
+
+
+// =====================================
+// RESPONSE LENGTH
+// =====================================
+
+    setLength(length){
+
+
+        const options=[
+
+            "short",
+
+            "balanced",
+
+            "detailed"
+
+        ];
+
+
+
+        if(options.includes(length)){
+
+
+            this.responseLength=length;
+
+
+            return "Response length set.";
+
+        }
+
+
+        return "Invalid length.";
+
+    },
+
+
+
+// =====================================
+// CONTEXT ADAPTATION
+// =====================================
+
+    setContext(context){
+
+
+        this.context=context;
+
+
+        return "Context updated.";
+
+    },
+
+
+
+// =====================================
+// CONVERSATION AWARENESS
+// =====================================
+
+    understandContext(history){
+
+
+        if(!history || history.length===0){
+
+            return "No previous context.";
+
+        }
+
+
+        return {
+
+            previousMessages:
+            history.slice(-5),
+
+            continuity:
+            true
+
+        };
+
+    },
+
+
+
+// =====================================
+// RESPONSE ADAPTATION
+// =====================================
+
+    adapt(){
+
+        return {
+
+            style:
+            this.currentStyle,
+
+            length:
+            this.responseLength,
+
+            context:
+            this.context
+
+        };
+
+    },
+
+
+
+// =====================================
+// DIAGNOSTICS
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+            name:
+            "Personality Engine",
+
+            version:
+            this.version,
+
+            status:
+            this.status,
+
+            style:
+            this.currentStyle,
+
+            length:
+            this.responseLength,
+
+            traits:
+            this.traits
+
+        };
+
+    }
+
+};
+// =====================================
+// JARVIS INTELLIGENCE CENTER V2
+// =====================================
+
+const IntelligenceCenter = {
+
+    status:"online",
+
+    version:"2.0",
+
+    lastRequest:null,
+
+    history:[],
+
+    confidence:0,
+
+
+    connectedEngines:{
+
+        memory:"online",
+
+        calendar:"online",
+
+        knowledge:"online",
+
+        reasoning:"online",
+
+        personality:"online",
+
+        explanation:"online"
+
+    },
+
+
+
+// =====================================
+// MAIN BRAIN PROCESS
+// =====================================
+
+    process(input){
+
+
+        try{
+
+
+            this.lastRequest=input;
+
+
+            let request={
+
+
+                input:input,
+
+
+                intent:
+                this.detectIntent(input),
+
+
+                priority:
+                this.assignPriority(input),
+
+
+                results:[]
+
+            };
+
+
+
+            this.history.push(request);
+
+
+
+            // 1. Handle direct commands
+
+            let command =
+            this.commandRouter(request);
+
+
+
+            if(command){
+
+                return this.format(command);
+
+            }
+
+
+
+            // 2. Check memory
+
+            let memory =
+            this.memoryRoute(input);
+
+
+
+            if(memory){
+
+                request.results.push({
+
+                    source:"memory",
+
+                    data:memory
+
+                });
+
+            }
+
+
+
+            // 3. Search knowledge
+
+            let knowledge =
+            KnowledgeEngine.ask(input);
+
+
+
+            if(knowledge){
+
+                request.results.push({
+
+                    source:"knowledge",
+
+                    data:knowledge
+
+                });
+
+
+            }
+
+
+
+            // 4. Apply reasoning
+
+            let reasoning =
+            ReasoningEngine.think(
+
+                input,
+
+                knowledge
+
+            );
+
+
+
+            request.results.push({
+
+                source:"reasoning",
+
+                data:reasoning
+
+            });
+
+
+
+            // 5. Create final response
+
+            let final =
+
+            PersonalityEngine.respond(
+
+                reasoning
+
+            );
+
+
+
+            return this.format(final);
+
+
+
+        }
+
+        catch(error){
+
+
+            return {
+
+                error:
+
+                "Intelligence Center error",
+
+                details:error.message
+
+            };
+
+
+        }
+
+
+    },
+
+
+
+// =====================================
+// INTENT ANALYSIS
+// =====================================
+
+    detectIntent(text){
+
+
+        let input =
+        text.toLowerCase();
+
+
+
+        if(
+            input.includes("schedule")
+            ||
+            input.includes("calendar")
+        ){
+
+            return "planning";
+
+        }
+
+
+
+        if(
+            input.includes("explain")
+            ||
+            input.includes("why")
+        ){
+
+            return "learning";
+
+        }
+
+
+
+        if(
+            input.includes("solve")
+            ||
+            input.includes("calculate")
+        ){
+
+            return "problem solving";
+
+        }
+
+
+
+        if(
+            input.includes("remember")
+        ){
+
+            return "memory";
+
+        }
+
+
+
+        return "conversation";
+
+
+    },
+
+
+
+// =====================================
+// PRIORITY SYSTEM
+// =====================================
+
+    assignPriority(input){
+
+
+        let text =
+        input.toLowerCase();
+
+
+
+        if(
+            text.includes("urgent")
+        ){
+
+            return "high";
+
+        }
+
+
+        if(
+            text.includes("help")
+        ){
+
+            return "medium";
+
+        }
+
+
+        return "normal";
+
+
+    },
+
+
+
+// =====================================
+// COMMAND ROUTER
+// =====================================
+
+    commandRouter(request){
+
+
+        let text =
+        request.input.toLowerCase();
+
+
+
+        if(
+            text.includes("system status")
+        ){
+
+            return this.statusReport();
+
+        }
+
+
+
+        if(
+            text.includes("calendar")
+            &&
+            typeof CalendarSystem !== "undefined"
+        ){
+
+            return CalendarSystem.upcoming();
+
+        }
+
+
+
+        return null;
+
+    },
+
+
+
+// =====================================
+// MEMORY ROUTER
+// =====================================
+
+    memoryRoute(input){
+
+
+        if(
+            typeof MemoryCenter !== "undefined"
+        ){
+
+            return MemoryCenter.search(input);
+
+        }
+
+
+        return null;
+
+    },
+
+
+
+// =====================================
+// RESPONSE FORMATTER
+// =====================================
+
+    format(response){
+
+
+        if(
+            typeof response === "object"
+        ){
+
+            if(response.message){
+
+                return response.message;
+
+            }
+
+
+            if(response.response){
+
+                return response.response;
+
+            }
+
+        }
+
+
+
+        return response;
+
+    },
+
+
+
+// =====================================
+// DIAGNOSTICS
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+
+            name:
+            "Intelligence Center",
+
+
+            version:
+            this.version,
+
+
+            status:
+            this.status,
+
+
+            engines:
+            this.connectedEngines,
+
+
+            requests:
+            this.history.length
+
+
+        };
+
+    }
+
+};
+// =====================================
+// JARVIS DIAGNOSTIC CENTER V2
+// =====================================
+
+const DiagnosticCenter = {
+
+    version:"2.0",
+
+    status:"online",
+
+    reports:[],
+
+    modules:{},
+
+
+
+// =====================================
+// FULL SYSTEM SCAN
+// =====================================
+
+    scan(){
+
+
+        let report={
+
+
+            id:
+            Date.now(),
+
+
+            time:
+            new Date()
+            .toLocaleString(),
+
+
+            overall:
+            "ONLINE",
+
+
+            modules:{},
+
+
+            warnings:[],
+
+
+            errors:[]
+
+        };
+
+
+
+        const checks=[
+
+
+            ["Core Variables","CoreVariables"],
+
+            ["Memory Center","MemoryCenter"],
+
+            ["Calendar Center","CalendarSystem"],
+
+            ["Mode Center","ModeCenter"],
+
+            ["Explanation Engine","ExplanationEngine"],
+
+            ["Knowledge Database","KnowledgeDatabase"],
+
+            ["Knowledge Engine","KnowledgeEngine"],
+
+            ["Reasoning Engine","ReasoningEngine"],
+
+            ["Personality Engine","PersonalityEngine"],
+
+            ["Intelligence Center","IntelligenceCenter"],
+
+            ["Message System","MessageSystem"]
+
+
+        ];
+
+
+
+        checks.forEach(module=>{
+
+
+            let result =
+            this.checkModule(
+                module[0],
+                module[1]
+            );
+
+
+            report.modules[module[0]]=result;
+
+
+
+            if(result.status==="OFFLINE"){
+
+                report.warnings.push(
+                    module[0]+" unavailable"
+                );
+
+            }
+
+
+        });
+
+
+
+        if(report.warnings.length>0){
+
+            report.overall="WARNING";
+
+        }
+
+
+
+        this.reports.push(report);
+
+
+        return report;
+
+    },
+
+
+
+// =====================================
+// MODULE CHECK
+// =====================================
+
+    checkModule(name,reference){
+
+
+        let online=false;
+
+
+
+        try{
+
+
+            online =
+            typeof window !== "undefined"
+            &&
+            eval(
+            "typeof "+reference+
+            " !== 'undefined'"
+            );
+
+
+        }
+
+        catch(error){
+
+
+            return {
+
+                status:"ERROR",
+
+                message:
+                error.message
+
+            };
+
+        }
+
+
+
+        return {
+
+
+            name:name,
+
+
+            status:
+            online
+            ?
+            "ONLINE"
+            :
+            "OFFLINE"
+
+
+        };
+
+    },
+
+
+
+// =====================================
+// HEALTH SCORE
+// =====================================
+
+    healthScore(){
+
+
+        let latest =
+        this.reports[
+            this.reports.length-1
+        ];
+
+
+
+        if(!latest){
+
+            return 0;
+
+        }
+
+
+
+        let total =
+        Object.keys(
+        latest.modules
+        ).length;
+
+
+        let online =
+        Object.values(
+        latest.modules
+        )
+        .filter(
+        m=>m.status==="ONLINE"
+        )
+        .length;
+
+
+
+        return Math.round(
+            (online/total)*100
+        );
+
+    },
+
+
+
+// =====================================
+// UPDATE REPORT
+// =====================================
+
+    systemUpdate(){
+
+
+        let report =
+        this.scan();
+
+
+
+        return {
+
+
+            title:
+            "JARVIS System Update",
+
+
+            status:
+            report.overall,
+
+
+            health:
+            this.healthScore()+"%",
+
+
+            modules:
+            report.modules,
+
+
+            warnings:
+            report.warnings
+
+
+        };
+
+    },
+
+
+
+// =====================================
+// ERROR REPORTING
+// =====================================
+
+    reportError(error){
+
+
+        return {
+
+
+            type:"ERROR",
+
+
+            message:
+            error.message,
+
+
+            time:
+            new Date()
+
+        };
+
+    },
+
+
+
+// =====================================
+// STATUS
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+
+            name:
+            "Diagnostic Center",
+
+
+            version:
+            this.version,
+
+
+            status:
+            this.status,
+
+
+            scans:
+            this.reports.length,
+
+
+            health:
+            this.healthScore()+"%"
+
+        };
+
+    }
+
+};
+// =====================================
+// JARVIS MESSAGE SYSTEM V2
+// =====================================
+
+const MessageSystem = {
+
+    version:"2.0",
+
+    status:"online",
+
+    history:[],
+
+
+    settings:{
+
+        timestamps:true,
+
+        saveHistory:true,
+
+        maxHistory:100
+
+    },
+
+
+
+// =====================================
+// SEND MESSAGE
+// =====================================
+
+    send(input){
+
+
+        if(!input || input.trim()===""){
+
+            return;
+
+        }
+
+
+
+        let userMessage={
+
+
+            id:
+            Date.now(),
+
+
+            sender:
+            "user",
+
+
+            text:
+            input,
+
+
+            time:
+            new Date()
+
+        };
+
+
+
+        this.addMessage(
+            userMessage
+        );
+
+
+
+        let response;
+
+
+
+        try{
+
+
+            response =
+            IntelligenceCenter.process(
+                input
+            );
+
+
+        }
+
+        catch(error){
+
+
+            DiagnosticCenter.reportError(
+                error
+            );
+
+
+            response={
+
+                message:
+                "JARVIS encountered an error."
+
+            };
+
+
+        }
+
+
+
+        let jarvisMessage={
+
+
+            id:
+            Date.now()+1,
+
+
+            sender:
+            "jarvis",
+
+
+            text:
+            this.extractResponse(response),
+
+
+            time:
+            new Date()
+
+        };
+
+
+
+        this.addMessage(
+            jarvisMessage
+        );
+
+
+
+        return jarvisMessage;
+
+    },
+
+
+
+// =====================================
+// MESSAGE STORAGE
+// =====================================
+
+    addMessage(message){
+
+
+        this.history.push(
+            message
+        );
+
+
+
+        if(
+            this.history.length >
+            this.settings.maxHistory
+        ){
+
+            this.history.shift();
+
+        }
+
+
+
+        if(this.settings.saveHistory){
+
+
+            localStorage.setItem(
+
+                "jarvisMessages",
+
+                JSON.stringify(
+                    this.history
+                )
+
+            );
+
+        }
+
+
+    },
+
+
+
+// =====================================
+// LOAD HISTORY
+// =====================================
+
+    load(){
+
+
+        let saved =
+        localStorage.getItem(
+            "jarvisMessages"
+        );
+
+
+
+        if(saved){
+
+
+            this.history =
+            JSON.parse(saved);
+
+        }
+
+
+    },
+
+
+
+// =====================================
+// RESPONSE CLEANER
+// =====================================
+
+    extractResponse(response){
+
+
+        if(typeof response==="string"){
+
+            return response;
+
+        }
+
+
+
+        if(response.message){
+
+            return response.message;
+
+        }
+
+
+
+        if(response.response){
+
+            return response.response;
+
+        }
+
+
+
+        if(response.answer){
+
+            return response.answer;
+
+        }
+
+
+
+        return JSON.stringify(response);
+
+    },
+
+
+
+// =====================================
+// GET CHAT HISTORY
+// =====================================
+
+    getHistory(){
+
+        return this.history;
+
+    },
+
+
+
+// =====================================
+// CLEAR CHAT
+// =====================================
+
+    clear(){
+
+
+        this.history=[];
+
+
+        localStorage.removeItem(
+            "jarvisMessages"
+        );
+
+
+        return "Conversation cleared.";
+
+    },
+
+
+
+// =====================================
+// STATUS
+// =====================================
+
+    statusReport(){
+
+
+        return {
+
+
+            name:
+            "Message System",
+
+
+            version:
+            this.version,
+
+
+            status:
+            this.status,
+
+
+            messages:
+            this.history.length
+
+
+        };
+
+    }
 
 };
 
 
 
+MessageSystem.load();
+// =====================================
+// JARVIS STARTUP FUNCTIONS V1
+// =====================================
 
+const StartupFunctions = {
 
+    version:"1.0",
+
+    status:"offline",
+
+    startTime:null,
+
+    modulesLoaded:[],
 
 
 
 // =====================================
-// START INTERFACE
+// START JARVIS
 // =====================================
 
+    initialize(){
 
 
-updatePanel();
+        this.startTime =
+        new Date();
+
+
+
+        this.status="starting";
+
+
+
+        this.loadModules();
+
+
+        this.runDiagnostics();
+
+
+        this.status="online";
+
+
+
+        return this.startReport();
+
+    },
+
+
+
 // =====================================
-// FINAL STARTUP CHECK
+// LOAD MODULES
 // =====================================
 
-
-console.log(
-
-"JARVIS V4 CORE ONLINE"
-
-);
+    loadModules(){
 
 
-console.log(
+        let modules=[
 
-JARVIS_CORE
 
-);
+            "Core Variables",
 
+            "Memory Center",
+
+            "Calendar Center",
+
+            "Mode Center",
+
+            "Explanation Engine",
+
+            "Knowledge Database",
+
+            "Knowledge Engine",
+
+            "Reasoning Engine",
+
+            "Personality Engine",
+
+            "Intelligence Center",
+
+            "Diagnostic Center",
+
+            "Message System"
+
+
+        ];
+
+
+
+        modules.forEach(module=>{
+
+
+            this.modulesLoaded.push({
+
+                name:module,
+
+                status:"loaded"
+
+            });
+
+
+        });
+
+
+    },
 
 
 
 // =====================================
-// ERROR PROTECTION
+// RUN CHECKS
 // =====================================
 
+    runDiagnostics(){
 
-window.onerror=function(message){
+
+        if(
+            typeof DiagnosticCenter !== "undefined"
+        ){
 
 
-console.log(
+            DiagnosticCenter.scan();
 
-"JARVIS ERROR:",
 
-message
+        }
 
-);
 
+    },
+
+
+
+// =====================================
+// STARTUP REPORT
+// =====================================
+
+    startReport(){
+
+
+        return {
+
+
+            name:
+            "JARVIS",
+
+
+            version:
+            this.version,
+
+
+            status:
+            this.status,
+
+
+            started:
+            this.startTime,
+
+
+            modules:
+            this.modulesLoaded
+
+
+        };
+
+    },
+
+
+
+// =====================================
+// SHUTDOWN
+// =====================================
+
+    shutdown(){
+
+
+        this.status="offline";
+
+
+        return "JARVIS shutdown complete.";
+
+    }
 
 };
+window.addEventListener(
+"load",
+()=>{
 
+    StartupFunctions.initialize();
 
+});
 
-// =====================================
-// END OF JAVASCRIPT
-// =====================================
 
 
 </script>
 
 
 </body>
+
 </html>
