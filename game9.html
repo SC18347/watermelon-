@@ -10837,102 +10837,106 @@ function addMessage(text, sender){
 }
 
 // =====================================
-// JARVIS STARTUP FUNCTIONS V1
+// JARVIS STARTUP FUNCTIONS V2
 // =====================================
 
 const StartupFunctions = {
 
-    version:"1.0",
+
+    version:"2.0",
 
     status:"offline",
-
-    startTime:null,
-
-    modulesLoaded:[],
 
 
 
 // =====================================
-// START JARVIS
+// INITIALIZE JARVIS
 // =====================================
 
     initialize(){
 
 
-        this.startTime =
-        new Date();
-
-
-
         this.status="starting";
 
 
+        console.log(
+            "JARVIS startup beginning..."
+        );
 
-        this.loadModules();
 
 
-        this.runDiagnostics();
+        this.checkSystems();
+
+
+
+        this.activateInterface();
+
 
 
         this.status="online";
 
 
 
-        return this.startReport();
+        this.startMessage();
+
 
     },
 
 
 
 // =====================================
-// LOAD MODULES
+// CHECK SYSTEMS
 // =====================================
 
-    loadModules(){
+    checkSystems(){
 
 
-        let modules=[
+        let systems=[
 
+            "ModeSystem",
 
-            "Core Variables",
+            "ExplanationEngine",
 
-            "Memory Center",
+            "KnowledgeEngine",
 
-            "Calendar Center",
+            "ReasoningEngine",
 
-            "Mode Center",
+            "PersonalityEngine",
 
-            "Explanation Engine",
+            "IntelligenceCenter",
 
-            "Knowledge Database",
+            "DiagnosticCenter",
 
-            "Knowledge Engine",
-
-            "Reasoning Engine",
-
-            "Personality Engine",
-
-            "Intelligence Center",
-
-            "Diagnostic Center",
-
-            "Message System"
-
+            "MessageSystem"
 
         ];
 
 
 
-        modules.forEach(module=>{
+        systems.forEach(system=>{
 
 
-            this.modulesLoaded.push({
+            if(
+                typeof window[system]
+                !== "undefined"
+            ){
 
-                name:module,
+                console.log(
+                    system+" ONLINE"
+                );
 
-                status:"loaded"
 
-            });
+            }
+
+            else{
+
+
+                console.log(
+                    system+" NOT FOUND"
+                );
+
+
+            }
 
 
         });
@@ -10943,86 +10947,70 @@ const StartupFunctions = {
 
 
 // =====================================
-// RUN CHECKS
+// ACTIVATE BUTTONS
 // =====================================
 
-    runDiagnostics(){
+    activateInterface(){
 
 
-        if(
-            typeof DiagnosticCenter !== "undefined"
-        ){
+        console.log(
+            "JARVIS interface ready"
+        );
 
 
-            DiagnosticCenter.scan();
+    },
+
+
+
+// =====================================
+// START MESSAGE
+// =====================================
+
+    startMessage(){
+
+
+        if(typeof addMessage==="function"){
+
+
+            addMessage(
+
+            "JARVIS systems are online.",
+
+            "jarvis"
+
+            );
 
 
         }
 
 
-    },
+        console.log(
+            "JARVIS systems are online."
+        );
 
-
-
-// =====================================
-// STARTUP REPORT
-// =====================================
-
-    startReport(){
-
-
-        return {
-
-
-            name:
-            "JARVIS",
-
-
-            version:
-            this.version,
-
-
-            status:
-            this.status,
-
-
-            started:
-            this.startTime,
-
-
-            modules:
-            this.modulesLoaded
-
-
-        };
-
-    },
-
-
-
-// =====================================
-// SHUTDOWN
-// =====================================
-
-    shutdown(){
-
-
-        this.status="offline";
-
-
-        return "JARVIS shutdown complete.";
 
     }
 
+
 };
+
+
+
+// =====================================
+// START JARVIS
+// =====================================
+
 window.addEventListener(
+
 "load",
+
 ()=>{
 
     StartupFunctions.initialize();
 
-});
+}
 
+);
 
 
 </script>
